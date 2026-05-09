@@ -209,8 +209,10 @@ function calcOrdine(o){
   const rMultiple=plFinal!==null&&maxLossEur?(plFinal/maxLossEur).toFixed(2):null;
   const qtyRem=posSize-qtyExited;
   const stato=qtyRem<=0?'chiuso':qtyExited>0?'parziale':'aperto';
-  const tax=calcTax(plFinal,o.piattaforma);
-  return{buyAmount,sellAmount,qtyExited,qtyRem,plUSD,plEur,plFinal,plPct,totalComm,duration,maxLossEur,rMultiple,tax,stato};
+  const minusComp=Math.max(0,nn(o.minus_compensata)||0);
+  const baseImp=plFinal!==null?Math.max(0,plFinal-minusComp):null;
+  const tax=baseImp!==null&&baseImp>0?baseImp*TAX_RATE:0;
+  return{buyAmount,sellAmount,qtyExited,qtyRem,plUSD,plEur,plFinal,plPct,totalComm,duration,maxLossEur,rMultiple,minusComp,baseImp,tax,stato};
 }
 
 function gasUrlWith(extra){return S.gasUrl+'?token='+encodeURIComponent(S.pwd)+(extra?'&'+extra:'');}
@@ -219,7 +221,7 @@ async function gasWrite(type,op,record){if(!S.gasUrl||!S.pwd)return;try{await fe
 
 function addSignal(d){const s={id:uid(),created:new Date().toISOString(),stato:'ricevuto',...d};S.signals.unshift(s);persist();gasWrite('signal','add',s);render();}
 function updSig(id,p){const i=S.signals.findIndex(s=>s.id===id);if(i<0)return;S.signals[i]={...S.signals[i],...p,updated:new Date().toISOString()};persist();gasWrite('signal','update',S.signals[i]);render();}
-function addOrdine(d){const o={id:uid(),created:new Date().toISOString(),stato:'aperto',uscite:'[]',...d};S.ordini.unshift(o);persist();gasWrite('ordine','add',o);render();}
+function addOrdine(d){const o={id:uid(),created:new Date().toISOString(),stato:'aperto',uscite:'[]',minus_compensata:null,minus_refs:'[]',...d};S.ordini.unshift(o);persist();gasWrite('ordine','add',o);render();}
 function updOrdine(id,p){const i=S.ordini.findIndex(o=>o.id===id);if(i<0)return;const merged={...S.ordini[i],...p};const res=calcOrdine(merged);S.ordini[i]={...merged,stato:res.stato,updated:new Date().toISOString()};persist();gasWrite('ordine','update',S.ordini[i]);render();}
 function addUscita(ordineId,uscita){const i=S.ordini.findIndex(o=>o.id===ordineId);if(i<0)return;const uscite=JSON.parse(S.ordini[i].uscite||'[]');uscite.push({id:uid(),...uscita});const newU=JSON.stringify(uscite);const res=calcOrdine({...S.ordini[i],uscite:newU});S.ordini[i]={...S.ordini[i],uscite:newU,stato:res.stato,updated:new Date().toISOString()};persist();gasWrite('ordine','update',S.ordini[i]);render();}
 function delUscita(ordineId,uscitaId){const i=S.ordini.findIndex(o=>o.id===ordineId);if(i<0)return;const uscite=JSON.parse(S.ordini[i].uscite||'[]').filter(u=>u.id!==uscitaId);const newU=JSON.stringify(uscite);const res=calcOrdine({...S.ordini[i],uscite:newU});S.ordini[i]={...S.ordini[i],uscite:newU,stato:res.stato,updated:new Date().toISOString()};persist();gasWrite('ordine','update',S.ordini[i]);render();}
@@ -228,7 +230,8 @@ const openOrdini=()=>S.ordini.filter(o=>o.stato==='aperto'||o.stato==='parziale'
 const closedOrdini=()=>S.ordini.filter(o=>o.stato==='chiuso');
 function totalOrdiniPL(){return S.ordini.map(o=>calcOrdine(o)).reduce((s,r)=>s+(r.plFinal||0),0);}
 function totalOrdiniTax(){return S.ordini.map(o=>calcOrdine(o)).reduce((s,r)=>s+(r.tax||0),0);}
-function summaryByPlatform(){const r={};PLATFORMS.forEach(p=>r[p]={pl:0,gains:0,losses:0,trades:0,wins:0});S.ordini.forEach(o=>{const res=calcOrdine(o);const p=o.piattaforma||'';if(!r[p])return;const pl=res.plFinal||0;r[p].trades++;if(res.stato!=='aperto'){r[p].pl+=pl;if(pl>0){r[p].gains+=pl;r[p].wins++;}else if(pl<0)r[p].losses+=pl;}});return r;}
+function summaryByPlatform(){const r={};PLATFORMS.forEach(p=>r[p]={pl:0,gains:0,gainsBase:0,losses:0,trades:0,wins:0});S.ordini.forEach(o=>{const res=calcOrdine(o);const p=o.piattaforma||'';if(!r[p])return;const pl=res.plFinal||0;r[p].trades++;if(res.stato!=='aperto'){r[p].pl+=pl;if(pl>0){r[p].gains+=pl;r[p].gainsBase+=(res.baseImp||0);r[p].wins++;}else if(pl<0)r[p].losses+=pl;}});return r;}
+function poolMinusvalenze(){const now=new Date();const curY=now.getFullYear();let pool=0;S.ordini.forEach(o=>{const res=calcOrdine(o);if(res.stato!=='chiuso'||!res.plFinal||res.plFinal>=0)return;let yr=curY;try{const us=JSON.parse(o.uscite||'[]');const last=us.map(u=>u.exit_datetime).filter(Boolean).sort().pop();if(last)yr=new Date(last).getFullYear();}catch(e){}if(curY-yr<=4)pool+=Math.abs(res.plFinal);});const used=S.ordini.reduce((s,o)=>s+(nn(o.minus_compensata)||0),0);return{pool,used,remaining:Math.max(0,pool-used)};}
 
 function openM(type,data={}){S.modal={type,data};render();}
 function closeM(){S.modal=null;render();}
@@ -259,14 +262,16 @@ function viewDashboard(){
     <div class="stat"><div class="stat-label">Win Rate</div><div class="stat-val ${wr>=50?'gr':'rd'}">${wr}%</div><div class="stat-sub">${wins}W · ${chiusi.length-wins}L</div></div>
     <div class="stat"><div class="stat-label">Ordini Aperti</div><div class="stat-val bl">${aperti.length}</div><div class="stat-sub">${aperti.filter(o=>o.stato==='parziale').length} parziali</div></div>
     <div class="stat"><div class="stat-label">Segnali Attivati</div><div class="stat-val yl">${S.signals.filter(s=>s.stato==='attivato').length}</div><div class="stat-sub">In attesa apertura</div></div>
+    ${(()=>{const acc=calcAccantonamento();return `<div class="stat" style="border-color:var(--rd);"><div class="stat-label">Da Accantonare</div><div class="stat-val rd">${fmt(acc.dich)}€</div><div class="stat-sub">Tasse dichiarative · ${acc.fin?fmt(acc.fin)+'€ broker (Fineco)':''}</div></div>`;})()}
   </div>
   <div class="gr2">
     <div class="card"><div class="card-head"><div class="card-title">P&L per Piattaforma</div></div><div class="tbl-wrap"><table><thead><tr><th>Piattaforma</th><th>Ordini</th><th>Win%</th><th>Lordo</th><th>Netto</th></tr></thead><tbody>
     ${PLATFORMS.map(p=>{const d=byP[p];const wr2=d.trades?(d.wins/d.trades*100).toFixed(0)+'%':'—';const net=d.pl-calcTax(d.pl,p);return `<tr><td><strong>${p}</strong>${p===FINECO?' <span class="dim" style="font-size:10px">(broker)</span>':''}</td><td class="dim">${d.trades}</td><td class="dim">${wr2}</td><td class="mono ${plClass(d.pl)}">${d.pl?fmtEur(d.pl):'—'}</td><td><span class="mono ${plClass(net)}">${d.pl?fmtEur(net):'—'}</span></td></tr>`;}).join('')}
     </tbody></table></div></div>
     <div class="card"><div class="card-head"><div class="card-title">Fiscalità Anno Corrente</div></div><div class="card-body">
-    ${PLATFORMS.map(p=>{const d=byP[p];const net=d.gains+d.losses;const t2=net>0?net*TAX_RATE:0;const isFineco=p===FINECO;return `<div style="padding:10px 0;border-bottom:1px solid var(--b1)"><div class="flex ai jb" style="margin-bottom:6px"><div><strong>${p}</strong><span class="dim" style="font-size:10px;margin-left:6px">${isFineco?'gestito broker':'dichiarativo'}</span></div><span class="badge ${t2>0?'br':'bg'}">${t2>0?'Imposta: '+fmt(t2)+'€':'Nessuna imposta'}</span></div><div class="gr4" style="font-size:11px;color:var(--t2)"><span>Plus: <span class="gr-text">+${fmt(d.gains)}€</span></span><span>Minus: <span class="rd-text">${fmt(d.losses)}€</span></span><span>Tasse: <span class="rd-text">${t2?'-'+fmt(t2)+'€':'—'}</span></span><span>Netto: <span class="${plClass(net-t2)}">${fmtEur(net-t2)}</span></span></div></div>`;}).join('')}
-    <div style="padding-top:10px;font-size:11px;color:var(--t3)">Fineco: il broker versa l'imposta alla fonte — nessun adempimento dichiarativo<br>Dichiarativo: plusvalenze al netto delle minusvalenze degli ultimi 4 anni</div></div></div>
+    ${(()=>{const pool=poolMinusvalenze();return `<div style="background:var(--yl-dim);border:1px solid rgba(245,197,66,.2);border-radius:8px;padding:12px;margin-bottom:14px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--yl);margin-bottom:8px">📉 Pool Minusvalenze Disponibili</div><div class="gr3" style="font-size:12px"><div>Totale pool: <span class="mono rd-text">-${fmt(pool.pool)}€</span></div><div>Già compensate: <span class="mono dim">-${fmt(pool.used)}€</span></div><div>Residue: <span class="mono yl-text">-${fmt(pool.remaining)}€</span></div></div><div style="font-size:11px;color:var(--t3);margin-top:6px">Vai al dettaglio di un ordine in profitto per applicare la compensazione.</div></div>`;})()}
+    ${PLATFORMS.map(p=>{const d=byP[p];const net=d.gains+d.losses;const baseNet=d.gainsBase+d.losses;const t2=baseNet>0?baseNet*TAX_RATE:0;const isFineco=p===FINECO;return `<div style="padding:10px 0;border-bottom:1px solid var(--b1)"><div class="flex ai jb" style="margin-bottom:6px"><div><strong>${p}</strong><span class="dim" style="font-size:10px;margin-left:6px">${isFineco?'gestito broker':'dichiarativo'}</span></div><span class="badge ${t2>0?'br':'bg'}">${t2>0?'Imposta: '+fmt(t2)+'€':'Nessuna imposta'}</span></div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;font-size:11px;color:var(--t2)"><span>Plus: <span class="gr-text">+${fmt(d.gains)}€</span></span><span>Minus: <span class="rd-text">${fmt(d.losses)}€</span></span><span>Comp.: <span class="yl-text">${d.gains>0?'-'+fmt(d.gains-d.gainsBase)+'€':'—'}</span></span><span>Base imp.: <span class="mono">${fmt(Math.max(0,baseNet))}€</span></span><span>Netto: <span class="${plClass(net-t2)}">${fmtEur(net-t2)}</span></span></div></div>`;}).join('')}
+    <div style="padding-top:10px;font-size:11px;color:var(--t3)">Fineco: il broker versa la ritenuta alla fonte — nessun adempimento dichiarativo<br>La compensazione riduce la base imponibile prima dell'applicazione del 26%</div></div></div>
   ${calcMinusvalenzeHTML()}
   </div>
   ${aperti.length?`<div class="card"><div class="card-head"><div class="card-title">⚠ Monitoraggio Stop</div></div><div class="tbl-wrap"><table><thead><tr><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>Dist.%</th><th>Investito €</th><th>Rischio Max €</th></tr></thead><tbody>
@@ -421,10 +426,21 @@ function renderModal(){
         <div class="ris-item"><div class="ris-label">Commissioni</div><div class="ris-val dim">${res.totalComm?fmt(res.totalComm)+'€':'—'}</div></div>
         <div class="ris-item"><div class="ris-label">Durata</div><div class="ris-val dim">${res.duration!==null?res.duration+' gg':'—'}</div></div>
         <div class="ris-item"><div class="ris-label">R-Multiple</div><div class="ris-val ${plClass(res.rMultiple)}">${res.rMultiple?'1:'+res.rMultiple:'—'}</div></div>
-        <div class="ris-item"><div class="ris-label">Tasse ${o.piattaforma===FINECO?'(broker)':''}</div><div class="ris-val rd-text">${res.tax?'-'+fmt(res.tax)+'€':'—'}</div></div>
+        <div class="ris-item"><div class="ris-label">Minus Comp.</div><div class="ris-val yl-text">${res.minusComp>0?'-'+fmt(res.minusComp)+'€':'—'}</div></div>
+        <div class="ris-item"><div class="ris-label">Base Imponibile</div><div class="ris-val">${res.baseImp!==null?fmt(res.baseImp)+'€':'—'}</div></div>
+        <div class="ris-item"><div class="ris-label">Tasse 26% ${o.piattaforma===FINECO?'<span style="font-size:9px">(broker)</span>':''}</div><div class="ris-val rd-text">${res.tax?'-'+fmt(res.tax)+'€':'—'}</div></div>
       </div>
-      ${res.plFinal!==null?`<div style="margin-top:10px;font-size:12px;color:var(--t2)">P&L Netto: <span class="mono ${plClass(res.plFinal-res.tax)}">${fmtEur(res.plFinal-res.tax)}</span>${o.piattaforma===FINECO?' <span class="dim" style="font-size:10px">(gestito broker)</span>':''}</div>`:''}
+      ${res.plFinal!==null?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--b1)">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:12px;color:var(--t2)">
+          <span>P&L Lordo: <span class="mono ${plClass(res.plFinal)}">${fmtEur(res.plFinal)}</span></span>
+          <span>Minus comp.: <span class="mono yl-text">${res.minusComp>0?'-'+fmt(res.minusComp)+'€':'—'}</span></span>
+          <span>Base imp.: <span class="mono">${res.baseImp!==null?fmt(res.baseImp)+'€':'—'}</span></span>
+          <span>P&L Netto: <span class="mono ${plClass(res.plFinal-res.tax)}">${fmtEur(res.plFinal-res.tax)}</span>${o.piattaforma===FINECO?' <span class="dim" style="font-size:9px">(broker)</span>':''}</span>
+        </div>
+        ${(()=>{let refs=[];try{refs=JSON.parse(o.minus_refs||'[]');}catch(e){}if(!refs.length)return '';return `<div style="margin-top:8px;font-size:11px;color:var(--t3)">Minusvalenze applicate: ${refs.map(r=>`<span class="badge bgr" style="margin-right:4px">${esc(r.symbol)} -${fmt(r.importo)}€</span>`).join('')}</div>`;})()}
+      </div>`:''}
     </div>
+    ${renderMinusSelectionUI(o.id)}
     <div class="override-wrap" style="margin-top:14px"><div class="override-label">⚡ Override P&L Globale Ordine</div>
     <div class="gr2">
       <div class="form-group" style="margin-bottom:0"><label>P&L Reale Totale (€)</label><input type="number" id="ovr_pl" step="0.01" value="${o.pl_override!==null&&o.pl_override!==undefined?o.pl_override:''}" placeholder="Lascia vuoto per usare il calcolato"></div>
@@ -470,40 +486,181 @@ async function testGas(){const url=document.getElementById('gasInput')?.value?.t
 function calcMinusvalenzeHTML(){
   const now=new Date();
   const curYear=now.getFullYear();
-  // Raccoglie minusvalenze per anno (da uscite degli ordini chiusi con P&L negativo)
-  const byYear={};
+  // Raccoglie minusvalenze per ordine con anno e stato compensazione
+  const rows=[];
+  let totPool=0,totUsed=0;
   S.ordini.forEach(o=>{
     const res=calcOrdine(o);
     if(res.stato!=='chiuso'||!res.plFinal||res.plFinal>=0) return;
-    // Anno dell'ultima uscita
     let year=curYear;
-    try{const uscite=JSON.parse(o.uscite||'[]');const last=uscite.map(u=>u.exit_datetime).filter(Boolean).sort().pop();if(last)year=new Date(last).getFullYear();}catch(e){}
-    if(!byYear[year]) byYear[year]={tot:0,pf:o.piattaforma==='Fineco'?'F':'D'};
-    byYear[year].tot+=Math.abs(res.plFinal);
+    try{const us=JSON.parse(o.uscite||'[]');const last=us.map(u=>u.exit_datetime).filter(Boolean).sort().pop();if(last)year=new Date(last).getFullYear();}catch(e){}
+    const scade=year+4;
+    const expired=curYear-year>4;
+    const disponibile=Math.abs(res.plFinal);
+    if(!expired){totPool+=disponibile;}
+    // Cerca quanto di questa minus è già stata usata su altri ordini
+    // (semplificazione: tracciamo solo il pool globale, non il link specifico)
+    rows.push({o,res,year,scade,expired,disponibile});
   });
-  const years=Object.keys(byYear).sort().reverse();
-  if(years.length===0) return '';
-  // Totale compensabile (entro 4 anni)
-  const totComp=years.filter(y=>curYear-parseInt(y)<=4).reduce((s,y)=>s+byYear[y].tot,0);
-  const rows=years.map(y=>{
-    const eta=curYear-parseInt(y);
-    const scade=parseInt(y)+4;
-    const expired=eta>4;
-    const regime=byYear[y].pf==='F'?'Fineco (amm.)':'Dichiarativo';
+  if(rows.length===0) return '';
+  const pool=poolMinusvalenze();
+  const tableRows=rows.map(({o,res,year,scade,expired,disponibile})=>{
     return `<tr style="${expired?'opacity:.4':''}">
-      <td class="mono dim">${y}</td>
-      <td class="mono rd-text">-${fmt(byYear[y].tot)}€</td>
-      <td class="dim">${regime}</td>
+      <td><strong>${esc(o.symbol)}</strong></td>
+      <td class="mono rd-text">-${fmt(disponibile)}€</td>
+      <td><span class="platform-tag">${esc(o.piattaforma)}</span></td>
+      <td class="mono dim">${year}</td>
       <td class="${expired?'rd-text dim':'yl-text'}">${expired?'Scaduta':'Entro '+scade}</td>
-      <td class="dim">${expired?'—':fmt(byYear[y].tot)+'€'}</td>
+      <td>${expired?'<span class="dim">—</span>':`<button class="btn btn-sm btn-gh" onclick="openM('dettaglioOrdine',{id:'${o.id}'})">Dettaglio</button>`}</td>
     </tr>`;
   }).join('');
-  return `<div class="card" style="margin-top:16px"><div class="card-head"><div class="card-title">📉 Minusvalenze — Compensazione nei 4 anni</div></div>
-  <div class="tbl-wrap"><table><thead><tr><th>Anno</th><th>Minus €</th><th>Regime</th><th>Scadenza</th><th>Compensabile</th></tr></thead><tbody>${rows}</tbody></table></div>
-  <div style="padding:12px 18px;font-size:12px;color:var(--t2);border-top:1px solid var(--b1)">
-    Totale compensabile (entro 4 anni): <span class="mono yl-text">-${fmt(totComp)}€</span>
-    <span class="dim" style="margin-left:12px">Le minusvalenze Fineco compensano solo nel regime amministrato Fineco. Le minusvalenze dichiarative (IBKR/TradeZero/Degiro) si compensano tra loro.</span>
+  return `<div class="card" style="margin-top:16px"><div class="card-head"><div class="card-title">📉 Minusvalenze — Dettaglio per Ordine</div></div>
+  <div style="padding:12px 18px;background:var(--s2);border-bottom:1px solid var(--b1)"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:12px"><div>Pool totale: <span class="mono rd-text">-${fmt(pool.pool)}€</span></div><div>Già compensate: <span class="mono yl-text">-${fmt(pool.used)}€</span></div><div>Residue: <span class="mono yl-text font-weight:700">-${fmt(pool.remaining)}€</span></div></div></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Symbol</th><th>Minusvalenza</th><th>Piattaforma</th><th>Anno</th><th>Scadenza</th><th>Azione</th></tr></thead><tbody>${tableRows}</tbody></table></div>
+  <div style="padding:12px 18px;font-size:11px;color:var(--t3);border-top:1px solid var(--b1)">
+    Per applicare una compensazione: apri il Dettaglio di un ordine in profitto → sezione "Compensazione Minusvalenze".<br>
+    Ogni piattaforma mantiene il proprio regime fiscale — le minusvalenze Fineco si compensano nel regime amministrato Fineco.
   </div></div>`;
+}
+
+
+function previewMinusComp(ordineId){
+  const o=S.ordini.find(x=>x.id===ordineId); if(!o) return;
+  const val=nn(document.getElementById('minus_comp_input')?.value)||0;
+  const res=calcOrdine(o);
+  if(!res.plFinal) return;
+  const el=document.getElementById('minusCompPreview'); if(!el) return;
+  const baseImp=Math.max(0,res.plFinal-val);
+  const tax=baseImp*0.26;
+  const netto=res.plFinal-tax;
+  el.innerHTML=`<div style="background:var(--s2);border-radius:7px;padding:10px;font-size:12px"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;color:var(--t2)"><span>P&L Lordo: <span class="mono gr-text">${fmtEur(res.plFinal)}</span></span><span>Minus: <span class="mono yl-text">${val?'-'+fmt(val)+'€':'—'}</span></span><span>Base imp.: <span class="mono">${fmt(baseImp)}€</span></span><span>Tasse: <span class="mono rd-text">-${fmt(tax)}€</span></span></div><div style="margin-top:6px;font-weight:700">P&L Netto stimato: <span class="mono ${plClass(netto)}">${fmtEur(netto)}</span></div></div>`;
+}
+
+function submitMinusComp(ordineId, remove=false){
+  if(remove){ updOrdine(ordineId,{minus_compensata:null}); closeM(); return; }
+  const val=nn(document.getElementById('minus_comp_input')?.value);
+  if(val===null||val<0){ alert('Inserisci un importo valido (≥ 0)'); return; }
+  const pool=poolMinusvalenze();
+  const o=S.ordini.find(x=>x.id===ordineId)||{};
+  const curMinus=nn(o.minus_compensata)||0;
+  const maxApplicabile=pool.remaining+curMinus; // considera quella già applicata su questo ordine
+  if(val>maxApplicabile+0.01){
+    if(!confirm(`Pool disponibile: ${fmt(maxApplicabile)}€. Stai applicando ${fmt(val)}€. Continuare comunque?`)) return;
+  }
+  updOrdine(ordineId,{minus_compensata:val});
+  closeM();
+}
+
+
+function getAvailableMinusvalenze(forOrdineId){
+  const now=new Date(),curY=now.getFullYear();
+  const forO=S.ordini.find(x=>x.id===forOrdineId)||{};
+  let curRefs=[];try{curRefs=JSON.parse(forO.minus_refs||'[]');}catch(e){}
+  return S.ordini.filter(o=>o.id!==forOrdineId).map(o=>{
+    const res=calcOrdine(o);
+    if(res.stato!=='chiuso'||!res.plFinal||res.plFinal>=0)return null;
+    let year=curY;
+    try{const us=JSON.parse(o.uscite||'[]');const last=us.map(u=>u.exit_datetime).filter(Boolean).sort().pop();if(last)year=new Date(last).getFullYear();}catch(e){}
+    if(curY-year>4)return null;
+    const totalLoss=Math.abs(res.plFinal);
+    const ref=curRefs.find(r=>r.id===o.id);
+    const alreadyApplied=ref?ref.importo:0;
+    return{id:o.id,symbol:o.symbol,piattaforma:o.piattaforma,year,scade:year+4,totalLoss,alreadyApplied};
+  }).filter(Boolean);
+}
+
+function calcAccantonamento(){
+  let dich=0,fin=0;
+  S.ordini.forEach(o=>{const res=calcOrdine(o);if(res.stato!=='chiuso')return;if(o.piattaforma===FINECO)fin+=res.tax;else dich+=res.tax;});
+  return{dich,fin};
+}
+
+function updateMinusPreview(ordineId){
+  const forO=S.ordini.find(x=>x.id===ordineId)||{};
+  const res=calcOrdine(forO);
+  if(!res.plFinal)return;
+  const avail=getAvailableMinusvalenze(ordineId);
+  let totalSel=0;
+  avail.forEach(m=>{
+    const cb=document.getElementById('mcb_'+m.id);
+    const amt=document.getElementById('mamt_'+m.id);
+    if(cb&&cb.checked&&amt) totalSel+=nn(amt.value)||0;
+  });
+  const baseImp=Math.max(0,res.plFinal-totalSel);
+  const tax=baseImp*0.26;
+  const netto=res.plFinal-tax;
+  const el=document.getElementById('minusPreviewRow');
+  if(el) el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:12px;color:var(--t2);background:var(--s2);border-radius:7px;padding:10px;margin-top:8px"><span>P&L Lordo: <span class="mono gr-text">${fmtEur(res.plFinal)}</span></span><span>Minus comp.: <span class="mono yl-text">${totalSel?'-'+fmt(totalSel)+'€':'—'}</span></span><span>Base imp.: <span class="mono">${fmt(baseImp)}€</span></span><span>Tasse 26%: <span class="mono rd-text">${tax?'-'+fmt(tax)+'€':'—'}</span></span></div><div style="font-size:13px;font-weight:700;margin-top:6px;padding:8px;background:var(--s2);border-radius:7px">P&L Netto stimato: <span class="mono ${plClass(netto)}">${fmtEur(netto)}</span></div>`;
+}
+
+function toggleMinusRow(minusId, ordineId){
+  const cb=document.getElementById('mcb_'+minusId);
+  const amt=document.getElementById('mamt_'+minusId);
+  if(!cb||!amt)return;
+  amt.disabled=!cb.checked;
+  if(!cb.checked)amt.value='';
+  updateMinusPreview(ordineId);
+}
+
+function submitMinusCompNew(ordineId){
+  const forO=S.ordini.find(x=>x.id===ordineId)||{};
+  const avail=getAvailableMinusvalenze(ordineId);
+  const refs=[];
+  let total=0;
+  avail.forEach(m=>{
+    const cb=document.getElementById('mcb_'+m.id);
+    const amt=document.getElementById('mamt_'+m.id);
+    if(cb&&cb.checked&&amt){
+      const v=nn(amt.value)||0;
+      if(v>0){refs.push({id:m.id,symbol:m.symbol,importo:v});total+=v;}
+    }
+  });
+  updOrdine(ordineId,{minus_compensata:total||null,minus_refs:JSON.stringify(refs)});
+  closeM();
+}
+
+function renderMinusSelectionUI(ordineId){
+  const forO=S.ordini.find(x=>x.id===ordineId)||{};
+  const res=calcOrdine(forO);
+  if(res.stato!=='chiuso'||!res.plFinal||res.plFinal<=0) return '';
+  const avail=getAvailableMinusvalenze(ordineId);
+  if(avail.length===0) return `<div style="background:var(--yl-dim);border:1px solid rgba(245,197,66,.2);border-radius:8px;padding:14px;margin-top:14px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--yl);margin-bottom:6px">📉 Compensazione Minusvalenze</div><div class="dim" style="font-size:12px">Nessuna minusvalenza disponibile. Le minusvalenze vengono generate dagli ordini chiusi in perdita.</div></div>`;
+  
+  let curRefs=[];try{curRefs=JSON.parse(forO.minus_refs||'[]');}catch(e){}
+  const rows=avail.map(m=>{
+    const ref=curRefs.find(r=>r.id===m.id);
+    const checked=!!ref;
+    const val=ref?ref.importo:'';
+    return `<tr>
+      <td style="padding:8px 10px"><input type="checkbox" id="mcb_${m.id}" ${checked?'checked':''} onchange="toggleMinusRow('${m.id}','${ordineId}')"></td>
+      <td style="padding:8px 10px"><strong>${esc(m.symbol)}</strong></td>
+      <td style="padding:8px 10px"><span class="platform-tag">${esc(m.piattaforma)}</span></td>
+      <td style="padding:8px 10px" class="mono dim">${m.year} <span class="dim" style="font-size:10px">(scade ${m.scade})</span></td>
+      <td style="padding:8px 10px" class="mono rd-text">-${fmt(m.totalLoss)}€</td>
+      <td style="padding:8px 10px"><input type="number" id="mamt_${m.id}" step="0.01" min="0" max="${m.totalLoss}" value="${val}" ${checked?'':'disabled'} style="width:110px;padding:6px 8px;border-radius:6px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-family:var(--font-mono);font-size:12px" oninput="updateMinusPreview('${ordineId}')"></td>
+    </tr>`;
+  }).join('');
+  
+  return `<div style="background:var(--yl-dim);border:1px solid rgba(245,197,66,.2);border-radius:8px;padding:14px;margin-top:14px">
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--yl);margin-bottom:10px">📉 Compensazione Minusvalenze — Seleziona</div>
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:rgba(0,0,0,.1)">
+        <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em"></th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Symbol</th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Broker</th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Anno</th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Loss Totale</th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Importo da usare</th>
+      </tr></thead>
+      <tbody style="border-top:1px solid rgba(245,197,66,.2)">${rows}</tbody>
+    </table>
+    <div id="minusPreviewRow"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-yl" onclick="submitMinusCompNew('${ordineId}')">✓ Applica compensazione</button>
+      <button class="btn btn-gh" onclick="updOrdine('${ordineId}',{minus_compensata:null,minus_refs:'[]'});closeM()">✕ Rimuovi tutto</button>
+    </div>
+    <div style="font-size:11px;color:var(--yl);margin-top:8px;opacity:.8">Puoi usare importi parziali — non devi necessariamente compensare l'intera perdita in un solo trade.</div>
+  </div>`;
 }
 
 const TABS=[{id:'dashboard',ic:'▦',l:'Dashboard'},{id:'segnali',ic:'◎',l:'Segnali EK'},{id:'ordini',ic:'◈',l:'Ordini'},{id:'setup',ic:'⚙',l:'Setup'}];
