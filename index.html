@@ -184,7 +184,8 @@ function savePassword(p){S.pwd=p;localStorage.setItem('ek_pwd',p);sessionStorage
 function submitFirstSetup(){const p1=document.getElementById('setupPwd1')?.value||'';const p2=document.getElementById('setupPwd2')?.value||'';const el=document.getElementById('setupErr');if(p1.length<6){if(el)el.innerHTML=`<div class="login-error">Minimo 6 caratteri.</div>`;return;}if(p1!==p2){if(el)el.innerHTML=`<div class="login-error">Non corrispondono.</div>`;return;}savePassword(p1);}
 
 function movePct(dir,entry,target){if(!entry||!target)return null;return dir==='BUY'?(target-entry)/entry*100:(entry-target)/entry*100;}
-function calcTax(pl,platform){if(platform===FINECO||!pl||pl<=0)return 0;return pl*TAX_RATE;}
+function calcTax(pl,platform){if(!pl||pl<=0)return 0;return pl*TAX_RATE;}
+function taxLabel(p){return p===FINECO?'gestito broker':'dichiarativo';}
 
 function calcOrdine(o){
   const uscite=JSON.parse(o.uscite||'[]');
@@ -261,11 +262,12 @@ function viewDashboard(){
   </div>
   <div class="gr2">
     <div class="card"><div class="card-head"><div class="card-title">P&L per Piattaforma</div></div><div class="tbl-wrap"><table><thead><tr><th>Piattaforma</th><th>Ordini</th><th>Win%</th><th>Lordo</th><th>Netto</th></tr></thead><tbody>
-    ${PLATFORMS.map(p=>{const d=byP[p];const wr2=d.trades?(d.wins/d.trades*100).toFixed(0)+'%':'—';const net=d.pl-calcTax(d.pl,p);return `<tr><td><strong>${p}</strong></td><td class="dim">${d.trades}</td><td class="dim">${wr2}</td><td class="mono ${plClass(d.pl)}">${d.pl?fmtEur(d.pl):'—'}</td><td>${p===FINECO?`<span class="dim">Gestito</span>`:`<span class="mono ${plClass(net)}">${fmtEur(net)}</span>`}</td></tr>`;}).join('')}
+    ${PLATFORMS.map(p=>{const d=byP[p];const wr2=d.trades?(d.wins/d.trades*100).toFixed(0)+'%':'—';const net=d.pl-calcTax(d.pl,p);return `<tr><td><strong>${p}</strong>${p===FINECO?' <span class="dim" style="font-size:10px">(broker)</span>':''}</td><td class="dim">${d.trades}</td><td class="dim">${wr2}</td><td class="mono ${plClass(d.pl)}">${d.pl?fmtEur(d.pl):'—'}</td><td><span class="mono ${plClass(net)}">${d.pl?fmtEur(net):'—'}</span></td></tr>`;}).join('')}
     </tbody></table></div></div>
     <div class="card"><div class="card-head"><div class="card-title">Fiscalità Anno Corrente</div></div><div class="card-body">
-    ${PLATFORMS.filter(p=>p!==FINECO).map(p=>{const d=byP[p];const net=d.gains+d.losses;const t2=net>0?net*TAX_RATE:0;return `<div style="padding:10px 0;border-bottom:1px solid var(--b1)"><div class="flex ai jb" style="margin-bottom:6px"><strong>${p}</strong><span class="badge ${t2>0?'br':'bg'}">${t2>0?'Imposta: '+fmt(t2)+'€':'Nessuna imposta'}</span></div><div class="gr3" style="font-size:11px;color:var(--t2)"><span>Plus: <span class="gr-text">+${fmt(d.gains)}€</span></span><span>Minus: <span class="rd-text">${fmt(d.losses)}€</span></span><span>Netto: <span class="${plClass(net)}">${fmtEur(net)}</span></span></div></div>`;}).join('')}
-    <div style="padding-top:10px;font-size:11px;color:var(--t3)">Fineco: regime amministrato — tasse alla fonte<br>Minus compensabili entro 4 anni fiscali</div></div></div>
+    ${PLATFORMS.map(p=>{const d=byP[p];const net=d.gains+d.losses;const t2=net>0?net*TAX_RATE:0;const isFineco=p===FINECO;return `<div style="padding:10px 0;border-bottom:1px solid var(--b1)"><div class="flex ai jb" style="margin-bottom:6px"><div><strong>${p}</strong><span class="dim" style="font-size:10px;margin-left:6px">${isFineco?'gestito broker':'dichiarativo'}</span></div><span class="badge ${t2>0?'br':'bg'}">${t2>0?'Imposta: '+fmt(t2)+'€':'Nessuna imposta'}</span></div><div class="gr4" style="font-size:11px;color:var(--t2)"><span>Plus: <span class="gr-text">+${fmt(d.gains)}€</span></span><span>Minus: <span class="rd-text">${fmt(d.losses)}€</span></span><span>Tasse: <span class="rd-text">${t2?'-'+fmt(t2)+'€':'—'}</span></span><span>Netto: <span class="${plClass(net-t2)}">${fmtEur(net-t2)}</span></span></div></div>`;}).join('')}
+    <div style="padding-top:10px;font-size:11px;color:var(--t3)">Fineco: il broker versa l'imposta alla fonte — nessun adempimento dichiarativo<br>Dichiarativo: plusvalenze al netto delle minusvalenze degli ultimi 4 anni</div></div></div>
+  ${calcMinusvalenzeHTML()}
   </div>
   ${aperti.length?`<div class="card"><div class="card-head"><div class="card-title">⚠ Monitoraggio Stop</div></div><div class="tbl-wrap"><table><thead><tr><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>Dist.%</th><th>Investito €</th><th>Rischio Max €</th></tr></thead><tbody>
   ${aperti.map(o=>{const ep=nn(o.entry_price),sl=nn(o.stop_loss),inv=nn(o.investito_eur),ps=nn(o.position_size)||0;const dist=ep&&sl?Math.abs(ep-sl)/ep*100:null;const risk=ep&&sl&&ps&&inv?inv*(Math.abs(ep-sl)/ep):null;return `<tr><td><strong>${esc(o.symbol)}</strong></td><td>${dirBadge(o.position)}</td><td><span class="platform-tag">${esc(o.piattaforma)}</span></td><td class="mono">${fmt(ep)}</td><td class="mono rd-text">${sl?fmt(sl):'—'}</td><td class="mono dim">${dist?dist.toFixed(2)+'%':'—'}</td><td class="mono">${inv?fmt(inv)+'€':'—'}</td><td class="mono rd-text">${risk?fmt(risk)+'€':'—'}</td></tr>`;}).join('')}
@@ -419,9 +421,9 @@ function renderModal(){
         <div class="ris-item"><div class="ris-label">Commissioni</div><div class="ris-val dim">${res.totalComm?fmt(res.totalComm)+'€':'—'}</div></div>
         <div class="ris-item"><div class="ris-label">Durata</div><div class="ris-val dim">${res.duration!==null?res.duration+' gg':'—'}</div></div>
         <div class="ris-item"><div class="ris-label">R-Multiple</div><div class="ris-val ${plClass(res.rMultiple)}">${res.rMultiple?'1:'+res.rMultiple:'—'}</div></div>
-        <div class="ris-item"><div class="ris-label">Tasse Stimate</div><div class="ris-val rd-text">${o.piattaforma===FINECO?'Gestito':res.tax?'-'+fmt(res.tax)+'€':'—'}</div></div>
+        <div class="ris-item"><div class="ris-label">Tasse ${o.piattaforma===FINECO?'(broker)':''}</div><div class="ris-val rd-text">${res.tax?'-'+fmt(res.tax)+'€':'—'}</div></div>
       </div>
-      ${res.plFinal!==null&&o.piattaforma!==FINECO?`<div style="margin-top:10px;font-size:12px;color:var(--t2)">P&L Netto: <span class="mono ${plClass(res.plFinal-res.tax)}">${fmtEur(res.plFinal-res.tax)}</span></div>`:''}
+      ${res.plFinal!==null?`<div style="margin-top:10px;font-size:12px;color:var(--t2)">P&L Netto: <span class="mono ${plClass(res.plFinal-res.tax)}">${fmtEur(res.plFinal-res.tax)}</span>${o.piattaforma===FINECO?' <span class="dim" style="font-size:10px">(gestito broker)</span>':''}</div>`:''}
     </div>
     <div class="override-wrap" style="margin-top:14px"><div class="override-label">⚡ Override P&L Globale Ordine</div>
     <div class="gr2">
@@ -463,6 +465,46 @@ function submitOverridePL(ordineId,remove=false){if(remove){updOrdine(ordineId,{
 function changePwd(){const p1=document.getElementById('newPwd1')?.value||'';const p2=document.getElementById('newPwd2')?.value||'';const el=document.getElementById('pwdErr');if(p1.length<6){if(el)el.innerHTML=`<div class="alert al-danger">Minimo 6 caratteri.</div>`;return;}if(p1!==p2){if(el)el.innerHTML=`<div class="alert al-danger">Non corrispondono.</div>`;return;}S.pwd=p1;localStorage.setItem('ek_pwd',p1);if(el)el.innerHTML=`<div class="alert al-success">✅ Aggiornata. Ricorda di aggiornare anche in GAS.</div>`;}
 function saveGas(){const url=document.getElementById('gasInput')?.value?.trim();if(!url){alert('Inserisci un URL');return;}S.gasUrl=url;localStorage.setItem('ek_gas',url);gasRead();}
 async function testGas(){const url=document.getElementById('gasInput')?.value?.trim();const el=document.getElementById('gasStatus');if(!url){if(el)el.innerHTML=`<div class="alert al-warn">Inserisci un URL</div>`;return;}if(el)el.innerHTML=`<div class="alert al-info">Connessione...</div>`;try{const r=await fetch(url+'?action=ping&token='+encodeURIComponent(S.pwd));const d=await r.json();if(d.error)throw new Error(d.error);if(el)el.innerHTML=`<div class="alert al-success">✅ Connessione OK</div>`;}catch(e){if(el)el.innerHTML=`<div class="alert al-danger">❌ ${esc(e.message)}</div>`;}}
+
+
+function calcMinusvalenzeHTML(){
+  const now=new Date();
+  const curYear=now.getFullYear();
+  // Raccoglie minusvalenze per anno (da uscite degli ordini chiusi con P&L negativo)
+  const byYear={};
+  S.ordini.forEach(o=>{
+    const res=calcOrdine(o);
+    if(res.stato!=='chiuso'||!res.plFinal||res.plFinal>=0) return;
+    // Anno dell'ultima uscita
+    let year=curYear;
+    try{const uscite=JSON.parse(o.uscite||'[]');const last=uscite.map(u=>u.exit_datetime).filter(Boolean).sort().pop();if(last)year=new Date(last).getFullYear();}catch(e){}
+    if(!byYear[year]) byYear[year]={tot:0,pf:o.piattaforma==='Fineco'?'F':'D'};
+    byYear[year].tot+=Math.abs(res.plFinal);
+  });
+  const years=Object.keys(byYear).sort().reverse();
+  if(years.length===0) return '';
+  // Totale compensabile (entro 4 anni)
+  const totComp=years.filter(y=>curYear-parseInt(y)<=4).reduce((s,y)=>s+byYear[y].tot,0);
+  const rows=years.map(y=>{
+    const eta=curYear-parseInt(y);
+    const scade=parseInt(y)+4;
+    const expired=eta>4;
+    const regime=byYear[y].pf==='F'?'Fineco (amm.)':'Dichiarativo';
+    return `<tr style="${expired?'opacity:.4':''}">
+      <td class="mono dim">${y}</td>
+      <td class="mono rd-text">-${fmt(byYear[y].tot)}€</td>
+      <td class="dim">${regime}</td>
+      <td class="${expired?'rd-text dim':'yl-text'}">${expired?'Scaduta':'Entro '+scade}</td>
+      <td class="dim">${expired?'—':fmt(byYear[y].tot)+'€'}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="card" style="margin-top:16px"><div class="card-head"><div class="card-title">📉 Minusvalenze — Compensazione nei 4 anni</div></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Anno</th><th>Minus €</th><th>Regime</th><th>Scadenza</th><th>Compensabile</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div style="padding:12px 18px;font-size:12px;color:var(--t2);border-top:1px solid var(--b1)">
+    Totale compensabile (entro 4 anni): <span class="mono yl-text">-${fmt(totComp)}€</span>
+    <span class="dim" style="margin-left:12px">Le minusvalenze Fineco compensano solo nel regime amministrato Fineco. Le minusvalenze dichiarative (IBKR/TradeZero/Degiro) si compensano tra loro.</span>
+  </div></div>`;
+}
 
 const TABS=[{id:'dashboard',ic:'▦',l:'Dashboard'},{id:'segnali',ic:'◎',l:'Segnali EK'},{id:'ordini',ic:'◈',l:'Ordini'},{id:'setup',ic:'⚙',l:'Setup'}];
 const VIEWS={dashboard:viewDashboard,segnali:viewSegnali,ordini:viewOrdini,setup:viewSetup};
