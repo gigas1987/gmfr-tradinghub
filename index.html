@@ -134,6 +134,10 @@ code{background:var(--s3);padding:2px 6px;border-radius:4px;font-family:var(--fo
 .override-wrap{background:var(--yl-dim);border:1px solid rgba(245,197,66,.2);border-radius:8px;padding:12px;margin-top:12px}
 .override-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--yl);margin-bottom:8px}
 .filter-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+@keyframes syncpulse{0%,100%{opacity:1}50%{opacity:.35}}
+.sync-pulse{animation:syncpulse 1.2s ease-in-out infinite;display:inline-block;font-size:13px}
+.sync-dot{font-size:13px}
+.sync-err{animation:syncpulse .8s ease-in-out infinite;display:inline-block;font-size:13px}
 @media(max-width:768px){
   .sidebar{width:56px}.nav-item span,.nav-badge,.logo span,.footer-text{display:none}
   .main-inner{padding:16px}.gr3,.gr4{grid-template-columns:1fr 1fr}.stats-grid{grid-template-columns:1fr 1fr}
@@ -148,6 +152,8 @@ const MARKETS=['Azioni','Crypto','Materie Prime','Forex'];
 const STRATEGIES=['EK Investing','Personale'];
 const TAX_RATE=0.26;
 const FINECO='Fineco';
+const DICHIARATIVO=['TradeZero','IBKR','Degiro'];
+function getRegime(broker){return DICHIARATIVO.includes(broker)?'dichiarativo':'amministrato';}
 const STATI_SIG={ricevuto:{l:'Ricevuto',cls:'bgr',ic:'📨'},attivato:{l:'Attivato',cls:'by',ic:'⚡'},aperto:{l:'Aperto',cls:'bb',ic:'📈'},chiuso_tp:{l:'TP ✓',cls:'bg',ic:'✅'},chiuso_stop:{l:'Stop Loss',cls:'br',ic:'🛑'},chiuso_man:{l:'Chiuso',cls:'bp',ic:'🔒'},scartato:{l:'Scartato',cls:'bgr',ic:'✕'}};
 const CHIUSI_SIG=new Set(['chiuso_tp','chiuso_stop','chiuso_man']);
 
@@ -258,10 +264,10 @@ async function gasRead(){
     if(Array.isArray(d.ordini)) {const{merged,repush}=mergeByTs(S.ordini,d.ordini);S.ordini=merged;repush.forEach(o=>gasWrite('ordine','update',o));}
 
     S.lastSync=new Date().toISOString();localStorage.setItem('ek_sync',S.lastSync);persist();
-  }catch(e){S.syncErr=e.message;}
+  }catch(e){S.syncErr=e.message;syncLastErr=e.message;updateSyncBadge();}
   finally{S.loading=false;render();}
 }
-async function gasWrite(type,op,record){if(!S.gasUrl||!S.pwd)return;try{await fetch(gasUrlWith(`action=write&type=${type}&op=${op}&record=${encodeURIComponent(JSON.stringify(record))}`));}catch{}}
+async function gasWrite(type,op,record){if(!S.gasUrl||!S.pwd)return;syncPending++;updateSyncBadge();try{const r=await fetch(gasUrlWith(`action=write&type=${type}&op=${op}&record=${encodeURIComponent(JSON.stringify(record))}`));let d={};try{d=await r.json();}catch(e){}if(d&&d.error)throw new Error(d.error);syncLastOk=new Date();syncLastErr=null;}catch(e){syncLastErr=e.message;}finally{syncPending=Math.max(0,syncPending-1);updateSyncBadge();}}
 
 function addSignal(d){const s={id:uid(),created:new Date().toISOString(),stato:'ricevuto',...d};S.signals.unshift(s);persist();gasWrite('signal','add',s);render();}
 function updSig(id,p){const i=S.signals.findIndex(s=>s.id===id);if(i<0)return;S.signals[i]={...S.signals[i],...p,updated:new Date().toISOString()};persist();gasWrite('signal','update',S.signals[i]);render();}
@@ -722,16 +728,41 @@ function getAvailableMinusvalenze(forOrdineId){
   const now=new Date(),curY=now.getFullYear();
   const forO=S.ordini.find(x=>x.id===forOrdineId)||{};
   let curRefs=[];try{curRefs=JSON.parse(forO.minus_refs||'[]');}catch(e){}
-  return S.ordini.filter(o=>o.id!==forOrdineId).map(o=>{
+
+  // Filtra per regime fiscale compatibile
+  const forRegime=getRegime(forO.piattaforma);
+  return S.ordini.filter(o=>o.id!==forOrdineId&&getRegime(o.piattaforma)===forRegime).map(o=>{
     const res=calcOrdine(o);
     if(res.stato!=='chiuso'||!res.plFinal||res.plFinal>=0)return null;
     let year=curY;
     try{const us=JSON.parse(o.uscite||'[]');const last=us.map(u=>u.exit_datetime).filter(Boolean).sort().pop();if(last)year=new Date(last).getFullYear();}catch(e){}
     if(curY-year>4)return null;
     const totalLoss=Math.abs(res.plFinal);
+
+    // Quanto già usato da TUTTI gli altri ordini (escluso forOrdineId)
+    let usedByOthers=0;
+    S.ordini.forEach(other=>{
+      if(other.id===o.id||other.id===forOrdineId)return;
+      try{const refs=JSON.parse(other.minus_refs||'[]');const r=refs.find(x=>x.id===o.id);if(r)usedByOthers+=r.importo||0;}catch(e){}
+    });
+
+    // Quanto l'ordine corrente sta già usando da questa minusvalenza
     const ref=curRefs.find(r=>r.id===o.id);
-    const alreadyApplied=ref?ref.importo:0;
-    return{id:o.id,symbol:o.symbol,piattaforma:o.piattaforma,year,scade:year+4,totalLoss,alreadyApplied};
+    const usedByCurrent=ref?ref.importo:0;
+
+    // Disponibile = totale - usato dagli altri (il corrente può riusarlo/modificarlo)
+    const available=Math.max(0,totalLoss-usedByOthers);
+
+    // Se già tutto esaurito dagli altri → non mostrare
+    if(available<=0&&usedByCurrent<=0)return null;
+
+    return{
+      id:o.id,symbol:o.symbol,piattaforma:o.piattaforma,
+      year,scade:year+4,totalLoss,
+      usedByOthers,
+      alreadyApplied:usedByCurrent,  // quanto usa questo ordine
+      available                        // quanto rimane disponibile (incluso quello già usato da questo)
+    };
   }).filter(Boolean);
 }
 
@@ -793,19 +824,29 @@ function renderMinusSelectionUI(ordineId){
   if(avail.length===0) return `<div style="background:var(--yl-dim);border:1px solid rgba(245,197,66,.2);border-radius:8px;padding:14px;margin-top:14px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--yl);margin-bottom:6px">📉 Compensazione Minusvalenze</div><div class="dim" style="font-size:12px">Nessuna minusvalenza disponibile. Le minusvalenze vengono generate dagli ordini chiusi in perdita.</div></div>`;
   
   let curRefs=[];try{curRefs=JSON.parse(forO.minus_refs||'[]');}catch(e){}
-  const rows=avail.map(m=>{
-    const ref=curRefs.find(r=>r.id===m.id);
-    const checked=!!ref;
-    const val=ref?ref.importo:'';
-    return `<tr>
-      <td style="padding:8px 10px"><input type="checkbox" id="mcb_${m.id}" ${checked?'checked':''} onchange="toggleMinusRow('${m.id}','${ordineId}')"></td>
-      <td style="padding:8px 10px"><strong>${esc(m.symbol)}</strong></td>
-      <td style="padding:8px 10px"><span class="platform-tag">${esc(m.piattaforma)}</span></td>
-      <td style="padding:8px 10px" class="mono dim">${m.year} <span class="dim" style="font-size:10px">(scade ${m.scade})</span></td>
-      <td style="padding:8px 10px" class="mono rd-text">-${fmt(m.totalLoss)}€</td>
-      <td style="padding:8px 10px"><input type="number" id="mamt_${m.id}" step="0.01" min="0" max="${m.totalLoss}" value="${val}" ${checked?'':'disabled'} style="width:100px;padding:6px 8px;border-radius:6px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-family:var(--font-mono);font-size:12px" oninput="updateMinusPreview('${ordineId}')"></td>
-      <td style="padding:8px 10px"><button class="btn btn-sm btn-gh" onclick="setMaxMinus('${m.id}','${ordineId}')" title="Usa il massimo compensabile">Max</button></td>
+  // Raggruppa per broker
+  const byBroker={};
+  avail.forEach(m=>{if(!byBroker[m.piattaforma])byBroker[m.piattaforma]=[];byBroker[m.piattaforma].push(m);});
+
+  const rows=Object.entries(byBroker).map(([broker,items])=>{
+    const brokerHeader=`<tr style="background:rgba(77,158,255,.06)">
+      <td colspan="8" style="padding:7px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--bl)">${esc(broker)}</td>
     </tr>`;
+    const itemRows=items.map(m=>{
+      const ref=curRefs.find(r=>r.id===m.id);
+      const checked=!!ref;
+      const val=ref?ref.importo:'';
+      return `<tr>
+        <td style="padding:8px 10px"><input type="checkbox" id="mcb_${m.id}" ${checked?'checked':''} onchange="toggleMinusRow('${m.id}','${ordineId}')"></td>
+        <td style="padding:8px 10px"><strong>${esc(m.symbol)}</strong></td>
+        <td style="padding:8px 10px" class="mono dim">${m.year} <span class="dim" style="font-size:10px">(scade ${m.scade})</span></td>
+        <td style="padding:8px 10px" class="mono rd-text">-${fmt(m.totalLoss)}€</td>
+        <td style="padding:8px 10px"><span class="mono ${m.available<m.totalLoss?'yl-text':'rd-text'}">-${fmt(m.available)}€${m.usedByOthers>0?` <span class="dim" style="font-size:10px">(${fmt(m.usedByOthers)}€ usati altrove)</span>`:''}</span></td>
+        <td style="padding:8px 10px"><input type="number" id="mamt_${m.id}" step="0.01" min="0" max="${m.available}" value="${val}" ${checked?'':'disabled'} style="width:100px;padding:6px 8px;border-radius:6px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-family:var(--font-mono);font-size:12px" oninput="updateMinusPreview('${ordineId}')"></td>
+        <td style="padding:8px 10px"><button class="btn btn-sm btn-gh" onclick="setMaxMinus('${m.id}','${ordineId}')" title="Usa il massimo compensabile">Max</button></td>
+      </tr>`;
+    }).join('');
+    return brokerHeader+itemRows;
   }).join('');
   
   return `<div style="background:var(--yl-dim);border:1px solid rgba(245,197,66,.2);border-radius:8px;padding:14px;margin-top:14px">
@@ -814,9 +855,9 @@ function renderMinusSelectionUI(ordineId){
       <thead><tr style="background:rgba(0,0,0,.1)">
         <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em"></th>
         <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Symbol</th>
-        <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Broker</th>
         <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Anno</th>
         <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Loss Totale</th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Disponibile</th>
         <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Importo da usare</th>
         <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em"></th>
       </tr></thead>
@@ -828,6 +869,7 @@ function renderMinusSelectionUI(ordineId){
       <button class="btn btn-gh" onclick="updOrdine('${ordineId}',{minus_compensata:null,minus_refs:'[]'});closeM()">✕ Rimuovi tutto</button>
     </div>
     <div style="font-size:11px;color:var(--yl);margin-top:8px;opacity:.8">Puoi usare importi parziali — non devi necessariamente compensare l'intera perdita in un solo trade.</div>
+    <div style="font-size:10px;color:var(--t3);margin-top:4px">${getRegime(forO.piattaforma)==='amministrato'?'Regime amministrato (Fineco): compensazione solo tra operazioni Fineco':'Regime dichiarativo: compensazione tra TradeZero, IBKR e Degiro'}</div>
   </div>`;
 }
 
@@ -849,7 +891,7 @@ function setMaxMinus(minusId, ordineId){
   // Base imponibile residua = plFinal - già selezionato
   const remainingBase=Math.max(0,(res.plFinal||0)-alreadySel);
   // Max = min(perdita totale, base imponibile residua)
-  const maxVal=Math.min(m.totalLoss, remainingBase);
+  const maxVal=Math.min(m.available, remainingBase);
   const input=document.getElementById('mamt_'+minusId);
   const cb=document.getElementById('mcb_'+minusId);
   if(input&&cb){cb.checked=true;input.disabled=false;input.value=maxVal.toFixed(2);updateMinusPreview(ordineId);}
@@ -866,10 +908,36 @@ function getCompensatedStatus(lossOrdineId, totalLoss){
   return{status:'none',applied:0};
 }
 
+
+// ── SYNC STATUS ──────────────────────────────────────
+let syncPending = 0;
+let syncLastOk  = null;
+let syncLastErr = null;
+
+function syncStatusHTML(){
+  if(!S.gasUrl) return '<span class="conn-dot err"></span><span class="footer-text">Non connesso</span>';
+  if(syncPending>0) return '<span class="sync-pulse">🟡</span><span class="footer-text">Salvataggio...</span>';
+  if(syncLastErr) return `<span class="sync-err">🔴</span><span class="footer-text" title="${esc(syncLastErr)}" style="cursor:help">Errore sync</span>`;
+  if(syncLastOk){
+    const t=syncLastOk.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    return `<span class="sync-dot">🟢</span><span class="footer-text">Salvato ${t}</span>`;
+  }
+  if(S.lastSync){
+    const t=new Date(S.lastSync).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    return `<span class="sync-dot">🟢</span><span class="footer-text">Sync ${t}</span>`;
+  }
+  return '<span class="conn-dot ok"></span><span class="footer-text">Connesso</span>';
+}
+
+function updateSyncBadge(){
+  const el=document.getElementById('syncIndicator');
+  if(el) el.innerHTML=syncStatusHTML();
+}
+
 const TABS=[{id:'dashboard',ic:'▦',l:'Dashboard'},{id:'segnali',ic:'◎',l:'Segnali EK'},{id:'ordini',ic:'◈',l:'Ordini'},{id:'setup',ic:'⚙',l:'Setup'}];
 const VIEWS={dashboard:viewDashboard,segnali:viewSegnali,ordini:viewOrdini,setup:viewSetup};
 
-function renderApp(){return `<div class="app"><div class="sidebar"><div class="logo"><span class="logo-dot"></span><span>EK Tracker</span></div><nav class="nav">${TABS.map(t=>`<div class="nav-item ${S.tab===t.id?'active':''}" onclick="S.tab='${t.id}';render()"><span class="nav-icon">${t.ic}</span><span>${t.l}</span>${navBadge(t.id)}</div>`).join('')}</nav><div class="sidebar-footer"><span class="conn-dot ${S.gasUrl?'ok':'err'}"></span><span class="footer-text">${S.gasUrl?'Cloud sync':'Locale'}</span><button class="icon-btn" onclick="toggleTheme()">${S.theme==='dark'?'☀':'🌙'}</button><button class="icon-btn" onclick="logout()" title="Esci">⏻</button></div></div><div class="main"><div class="main-inner">${S.loading?`<div class="alert al-info" style="margin-bottom:16px">⏳ Sincronizzazione...</div>`:''} ${(VIEWS[S.tab]||viewDashboard)()}</div></div></div>${renderModal()}`;}
+function renderApp(){return `<div class="app"><div class="sidebar"><div class="logo"><span class="logo-dot"></span><span>EK Tracker</span></div><nav class="nav">${TABS.map(t=>`<div class="nav-item ${S.tab===t.id?'active':''}" onclick="S.tab='${t.id}';render()"><span class="nav-icon">${t.ic}</span><span>${t.l}</span>${navBadge(t.id)}</div>`).join('')}</nav><div class="sidebar-footer"><div id="syncIndicator" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:hidden">${syncStatusHTML()}</div><button class="icon-btn" onclick="toggleTheme()" title="${S.theme==='dark'?'Tema chiaro':'Tema scuro'}">${S.theme==='dark'?'☀':'🌙'}</button><button class="icon-btn" onclick="logout()" title="Esci">⏻</button></div></div><div class="main"><div class="main-inner">${S.loading?`<div class="alert al-info" style="margin-bottom:16px">⏳ Sincronizzazione...</div>`:''} ${(VIEWS[S.tab]||viewDashboard)()}</div></div></div>${renderModal()}`;}
 
 function render(){if(!S.pwd)document.getElementById('app').innerHTML=viewFirstSetup();else if(!S.unlocked){document.getElementById('app').innerHTML=viewLogin();setTimeout(()=>document.getElementById('loginPwd')?.focus(),50);}else document.getElementById('app').innerHTML=renderApp();}
 
