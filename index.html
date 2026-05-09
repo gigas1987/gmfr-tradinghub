@@ -505,6 +505,67 @@ function renderModal(){
     </div><div class="modal-foot"><button class="btn btn-gh" onclick="closeM()">Annulla</button><button class="btn btn-pr" onclick="submitEditUscita('${ordineId}','${uscitaId}')">Salva Modifiche</button></div></div></div>`;
   }
 
+  if(type==='minusDettaglioBroker'){
+    const broker=data.broker;
+    const now=new Date(),curYear=now.getFullYear();
+    // Collect loss orders for this broker
+    const lossOrders=[];
+    S.ordini.forEach(o=>{
+      if(o.piattaforma!==broker)return;
+      const res=calcOrdine(o);
+      if(res.stato!=='chiuso'||!res.plFinal||res.plFinal>=0)return;
+      let year=curYear;
+      try{const us=JSON.parse(o.uscite||'[]');const last=us.map(u=>u.exit_datetime).filter(Boolean).sort().pop();if(last)year=new Date(last).getFullYear();}catch(e){}
+      const scade=year+4,expired=curYear-year>4;
+      const disponibile=Math.abs(res.plFinal);
+      const compSt=getCompensatedStatus(o.id,disponibile);
+      lossOrders.push({o,res,year,scade,expired,disponibile,compSt});
+    });
+    // Group by year
+    const byYear={};
+    lossOrders.forEach(item=>{
+      if(!byYear[item.year])byYear[item.year]={items:[],scade:item.scade,expired:item.expired};
+      byYear[item.year].items.push(item);
+    });
+    const yearSections=Object.entries(byYear).sort(([a],[b])=>b-a).map(([yr,grp])=>{
+      const totYr=grp.items.reduce((s,x)=>s+x.disponibile,0);
+      const compYr=grp.items.reduce((s,x)=>s+(x.compSt.applied||0),0);
+      const residYr=Math.max(0,totYr-compYr);
+      const scadLabel=grp.expired?'<span class="rd-text">Scaduta</span>':`<span class="yl-text">Scade ${grp.scade}</span>`;
+      const rows=grp.items.map(({o,res,disponibile,compSt})=>{
+        const isFull=compSt.status==='full';
+        const isPartial=compSt.status==='partial';
+        let stLabel;
+        if(isFull)stLabel='<span class="badge bg">✓ Compensata</span>';
+        else if(isPartial)stLabel=`<span class="badge by">Parz. ${fmt(compSt.applied)}€</span>`;
+        else stLabel='<span class="badge bgr">Da compensare</span>';
+        return `<tr>
+          <td><strong>${esc(o.symbol)}</strong></td>
+          <td class="dim" style="font-size:11px">${fmtDate(o.entry_datetime)}</td>
+          <td class="mono rd-text">-${fmt(disponibile)}€</td>
+          <td class="mono yl-text">${compSt.applied>0?'-'+fmt(compSt.applied)+'€':'—'}</td>
+          <td class="mono">${compSt.applied>0?fmt(disponibile-compSt.applied)+'€':'—'}</td>
+          <td>${stLabel}</td>
+          <td><button class="btn btn-sm btn-gh" onclick="closeM();openM('dettaglioOrdine',{id:'${o.id}'})">Apri</button></td>
+        </tr>`;
+      }).join('');
+      return `<div style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b1);margin-bottom:8px">
+          <span style="font-size:12px;font-weight:700">${yr} ${scadLabel}</span>
+          <span style="font-size:12px;color:var(--t2)">Totale: <span class="mono rd-text">-${fmt(totYr)}€</span> · Residue: <span class="mono yl-text">-${fmt(residYr)}€</span></span>
+        </div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="background:var(--s2)"><th style="padding:7px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);text-align:left">Symbol</th><th style="padding:7px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);text-align:left">Chiusura</th><th style="padding:7px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);text-align:left">Loss</th><th style="padding:7px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);text-align:left">Usata</th><th style="padding:7px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);text-align:left">Residua</th><th style="padding:7px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);text-align:left">Stato</th><th></th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+    }).join('');
+    return `<div class="ov" onclick="if(event.target===this)closeM()"><div class="modal modal-wide"><div class="modal-head">
+      <div><div class="modal-title">📉 Minusvalenze — ${esc(broker)}</div><div style="font-size:11px;color:var(--t2);margin-top:3px">${lossOrders.length} ordini in perdita</div></div>
+      <button class="modal-close" onclick="closeM()">✕</button>
+    </div><div class="modal-body">${yearSections.length?yearSections:'<div class="empty">Nessuna minusvalenza per questo broker.</div>'}</div></div></div>`;
+  }
+
   return '';
 }
 
@@ -527,45 +588,74 @@ async function testGas(){const url=document.getElementById('gasInput')?.value?.t
 
 
 function calcMinusvalenzeHTML(){
-  const now=new Date();
-  const curYear=now.getFullYear();
-  // Raccoglie minusvalenze per ordine con anno e stato compensazione
-  const rows=[];
-  let totPool=0,totUsed=0;
+  const now=new Date(),curYear=now.getFullYear();
+
+  // Aggrega per broker
+  const byBroker={};
   S.ordini.forEach(o=>{
     const res=calcOrdine(o);
-    if(res.stato!=='chiuso'||!res.plFinal||res.plFinal>=0) return;
+    if(res.stato!=='chiuso'||!res.plFinal||res.plFinal>=0)return;
     let year=curYear;
     try{const us=JSON.parse(o.uscite||'[]');const last=us.map(u=>u.exit_datetime).filter(Boolean).sort().pop();if(last)year=new Date(last).getFullYear();}catch(e){}
-    const scade=year+4;
-    const expired=curYear-year>4;
+    const scade=year+4,expired=curYear-year>4;
     const disponibile=Math.abs(res.plFinal);
-    if(!expired){totPool+=disponibile;}
-    // Cerca quanto di questa minus è già stata usata su altri ordini
-    // (semplificazione: tracciamo solo il pool globale, non il link specifico)
-    rows.push({o,res,year,scade,expired,disponibile});
+    const compSt=getCompensatedStatus(o.id,disponibile);
+    const appliedAmt=compSt.applied||0;
+    const broker=o.piattaforma||'Altro';
+    if(!byBroker[broker])byBroker[broker]={pool:0,compensated:0,remaining:0,orders:[],byYear:{}};
+    const b=byBroker[broker];
+    if(!expired)b.pool+=disponibile;
+    b.compensated+=appliedAmt;
+    b.remaining+=Math.max(0,disponibile-appliedAmt);
+    b.orders.push({o,res,year,scade,expired,disponibile,compSt,appliedAmt});
+    if(!b.byYear[year])b.byYear[year]={scade,expired,total:0,compensated:0};
+    b.byYear[year].total+=disponibile;
+    b.byYear[year].compensated+=appliedAmt;
   });
-  if(rows.length===0) return '';
+
+  const brokers=Object.keys(byBroker);
+  if(brokers.length===0)return '';
   const pool=poolMinusvalenze();
-  const tableRows=rows.map(({o,res,year,scade,expired,disponibile})=>{
-    return `<tr style="${expired?'opacity:.4':''}">
-      <td><strong>${esc(o.symbol)}</strong></td>
-      <td class="mono rd-text">-${fmt(disponibile)}€</td>
-      <td><span class="platform-tag">${esc(o.piattaforma)}</span></td>
-      <td class="mono dim">${year}</td>
-      <td class="${expired?'rd-text dim':'yl-text'}">${expired?'Scaduta':'Entro '+scade}</td>
-      <td>${expired?'<span class="dim">—</span>':`<button class="btn btn-sm btn-gh" onclick="openM('dettaglioOrdine',{id:'${o.id}'})">Dettaglio</button>`}</td>
+
+  const brokerRows=brokers.map(broker=>{
+    const b=byBroker[broker];
+    // Build compact year summary
+    const yearSummary=Object.entries(b.byYear).sort(([a],[b2])=>b2-a).map(([yr,d])=>{
+      const residua=Math.max(0,d.total-d.compensated);
+      if(residua<=0)return `<span class="dim" style="font-size:10px">${yr}: ✓</span>`;
+      if(d.expired)return `<span class="rd-text" style="font-size:10px">${yr}: scaduta</span>`;
+      return `<span class="yl-text" style="font-size:10px">${yr}: -${fmt(residua)}€ (scade ${d.scade})</span>`;
+    }).join(' · ');
+    return `<tr>
+      <td><span class="platform-tag">${esc(broker)}</span></td>
+      <td class="mono rd-text">-${fmt(b.pool)}€</td>
+      <td class="mono yl-text">${b.compensated>0?'-'+fmt(b.compensated)+'€':'—'}</td>
+      <td class="mono ${b.remaining>0?'yl-text':'gr-text'}">${b.remaining>0?'-'+fmt(b.remaining)+'€':'✓ Tutto compensato'}</td>
+      <td style="font-size:11px">${yearSummary}</td>
+      <td><button class="btn btn-sm btn-gh" onclick="openM('minusDettaglioBroker',{broker:'${esc(broker)}'})">Dettaglio →</button></td>
     </tr>`;
   }).join('');
-  return `<div class="card" style="margin-top:16px"><div class="card-head"><div class="card-title">📉 Minusvalenze — Dettaglio per Ordine</div></div>
-  <div style="padding:12px 18px;background:var(--s2);border-bottom:1px solid var(--b1)"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:12px"><div>Pool totale: <span class="mono rd-text">-${fmt(pool.pool)}€</span></div><div>Già compensate: <span class="mono yl-text">-${fmt(pool.used)}€</span></div><div>Residue: <span class="mono yl-text font-weight:700">-${fmt(pool.remaining)}€</span></div></div></div>
-  <div class="tbl-wrap"><table><thead><tr><th>Symbol</th><th>Minusvalenza</th><th>Piattaforma</th><th>Anno</th><th>Scadenza</th><th>Azione</th></tr></thead><tbody>${tableRows}</tbody></table></div>
-  <div style="padding:12px 18px;font-size:11px;color:var(--t3);border-top:1px solid var(--b1)">
-    Per applicare una compensazione: apri il Dettaglio di un ordine in profitto → sezione "Compensazione Minusvalenze".<br>
-    Ogni piattaforma mantiene il proprio regime fiscale — le minusvalenze Fineco si compensano nel regime amministrato Fineco.
-  </div></div>`;
-}
 
+  return `<div class="card" style="margin-top:16px">
+    <div class="card-head">
+      <div class="card-title">📉 Minusvalenze — Riepilogo per Broker</div>
+    </div>
+    <div style="padding:12px 18px;background:var(--s2);border-bottom:1px solid var(--b1)">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:12px">
+        <div>Pool totale: <span class="mono rd-text">-${fmt(pool.pool)}€</span></div>
+        <div>Già compensate: <span class="mono yl-text">-${fmt(pool.used)}€</span></div>
+        <div>Residue: <span class="mono yl-text">-${fmt(pool.remaining)}€</span></div>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Broker</th><th>Pool</th><th>Compensate</th><th>Residue</th><th>Per Anno</th><th></th></tr></thead>
+      <tbody>${brokerRows}</tbody>
+    </table></div>
+    <div style="padding:10px 18px;font-size:11px;color:var(--t3);border-top:1px solid var(--b1)">
+      Clicca "Dettaglio →" per vedere gli ordini in perdita per broker · Le minusvalenze Fineco si compensano solo nel regime amministrato Fineco
+    </div>
+  </div>`;
+}
 
 function previewMinusComp(ordineId){
   const o=S.ordini.find(x=>x.id===ordineId); if(!o) return;
@@ -680,7 +770,8 @@ function renderMinusSelectionUI(ordineId){
       <td style="padding:8px 10px"><span class="platform-tag">${esc(m.piattaforma)}</span></td>
       <td style="padding:8px 10px" class="mono dim">${m.year} <span class="dim" style="font-size:10px">(scade ${m.scade})</span></td>
       <td style="padding:8px 10px" class="mono rd-text">-${fmt(m.totalLoss)}€</td>
-      <td style="padding:8px 10px"><input type="number" id="mamt_${m.id}" step="0.01" min="0" max="${m.totalLoss}" value="${val}" ${checked?'':'disabled'} style="width:110px;padding:6px 8px;border-radius:6px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-family:var(--font-mono);font-size:12px" oninput="updateMinusPreview('${ordineId}')"></td>
+      <td style="padding:8px 10px"><input type="number" id="mamt_${m.id}" step="0.01" min="0" max="${m.totalLoss}" value="${val}" ${checked?'':'disabled'} style="width:100px;padding:6px 8px;border-radius:6px;border:1px solid var(--b1);background:var(--s2);color:var(--t1);font-family:var(--font-mono);font-size:12px" oninput="updateMinusPreview('${ordineId}')"></td>
+      <td style="padding:8px 10px"><button class="btn btn-sm btn-gh" onclick="setMaxMinus('${m.id}','${ordineId}')" title="Usa il massimo compensabile">Max</button></td>
     </tr>`;
   }).join('');
   
@@ -694,6 +785,7 @@ function renderMinusSelectionUI(ordineId){
         <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Anno</th>
         <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Loss Totale</th>
         <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em">Importo da usare</th>
+        <th style="padding:6px 10px;text-align:left;font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em"></th>
       </tr></thead>
       <tbody style="border-top:1px solid rgba(245,197,66,.2)">${rows}</tbody>
     </table>
@@ -704,6 +796,41 @@ function renderMinusSelectionUI(ordineId){
     </div>
     <div style="font-size:11px;color:var(--yl);margin-top:8px;opacity:.8">Puoi usare importi parziali — non devi necessariamente compensare l'intera perdita in un solo trade.</div>
   </div>`;
+}
+
+
+function setMaxMinus(minusId, ordineId){
+  const forO=S.ordini.find(x=>x.id===ordineId)||{};
+  const res=calcOrdine(forO);
+  const avail=getAvailableMinusvalenze(ordineId);
+  const m=avail.find(x=>x.id===minusId);
+  if(!m||!res.plFinal)return;
+  // Somma già selezionata dalle ALTRE righe
+  let alreadySel=0;
+  avail.forEach(other=>{
+    if(other.id===minusId)return;
+    const cb=document.getElementById('mcb_'+other.id);
+    const amt=document.getElementById('mamt_'+other.id);
+    if(cb&&cb.checked&&amt)alreadySel+=nn(amt.value)||0;
+  });
+  // Base imponibile residua = plFinal - già selezionato
+  const remainingBase=Math.max(0,(res.plFinal||0)-alreadySel);
+  // Max = min(perdita totale, base imponibile residua)
+  const maxVal=Math.min(m.totalLoss, remainingBase);
+  const input=document.getElementById('mamt_'+minusId);
+  const cb=document.getElementById('mcb_'+minusId);
+  if(input&&cb){cb.checked=true;input.disabled=false;input.value=maxVal.toFixed(2);updateMinusPreview(ordineId);}
+}
+
+function getCompensatedStatus(lossOrdineId, totalLoss){
+  let applied=0;
+  S.ordini.forEach(o=>{
+    if(o.id===lossOrdineId)return;
+    try{const refs=JSON.parse(o.minus_refs||'[]');const r=refs.find(x=>x.id===lossOrdineId);if(r)applied+=r.importo||0;}catch(e){}
+  });
+  if(applied>=totalLoss*0.999)return{status:'full',applied};
+  if(applied>0)return{status:'partial',applied};
+  return{status:'none',applied:0};
 }
 
 const TABS=[{id:'dashboard',ic:'▦',l:'Dashboard'},{id:'segnali',ic:'◎',l:'Segnali EK'},{id:'ordini',ic:'◈',l:'Ordini'},{id:'setup',ic:'⚙',l:'Setup'}];
