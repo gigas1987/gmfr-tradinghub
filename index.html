@@ -198,8 +198,19 @@ function calcOrdine(o){
   const plUSD=o.position==='Long'?sellAmount-buyExited:buyExited-sellAmount;
   let plEur=null;
   if(buyAmount&&invEur&&qtyExited){const fraz=qtyExited/posSize;const pct=buyExited?plUSD/buyExited:0;plEur=invEur*fraz*pct-totalComm;}
+  // Se almeno un'uscita ha pl_override reale, usalo invece del calcolato
+  const hasUscitaOvr=uscite.some(u=>nn(u.pl_override)!==null);
+  let plEurReal=null;
+  if(hasUscitaOvr&&invEur&&posSize){
+    plEurReal=uscite.reduce((sum,u)=>{
+      const qU=nn(u.quantity)||0,epU=nn(u.exit_price)||0,cU=nn(u.commission_eur)||0;
+      if(nn(u.pl_override)!==null)return sum+nn(u.pl_override);
+      const buyU=entryP*qU,sellU=epU*qU,plU=o.position==='Long'?sellU-buyU:buyU-sellU;
+      return sum+invEur*(qU/posSize)*(buyU?plU/buyU:0)-cU;
+    },0);
+  }
   const plOverride=nn(o.pl_override);
-  const plFinal=plOverride!==null?plOverride:plEur;
+  const plFinal=plOverride!==null?plOverride:(plEurReal!==null?plEurReal:plEur);
   const invFraz=invEur&&posSize&&qtyExited?invEur*(qtyExited/posSize):null;
   const plPct=invFraz&&plFinal!==null?plFinal/invFraz*100:null;
   let duration=null;
@@ -223,6 +234,16 @@ function addSignal(d){const s={id:uid(),created:new Date().toISOString(),stato:'
 function updSig(id,p){const i=S.signals.findIndex(s=>s.id===id);if(i<0)return;S.signals[i]={...S.signals[i],...p,updated:new Date().toISOString()};persist();gasWrite('signal','update',S.signals[i]);render();}
 function addOrdine(d){const o={id:uid(),created:new Date().toISOString(),stato:'aperto',uscite:'[]',minus_compensata:null,minus_refs:'[]',...d};S.ordini.unshift(o);persist();gasWrite('ordine','add',o);render();}
 function updOrdine(id,p){const i=S.ordini.findIndex(o=>o.id===id);if(i<0)return;const merged={...S.ordini[i],...p};const res=calcOrdine(merged);S.ordini[i]={...merged,stato:res.stato,updated:new Date().toISOString()};persist();gasWrite('ordine','update',S.ordini[i]);render();}
+function updUscita(ordineId,uscitaId,patch){
+  const i=S.ordini.findIndex(o=>o.id===ordineId);if(i<0)return;
+  const uscite=JSON.parse(S.ordini[i].uscite||'[]');
+  const ui=uscite.findIndex(u=>u.id===uscitaId);if(ui<0)return;
+  uscite[ui]={...uscite[ui],...patch};
+  const newU=JSON.stringify(uscite);
+  const res=calcOrdine({...S.ordini[i],uscite:newU});
+  S.ordini[i]={...S.ordini[i],uscite:newU,stato:res.stato,updated:new Date().toISOString()};
+  persist();gasWrite('ordine','update',S.ordini[i]);render();
+}
 function addUscita(ordineId,uscita){const i=S.ordini.findIndex(o=>o.id===ordineId);if(i<0)return;const uscite=JSON.parse(S.ordini[i].uscite||'[]');uscite.push({id:uid(),...uscita});const newU=JSON.stringify(uscite);const res=calcOrdine({...S.ordini[i],uscite:newU});S.ordini[i]={...S.ordini[i],uscite:newU,stato:res.stato,updated:new Date().toISOString()};persist();gasWrite('ordine','update',S.ordini[i]);render();}
 function delUscita(ordineId,uscitaId){const i=S.ordini.findIndex(o=>o.id===ordineId);if(i<0)return;const uscite=JSON.parse(S.ordini[i].uscite||'[]').filter(u=>u.id!==uscitaId);const newU=JSON.stringify(uscite);const res=calcOrdine({...S.ordini[i],uscite:newU});S.ordini[i]={...S.ordini[i],uscite:newU,stato:res.stato,updated:new Date().toISOString()};persist();gasWrite('ordine','update',S.ordini[i]);render();}
 
@@ -415,7 +436,7 @@ function renderModal(){
     </div>
     ${uscite.length>0?`<div class="section-title">Uscite (${uscite.length})</div>
     <table class="uscite-table"><thead><tr><th>Data & Ora</th><th>Exit $</th><th>Qty</th><th>Sell Amt</th><th>Comm €</th><th>P&L calc €</th><th>P&L reale €</th><th></th></tr></thead>
-    <tbody>${uscite.map(u=>{const qtyU=nn(u.quantity)||0,epU=nn(u.exit_price)||0,epO=nn(o.entry_price)||0,invO=nn(o.investito_eur)||0,psO=nn(o.position_size)||1;const sellU=epU*qtyU,buyU=epO*qtyU,plU=o.position==='Long'?sellU-buyU:buyU-sellU;const plEurU=psO&&invO?invO*(qtyU/psO)*(buyU?plU/buyU:0)-(nn(u.commission_eur)||0):null;return `<tr><td class="dim" style="font-size:11px">${fmtDT(u.exit_datetime)}</td><td class="mono">${fmt(epU)}</td><td>${qtyU}</td><td class="mono">${fmtUSD(sellU)}</td><td class="mono dim">${u.commission_eur?fmt(u.commission_eur)+'€':'—'}</td><td class="mono ${plClass(plEurU)}">${plEurU!==null?fmtEur(plEurU):'—'}</td><td>${nn(u.pl_override)!==null?`<span class="mono by">${fmtEur(u.pl_override)}</span>`:'<span class="dim">—</span>'}</td><td><button class="btn btn-sm btn-gh" onclick="if(confirm('Eliminare?'))delUscita('${o.id}','${u.id}')">✕</button></td></tr>`;}).join('')}</tbody></table>`:'<div class="dim" style="font-size:12px;margin-top:8px;padding:12px 0">Nessuna uscita registrata.</div>'}
+    <tbody>${uscite.map(u=>{const qtyU=nn(u.quantity)||0,epU=nn(u.exit_price)||0,epO=nn(o.entry_price)||0,invO=nn(o.investito_eur)||0,psO=nn(o.position_size)||1;const sellU=epU*qtyU,buyU=epO*qtyU,plU=o.position==='Long'?sellU-buyU:buyU-sellU;const plEurU=psO&&invO?invO*(qtyU/psO)*(buyU?plU/buyU:0)-(nn(u.commission_eur)||0):null;return `<tr><td class="dim" style="font-size:11px">${fmtDT(u.exit_datetime)}</td><td class="mono">${fmt(epU)}</td><td>${qtyU}</td><td class="mono">${fmtUSD(sellU)}</td><td class="mono dim">${u.commission_eur?fmt(u.commission_eur)+'€':'—'}</td><td class="mono ${plClass(plEurU)}">${plEurU!==null?fmtEur(plEurU):'—'}</td><td>${nn(u.pl_override)!==null?`<span class="mono by">${fmtEur(u.pl_override)}</span>`:'<span class="dim">—</span>'}</td><td style="white-space:nowrap"><button class="btn btn-sm btn-gh" style="margin-right:4px" onclick="openM('editUscita',{ordineId:'${o.id}',uscitaId:'${u.id}'})">✏</button><button class="btn btn-sm btn-gh" onclick="if(confirm('Eliminare?'))delUscita('${o.id}','${u.id}')">✕</button></td></tr>`;}).join('')}</tbody></table>`:'<div class="dim" style="font-size:12px;margin-top:8px;padding:12px 0">Nessuna uscita registrata.</div>'}
     <div class="risultati-box">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t2);margin-bottom:10px">Risultati</div>
       <div class="risultati-grid">
@@ -462,6 +483,28 @@ function renderModal(){
     <div class="form-group"><label>Note</label><textarea id="eo_note" rows="2">${esc(o.note||'')}</textarea></div>
     </div><div class="modal-foot"><button class="btn btn-gh" onclick="closeM()">Annulla</button><button class="btn btn-pr" onclick="submitEditOrdine('${o.id}')">Salva</button></div></div></div>`;
   }
+  if(type==='editUscita'){
+    const{ordineId,uscitaId}=data;
+    const o=S.ordini.find(x=>x.id===ordineId)||{};
+    const uscite=JSON.parse(o.uscite||'[]');
+    const u=uscite.find(x=>x.id===uscitaId)||{};
+    const res=calcOrdine(o);
+    const entryP=nn(o.entry_price)||0,invEur=nn(o.investito_eur)||0,psOrd=nn(o.position_size)||1;
+    const qtyU=nn(u.quantity)||0,epU=nn(u.exit_price)||0,cU=nn(u.commission_eur)||0;
+    const sellU=epU*qtyU,buyU=entryP*qtyU,plU=o.position==='Long'?sellU-buyU:buyU-sellU;
+    const plCalc=invEur&&psOrd?invEur*(qtyU/psOrd)*(buyU?plU/buyU:0)-cU:null;
+    return `<div class="ov" onclick="if(event.target===this)closeM()"><div class="modal"><div class="modal-head"><div class="modal-title">Modifica Uscita — ${esc(o.symbol)}</div><button class="modal-close" onclick="closeM()">✕</button></div><div class="modal-body">
+    <div class="alert al-info">P&L calcolato automaticamente: <strong>${plCalc!==null?fmtEur(plCalc):'—'}</strong> · Inserisci il P&L reale dalla piattaforma se diverso.</div>
+    <div class="gr2"><div class="form-group"><label>Data & Ora Uscita</label><input type="datetime-local" id="eu_dt" value="${u.exit_datetime||''}"></div><div class="form-group"><label>Exit Price ($)</label><input type="number" id="eu_ep" step="0.001" value="${u.exit_price||''}"></div></div>
+    <div class="gr2"><div class="form-group"><label>Quantità</label><input type="number" id="eu_qty" step="1" value="${u.quantity||''}"></div><div class="form-group"><label>Commissioni (€)</label><input type="number" id="eu_comm" step="0.01" value="${u.commission_eur||0}"></div></div>
+    <div class="override-wrap">
+      <div class="override-label">P&L Reale dalla Piattaforma (€)</div>
+      <div class="form-group" style="margin-bottom:0"><label>P&L Effettivo</label><input type="number" id="eu_plreal" step="0.01" value="${u.pl_override!==null&&u.pl_override!==undefined?u.pl_override:''}" placeholder="Lascia vuoto per usare il calcolato"></div>
+    </div>
+    <div class="form-group" style="margin-top:12px"><label>Note</label><input type="text" id="eu_note" value="${esc(u.note||'')}"></div>
+    </div><div class="modal-foot"><button class="btn btn-gh" onclick="closeM()">Annulla</button><button class="btn btn-pr" onclick="submitEditUscita('${ordineId}','${uscitaId}')">Salva Modifiche</button></div></div></div>`;
+  }
+
   return '';
 }
 
@@ -669,6 +712,20 @@ const VIEWS={dashboard:viewDashboard,segnali:viewSegnali,ordini:viewOrdini,setup
 function renderApp(){return `<div class="app"><div class="sidebar"><div class="logo"><span class="logo-dot"></span><span>EK Tracker</span></div><nav class="nav">${TABS.map(t=>`<div class="nav-item ${S.tab===t.id?'active':''}" onclick="S.tab='${t.id}';render()"><span class="nav-icon">${t.ic}</span><span>${t.l}</span>${navBadge(t.id)}</div>`).join('')}</nav><div class="sidebar-footer"><span class="conn-dot ${S.gasUrl?'ok':'err'}"></span><span class="footer-text">${S.gasUrl?'Cloud sync':'Locale'}</span><button class="icon-btn" onclick="toggleTheme()">${S.theme==='dark'?'☀':'🌙'}</button><button class="icon-btn" onclick="logout()" title="Esci">⏻</button></div></div><div class="main"><div class="main-inner">${S.loading?`<div class="alert al-info" style="margin-bottom:16px">⏳ Sincronizzazione...</div>`:''} ${(VIEWS[S.tab]||viewDashboard)()}</div></div></div>${renderModal()}`;}
 
 function render(){if(!S.pwd)document.getElementById('app').innerHTML=viewFirstSetup();else if(!S.unlocked){document.getElementById('app').innerHTML=viewLogin();setTimeout(()=>document.getElementById('loginPwd')?.focus(),50);}else document.getElementById('app').innerHTML=renderApp();}
+
+function submitEditUscita(ordineId,uscitaId){
+  const ep=nn(document.getElementById('eu_ep')?.value);
+  const qty=nn(document.getElementById('eu_qty')?.value);
+  if(!ep||!qty){alert('Exit price e Quantità sono obbligatori');return;}
+  updUscita(ordineId,uscitaId,{
+    exit_datetime:document.getElementById('eu_dt').value,
+    exit_price:ep, quantity:qty,
+    commission_eur:nn(document.getElementById('eu_comm')?.value)||0,
+    pl_override:nn(document.getElementById('eu_plreal')?.value),
+    note:document.getElementById('eu_note')?.value||''
+  });
+  closeM();
+}
 
 render();
 if(S.unlocked&&S.gasUrl)gasRead();
