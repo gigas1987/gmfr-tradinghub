@@ -227,7 +227,40 @@ function calcOrdine(o){
 }
 
 function gasUrlWith(extra){return S.gasUrl+'?token='+encodeURIComponent(S.pwd)+(extra?'&'+extra:'');}
-async function gasRead(){if(!S.gasUrl||!S.pwd)return;S.loading=true;S.syncErr=null;render();try{const r=await fetch(gasUrlWith('action=read'));if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();if(d.error)throw new Error(d.error);if(Array.isArray(d.signals))S.signals=d.signals;if(Array.isArray(d.trades))S.trades=d.trades;if(Array.isArray(d.ordini))S.ordini=d.ordini;S.lastSync=new Date().toISOString();localStorage.setItem('ek_sync',S.lastSync);persist();}catch(e){S.syncErr=e.message;}finally{S.loading=false;render();}}
+function mergeByTs(local,remote){
+  // Per ogni record usa la versione più recente (confronta timestamp updated/created)
+  const result=[...remote];
+  const repush=[];
+  local.forEach(loc=>{
+    const ri=result.findIndex(r=>r.id===loc.id);
+    if(ri===-1){result.push(loc);repush.push(loc);}
+    else{
+      const lt=new Date(loc.updated||loc.created||0);
+      const rt=new Date(result[ri].updated||result[ri].created||0);
+      if(lt>rt){result[ri]=loc;repush.push(loc);}
+    }
+  });
+  return{merged:result,repush};
+}
+
+async function gasRead(){
+  if(!S.gasUrl||!S.pwd)return;
+  S.loading=true;S.syncErr=null;render();
+  try{
+    const r=await fetch(gasUrlWith('action=read'));
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+
+    // Merge intelligente: mantiene la versione più recente per ogni record
+    if(Array.isArray(d.signals)){const{merged,repush}=mergeByTs(S.signals,d.signals);S.signals=merged;repush.forEach(s=>gasWrite('signal','update',s));}
+    if(Array.isArray(d.trades)) {const{merged,repush}=mergeByTs(S.trades,d.trades);S.trades=merged;repush.forEach(t=>gasWrite('trade','update',t));}
+    if(Array.isArray(d.ordini)) {const{merged,repush}=mergeByTs(S.ordini,d.ordini);S.ordini=merged;repush.forEach(o=>gasWrite('ordine','update',o));}
+
+    S.lastSync=new Date().toISOString();localStorage.setItem('ek_sync',S.lastSync);persist();
+  }catch(e){S.syncErr=e.message;}
+  finally{S.loading=false;render();}
+}
 async function gasWrite(type,op,record){if(!S.gasUrl||!S.pwd)return;try{await fetch(gasUrlWith(`action=write&type=${type}&op=${op}&record=${encodeURIComponent(JSON.stringify(record))}`));}catch{}}
 
 function addSignal(d){const s={id:uid(),created:new Date().toISOString(),stato:'ricevuto',...d};S.signals.unshift(s);persist();gasWrite('signal','add',s);render();}
