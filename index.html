@@ -8,29 +8,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-
-/* ── DARK THEME (default) ── */
 :root{
   --bg:#080a0f;--s1:#0f1219;--s2:#161b27;--s3:#1e2435;
   --b1:#252d42;--b2:#2e3850;
   --t1:#e8edf8;--t2:#8892a4;--t3:#4a5568;
-  --shadow:rgba(0,0,0,.4);
+  --shadow:rgba(0,0,0,.5);
   --gr:#00c896;--rd:#ff3d5a;--yl:#f5c542;--bl:#4d9eff;--pu:#a78bfa;--or:#ff8c42;
   --gr-dim:rgba(0,200,150,.12);--rd-dim:rgba(255,61,90,.12);
   --yl-dim:rgba(245,197,66,.12);--bl-dim:rgba(77,158,255,.12);--pu-dim:rgba(167,139,250,.12);
   --font-ui:'Syne',sans-serif;--font-mono:'JetBrains Mono',monospace;
 }
-/* ── LIGHT THEME ── */
 [data-theme="light"]{
   --bg:#f0f3fa;--s1:#ffffff;--s2:#f5f7fc;--s3:#eaeef8;
   --b1:#d6dce8;--b2:#c4ccd8;
   --t1:#141825;--t2:#5a6278;--t3:#9aa0b0;
-  --shadow:rgba(0,0,0,.1);
+  --shadow:rgba(0,0,0,.12);
   --gr:#009e76;--rd:#e0203c;--yl:#c89500;--bl:#1a7de0;--pu:#7c5ce4;--or:#d4621a;
   --gr-dim:rgba(0,158,118,.1);--rd-dim:rgba(224,32,60,.1);
   --yl-dim:rgba(200,149,0,.1);--bl-dim:rgba(26,125,224,.1);--pu-dim:rgba(124,92,228,.1);
 }
-
 body{background:var(--bg);color:var(--t1);font-family:var(--font-ui);font-size:14px;height:100vh;overflow:hidden;transition:background .2s,color .2s}
 
 /* ── LAYOUT ── */
@@ -38,6 +34,24 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-ui);font-size:1
 .sidebar{width:224px;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;flex-shrink:0;transition:background .2s,border-color .2s}
 .main{flex:1;overflow-y:auto;background:var(--bg)}
 .main-inner{padding:28px 32px;min-height:100%}
+
+/* ── LOGIN SCREEN ── */
+.login-wrap{height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.login-box{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:40px;width:380px;max-width:94vw;box-shadow:0 32px 80px var(--shadow)}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.login-dot{width:10px;height:10px;border-radius:50%;background:var(--gr);box-shadow:0 0 10px var(--gr)}
+.login-name{font-size:18px;font-weight:800;letter-spacing:.06em}
+.login-title{font-size:13px;color:var(--t2);margin-bottom:24px;line-height:1.5}
+.login-error{background:var(--rd-dim);border:1px solid rgba(255,61,90,.2);color:var(--rd);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px}
+.login-form .form-group{margin-bottom:16px}
+.login-btn{width:100%;padding:11px;background:var(--bl);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-ui);transition:filter .15s}
+.login-btn:hover{filter:brightness(1.1)}
+.login-theme{position:absolute;top:16px;right:16px;background:var(--s1);border:1px solid var(--b1);color:var(--t2);font-size:15px;width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* ── FIRST SETUP SCREEN ── */
+.firstsetup-box{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:40px;width:420px;max-width:94vw;box-shadow:0 32px 80px var(--shadow)}
+.firstsetup-title{font-size:18px;font-weight:800;margin-bottom:8px}
+.firstsetup-sub{font-size:13px;color:var(--t2);margin-bottom:24px;line-height:1.6}
 
 /* ── SIDEBAR ── */
 .logo{padding:18px 22px 14px;font-size:15px;font-weight:800;letter-spacing:.08em;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px}
@@ -52,8 +66,8 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-ui);font-size:1
 .conn-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .conn-dot.ok{background:var(--gr)}.conn-dot.err{background:var(--rd)}
 .footer-text{font-size:11px;color:var(--t3);flex:1}
-.theme-btn{background:var(--s2);border:1px solid var(--b1);color:var(--t2);font-size:14px;width:28px;height:28px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.theme-btn:hover{color:var(--t1);border-color:var(--b2)}
+.icon-btn{background:var(--s2);border:1px solid var(--b1);color:var(--t2);font-size:14px;width:28px;height:28px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.icon-btn:hover{color:var(--t1);border-color:var(--b2)}
 
 /* ── PAGE HEADER ── */
 .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:10px}
@@ -106,6 +120,9 @@ select option{background:var(--s1)}
 .gr2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .gr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .gr4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:40px}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--t2);cursor:pointer;font-size:16px;padding:4px}
 
 /* ── MODAL ── */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px}
@@ -130,16 +147,11 @@ select option{background:var(--s1)}
 .empty{text-align:center;padding:48px;color:var(--t3);font-size:13px}
 .tag{display:inline-flex;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;background:var(--s3);color:var(--t2);letter-spacing:.04em}
 .platform-tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;background:var(--s3);color:var(--t1)}
-.divider{border:none;border-top:1px solid var(--b1);margin:14px 0}
 .section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--b1)}
-
-/* ── POTENZIALE CARD ── */
 .pot-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .pot-item{background:var(--s2);border-radius:8px;padding:12px}
 .pot-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:4px}
 .pot-val{font-size:15px;font-weight:700;font-family:var(--font-mono)}
-
-/* ── SETUP ── */
 .setup-wrap{max-width:580px;margin:0 auto}
 .step-list{counter-reset:step;list-style:none}
 .step-list li{counter-increment:step;display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--b1);color:var(--t2);font-size:13px;line-height:1.5}
@@ -164,13 +176,13 @@ const TAX_RATE  = 0.26;
 const FINECO    = 'Fineco';
 
 const STATI = {
-  ricevuto:    {l:'Ricevuto',   cls:'bgr', ic:'📨'},
-  attivato:    {l:'Attivato',   cls:'by',  ic:'⚡'},
-  aperto:      {l:'Aperto',     cls:'bb',  ic:'📈'},
-  chiuso_tp:   {l:'TP ✓',      cls:'bg',  ic:'✅'},
-  chiuso_stop: {l:'Stop Loss',  cls:'br',  ic:'🛑'},
-  chiuso_man:  {l:'Chiuso',     cls:'bp',  ic:'🔒'},
-  scartato:    {l:'Scartato',   cls:'bgr', ic:'✕'},
+  ricevuto:    {l:'Ricevuto',  cls:'bgr',ic:'📨'},
+  attivato:    {l:'Attivato',  cls:'by', ic:'⚡'},
+  aperto:      {l:'Aperto',   cls:'bb', ic:'📈'},
+  chiuso_tp:   {l:'TP ✓',    cls:'bg', ic:'✅'},
+  chiuso_stop: {l:'Stop Loss',cls:'br', ic:'🛑'},
+  chiuso_man:  {l:'Chiuso',  cls:'bp', ic:'🔒'},
+  scartato:    {l:'Scartato', cls:'bgr',ic:'✕'},
 };
 const CHIUSI = new Set(['chiuso_tp','chiuso_stop','chiuso_man']);
 
@@ -178,30 +190,33 @@ const CHIUSI = new Set(['chiuso_tp','chiuso_stop','chiuso_man']);
 // STATE
 // ════════════════════════════════════════════════════
 let S = {
-  tab:      'dashboard',
-  theme:    localStorage.getItem('ek_theme') || 'dark',
-  gasUrl:   localStorage.getItem('ek_gas')   || '',
-  signals:  JSON.parse(localStorage.getItem('ek_segnali') || '[]'),
-  trades:   JSON.parse(localStorage.getItem('ek_trades')  || '[]'),
-  loading:  false,
-  modal:    null,
-  filterSeg:'tutti',
-  lastSync: localStorage.getItem('ek_sync') || null,
-  syncErr:  null,
+  tab:       'dashboard',
+  theme:     localStorage.getItem('ek_theme') || 'dark',
+  gasUrl:    localStorage.getItem('ek_gas')   || '',
+  pwd:       localStorage.getItem('ek_pwd')   || '',   // password = token GAS
+  unlocked:  sessionStorage.getItem('ek_auth') === '1',
+  loginErr:  false,
+  signals:   JSON.parse(localStorage.getItem('ek_segnali') || '[]'),
+  trades:    JSON.parse(localStorage.getItem('ek_trades')  || '[]'),
+  loading:   false,
+  modal:     null,
+  filterSeg: 'tutti',
+  lastSync:  localStorage.getItem('ek_sync') || null,
+  syncErr:   null,
 };
 document.documentElement.setAttribute('data-theme', S.theme);
 
 // ════════════════════════════════════════════════════
 // UTILS
 // ════════════════════════════════════════════════════
-const uid   = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-const today = () => new Date().toISOString().split('T')[0];
-const nn    = v  => (v == null || v === '') ? null : Number(v);
-const fmt   = (n, d=2) => n == null || n === '' ? '—' : Number(n).toFixed(d);
-const fmtPct= n  => n == null ? '—' : (Number(n)>=0?'+':'')+Number(n).toFixed(2)+'%';
-const fmtEur= n  => n == null ? '—' : (Number(n)>=0?'+':'')+Number(n).toFixed(2)+'€';
-const fmtDate=d  => d ? new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '—';
-const esc   = s  => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const uid    = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const today  = () => new Date().toISOString().split('T')[0];
+const nn     = v  => (v == null || v === '') ? null : Number(v);
+const fmt    = (n,d=2) => n==null||n===''?'—':Number(n).toFixed(d);
+const fmtPct = n  => n==null?'—':(Number(n)>=0?'+':'')+Number(n).toFixed(2)+'%';
+const fmtEur = n  => n==null?'—':(Number(n)>=0?'+':'')+Number(n).toFixed(2)+'€';
+const fmtDate= d  => d?new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—';
+const esc    = s  => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 function persist() {
   localStorage.setItem('ek_segnali', JSON.stringify(S.signals));
@@ -209,37 +224,74 @@ function persist() {
 }
 
 // ════════════════════════════════════════════════════
-// P&L CORE LOGIC (percentuale su EUR investiti)
+// AUTH
 // ════════════════════════════════════════════════════
-
-// Ritorna la % di movimento da entry a targetPrice
-function movePct(dir, entry, targetPrice) {
-  if (!entry || !targetPrice) return null;
-  return dir === 'BUY'
-    ? (targetPrice - entry) / entry * 100
-    : (entry - targetPrice) / entry * 100;
+function tryLogin() {
+  const input = document.getElementById('loginPwd')?.value || '';
+  if (input === S.pwd) {
+    sessionStorage.setItem('ek_auth', '1');
+    S.unlocked = true;
+    S.loginErr = false;
+    render();
+    if (S.gasUrl) gasRead();
+  } else {
+    S.loginErr = true;
+    render();
+    setTimeout(() => { document.getElementById('loginPwd')?.focus(); }, 50);
+  }
 }
 
-// P&L lordo in EUR: investito_eur * % spostamento - commissioni
+function logout() {
+  sessionStorage.removeItem('ek_auth');
+  S.unlocked = false;
+  render();
+}
+
+function savePassword(newPwd) {
+  if (!newPwd) { alert('La password non può essere vuota'); return; }
+  S.pwd = newPwd;
+  localStorage.setItem('ek_pwd', newPwd);
+  sessionStorage.setItem('ek_auth', '1');
+  S.unlocked = true;
+  alert('Password salvata. Usala anche come Token nel backend GAS.');
+  render();
+}
+
+function togglePwdVisibility(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+// ════════════════════════════════════════════════════
+// P&L LOGIC
+// ════════════════════════════════════════════════════
+function movePct(dir, entry, target) {
+  if (!entry || !target) return null;
+  return dir==='BUY' ? (target-entry)/entry*100 : (entry-target)/entry*100;
+}
 function calcPL_EUR(dir, entryUSD, exitUSD, investitoEUR, commEUR) {
   if (!entryUSD || !exitUSD || !investitoEUR) return null;
-  const pct = movePct(dir, entryUSD, exitUSD) / 100;
-  return investitoEUR * pct - (commEUR || 0);
+  return investitoEUR * movePct(dir,entryUSD,exitUSD)/100 - (commEUR||0);
 }
-
 function calcTax(plEur, platform) {
-  if (platform === FINECO || !plEur || plEur <= 0) return 0;
+  if (platform===FINECO || !plEur || plEur<=0) return 0;
   return plEur * TAX_RATE;
 }
 
 // ════════════════════════════════════════════════════
-// GAS SYNC
+// GAS SYNC  (token su ogni richiesta)
 // ════════════════════════════════════════════════════
+function gasUrl(extra) {
+  const base = S.gasUrl + '?token=' + encodeURIComponent(S.pwd);
+  return base + (extra ? '&' + extra : '');
+}
+
 async function gasRead() {
-  if (!S.gasUrl) return;
+  if (!S.gasUrl || !S.pwd) return;
   S.loading = true; S.syncErr = null; render();
   try {
-    const r = await fetch(S.gasUrl + '?action=read');
+    const r = await fetch(gasUrl('action=read'));
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     if (d.error) throw new Error(d.error);
@@ -253,10 +305,10 @@ async function gasRead() {
 }
 
 async function gasWrite(type, op, record) {
-  if (!S.gasUrl) return;
+  if (!S.gasUrl || !S.pwd) return;
   try {
     const p = encodeURIComponent(JSON.stringify(record));
-    await fetch(`${S.gasUrl}?action=write&type=${type}&op=${op}&record=${p}`);
+    await fetch(gasUrl(`action=write&type=${type}&op=${op}&record=${p}`));
   } catch {}
 }
 
@@ -264,21 +316,21 @@ async function gasWrite(type, op, record) {
 // DATA OPS
 // ════════════════════════════════════════════════════
 function addSignal(data) {
-  const sig = { id:uid(), created:new Date().toISOString(), stato:'ricevuto', ...data };
+  const sig={id:uid(),created:new Date().toISOString(),stato:'ricevuto',...data};
   S.signals.unshift(sig); persist(); gasWrite('signal','add',sig); render();
 }
-function updSig(id, patch) {
-  const i = S.signals.findIndex(s=>s.id===id); if(i<0) return;
-  S.signals[i] = { ...S.signals[i], ...patch, updated:new Date().toISOString() };
+function updSig(id,patch) {
+  const i=S.signals.findIndex(s=>s.id===id); if(i<0)return;
+  S.signals[i]={...S.signals[i],...patch,updated:new Date().toISOString()};
   persist(); gasWrite('signal','update',S.signals[i]); render();
 }
 function addTrade(data) {
-  const t = { id:uid(), created:new Date().toISOString(), stato:'aperto', ...data };
+  const t={id:uid(),created:new Date().toISOString(),stato:'aperto',...data};
   S.trades.unshift(t); persist(); gasWrite('trade','add',t); render();
 }
-function updTrade(id, patch) {
-  const i = S.trades.findIndex(t=>t.id===id); if(i<0) return;
-  S.trades[i] = { ...S.trades[i], ...patch, updated:new Date().toISOString() };
+function updTrade(id,patch) {
+  const i=S.trades.findIndex(t=>t.id===id); if(i<0)return;
+  S.trades[i]={...S.trades[i],...patch,updated:new Date().toISOString()};
   persist(); gasWrite('trade','update',S.trades[i]); render();
 }
 
@@ -287,19 +339,17 @@ function updTrade(id, patch) {
 // ════════════════════════════════════════════════════
 const openTrades   = () => S.trades.filter(t=>t.stato==='aperto');
 const closedTrades = () => S.trades.filter(t=>CHIUSI.has(t.stato));
-
-function totalPL()  { return closedTrades().reduce((s,t)=>s+(nn(t.pl_lordo)||0), 0); }
-function totalTax() { return closedTrades().reduce((s,t)=>s+(nn(t.tasse)||0), 0); }
-
+function totalPL()  { return closedTrades().reduce((s,t)=>s+(nn(t.pl_lordo)||0),0); }
+function totalTax() { return closedTrades().reduce((s,t)=>s+(nn(t.tasse)||0),0); }
 function summaryByPlatform() {
-  const r = {};
-  PLATFORMS.forEach(p => r[p] = {pl:0,gains:0,losses:0,trades:0,wins:0});
-  closedTrades().forEach(t => {
-    const p = t.piattaforma||''; if (!r[p]) return;
-    const pl = nn(t.pl_lordo)||0;
-    r[p].pl += pl; r[p].trades++;
-    if (pl > 0) { r[p].gains += pl; r[p].wins++; }
-    else if (pl < 0) r[p].losses += pl;
+  const r={};
+  PLATFORMS.forEach(p=>r[p]={pl:0,gains:0,losses:0,trades:0,wins:0});
+  closedTrades().forEach(t=>{
+    const p=t.piattaforma||''; if(!r[p])return;
+    const pl=nn(t.pl_lordo)||0;
+    r[p].pl+=pl; r[p].trades++;
+    if(pl>0){r[p].gains+=pl;r[p].wins++;}
+    else if(pl<0) r[p].losses+=pl;
   });
   return r;
 }
@@ -308,7 +358,7 @@ function summaryByPlatform() {
 // THEME
 // ════════════════════════════════════════════════════
 function toggleTheme() {
-  S.theme = S.theme === 'dark' ? 'light' : 'dark';
+  S.theme = S.theme==='dark'?'light':'dark';
   localStorage.setItem('ek_theme', S.theme);
   document.documentElement.setAttribute('data-theme', S.theme);
   render();
@@ -317,21 +367,15 @@ function toggleTheme() {
 // ════════════════════════════════════════════════════
 // MODAL
 // ════════════════════════════════════════════════════
-function openM(type, data={}) { S.modal={type,data}; render(); }
+function openM(type,data={}) { S.modal={type,data}; render(); }
 function closeM() { S.modal=null; render(); }
 
 // ════════════════════════════════════════════════════
 // UI HELPERS
 // ════════════════════════════════════════════════════
-function badge(stato) {
-  const s = STATI[stato]||STATI.ricevuto;
-  return `<span class="badge ${s.cls}">${s.ic} ${s.l}</span>`;
-}
-function dirBadge(dir) {
-  return dir==='BUY'?`<span class="badge bg">▲ BUY</span>`:`<span class="badge br">▼ SELL</span>`;
-}
+function badge(stato) { const s=STATI[stato]||STATI.ricevuto; return `<span class="badge ${s.cls}">${s.ic} ${s.l}</span>`; }
+function dirBadge(dir) { return dir==='BUY'?`<span class="badge bg">▲ BUY</span>`:`<span class="badge br">▼ SELL</span>`; }
 function plClass(n) { return Number(n)>=0?'gr-text':'rd-text'; }
-
 function navBadge(tab) {
   if(tab==='segnali'){const n=S.signals.filter(s=>s.stato==='attivato').length;return n?`<span class="nav-badge">${n}</span>`:'';}
   if(tab==='portafoglio'){const n=openTrades().length;return n?`<span class="nav-badge">${n}</span>`:''}
@@ -339,21 +383,81 @@ function navBadge(tab) {
 }
 
 // ════════════════════════════════════════════════════
-// VIEW: DASHBOARD
+// LOGIN / FIRST SETUP VIEWS
+// ════════════════════════════════════════════════════
+function viewFirstSetup() {
+  return `
+  <div class="login-wrap" style="position:relative">
+    <button class="login-theme icon-btn" onclick="toggleTheme()">${S.theme==='dark'?'☀':'🌙'}</button>
+    <div class="firstsetup-box">
+      <div class="login-logo"><span class="login-dot"></span><span class="login-name">EK Tracker</span></div>
+      <div class="firstsetup-title">Primo accesso</div>
+      <div class="firstsetup-sub">Scegli una password. Sarà usata sia per accedere all'app sia come token di autenticazione per il backend Google Apps Script.</div>
+      <div class="form-group">
+        <label>Scegli Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="setupPwd1" placeholder="Minimo 6 caratteri">
+          <button class="pw-toggle" onclick="togglePwdVisibility('setupPwd1')">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Conferma Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="setupPwd2" placeholder="Ripeti la password">
+          <button class="pw-toggle" onclick="togglePwdVisibility('setupPwd2')">👁</button>
+        </div>
+      </div>
+      <div id="setupErr"></div>
+      <button class="login-btn" onclick="submitFirstSetup()">Imposta Password →</button>
+    </div>
+  </div>`;
+}
+
+function submitFirstSetup() {
+  const p1=document.getElementById('setupPwd1')?.value||'';
+  const p2=document.getElementById('setupPwd2')?.value||'';
+  const el=document.getElementById('setupErr');
+  if (p1.length < 6) { if(el) el.innerHTML=`<div class="login-error">La password deve avere almeno 6 caratteri.</div>`; return; }
+  if (p1 !== p2) { if(el) el.innerHTML=`<div class="login-error">Le due password non corrispondono.</div>`; return; }
+  savePassword(p1);
+}
+
+function viewLogin() {
+  return `
+  <div class="login-wrap" style="position:relative">
+    <button class="login-theme icon-btn" onclick="toggleTheme()">${S.theme==='dark'?'☀':'🌙'}</button>
+    <div class="login-box">
+      <div class="login-logo"><span class="login-dot"></span><span class="login-name">EK Tracker</span></div>
+      <div class="login-title">Inserisci la password per accedere ai tuoi dati di trading.</div>
+      ${S.loginErr?`<div class="login-error">Password errata. Riprova.</div>`:''}
+      <div class="login-form">
+        <div class="form-group">
+          <label>Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="loginPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')tryLogin()" autofocus>
+            <button class="pw-toggle" onclick="togglePwdVisibility('loginPwd')">👁</button>
+          </div>
+        </div>
+        <button class="login-btn" onclick="tryLogin()">Accedi →</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════
+// MAIN VIEWS
 // ════════════════════════════════════════════════════
 function viewDashboard() {
-  const closed=closedTrades(), open=openTrades();
-  const tpl=totalPL(), tax=totalTax(), netto=tpl-tax;
+  const closed=closedTrades(),open=openTrades();
+  const tpl=totalPL(),tax=totalTax(),netto=tpl-tax;
   const wins=closed.filter(t=>(nn(t.pl_lordo)||0)>0).length;
   const wr=closed.length?(wins/closed.length*100).toFixed(0):0;
   const bySeg=S.signals.reduce((a,s)=>{a[s.stato]=(a[s.stato]||0)+1;return a},{});
   const byP=summaryByPlatform();
   const totalInv=open.reduce((s,t)=>s+(nn(t.investito_eur)||0),0);
-
   return `
   <div class="ph">
-    <div><div class="ph-title">Dashboard</div>
-    <div class="ph-sub">${S.lastSync?'Sync: '+new Date(S.lastSync).toLocaleTimeString('it-IT'):''}</div></div>
+    <div><div class="ph-title">Dashboard</div><div class="ph-sub">${S.lastSync?'Sync: '+new Date(S.lastSync).toLocaleTimeString('it-IT'):''}</div></div>
     <div class="flex gap2 ai">${S.gasUrl?`<button class="btn btn-gh btn-sm" onclick="gasRead()">↻ Sync</button>`:''}</div>
   </div>
   ${S.syncErr?`<div class="alert al-danger">⚠ Sync error: ${esc(S.syncErr)}</div>`:''}
@@ -362,7 +466,7 @@ function viewDashboard() {
     <div class="stat"><div class="stat-label">Tasse Stimate</div><div class="stat-val rd">-${fmt(tax)}€</div><div class="stat-sub">26% dichiarativo</div></div>
     <div class="stat"><div class="stat-label">P&L Netto</div><div class="stat-val ${netto>=0?'gr':'rd'}">${netto>=0?'+':''}${fmt(netto)}€</div><div class="stat-sub">Post imposte stimate</div></div>
     <div class="stat"><div class="stat-label">Win Rate</div><div class="stat-val ${wr>=50?'gr':'rd'}">${wr}%</div><div class="stat-sub">${wins}W · ${closed.length-wins}L</div></div>
-    <div class="stat"><div class="stat-label">Portafoglio Aperto</div><div class="stat-val bl">${open.length} pos.</div><div class="stat-sub">${totalInv?fmt(totalInv)+'€ investiti':'—'}</div></div>
+    <div class="stat"><div class="stat-label">Portafoglio Aperto</div><div class="stat-val bl">${open.length} pos.</div><div class="stat-sub">${totalInv?fmt(totalInv)+'€ inv.':'—'}</div></div>
     <div class="stat"><div class="stat-label">Segnali Attivati</div><div class="stat-val yl">${bySeg.attivato||0}</div><div class="stat-sub">In attesa di apertura</div></div>
   </div>
   <div class="gr2">
@@ -370,135 +474,94 @@ function viewDashboard() {
       <div class="card-head"><div class="card-title">P&L per Piattaforma</div></div>
       <div class="tbl-wrap"><table>
         <thead><tr><th>Piattaforma</th><th>Trade</th><th>Win%</th><th>Lordo</th><th>Netto</th></tr></thead>
-        <tbody>
-          ${PLATFORMS.map(p=>{
-            const d=byP[p];
-            const wr2=d.trades?(d.wins/d.trades*100).toFixed(0)+'%':'—';
-            const net=d.pl-calcTax(d.pl,p);
-            const netCell=p===FINECO?`<span class="dim">Gestito</span>`:`<span class="mono ${plClass(net)}">${fmtEur(net)}</span>`;
-            return `<tr>
-              <td><strong>${p}</strong></td><td class="dim">${d.trades}</td><td class="dim">${wr2}</td>
-              <td class="mono ${plClass(d.pl)}">${d.pl?fmtEur(d.pl):'—'}</td><td>${netCell}</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
+        <tbody>${PLATFORMS.map(p=>{
+          const d=byP[p],wr2=d.trades?(d.wins/d.trades*100).toFixed(0)+'%':'—';
+          const net=d.pl-calcTax(d.pl,p);
+          return `<tr><td><strong>${p}</strong></td><td class="dim">${d.trades}</td><td class="dim">${wr2}</td>
+            <td class="mono ${plClass(d.pl)}">${d.pl?fmtEur(d.pl):'—'}</td>
+            <td>${p===FINECO?`<span class="dim">Gestito</span>`:`<span class="mono ${plClass(net)}">${fmtEur(net)}</span>`}</td></tr>`;
+        }).join('')}</tbody>
       </table></div>
     </div>
     <div class="card">
       <div class="card-head"><div class="card-title">Fiscalità Anno Corrente</div></div>
       <div class="card-body">
         ${PLATFORMS.filter(p=>p!==FINECO).map(p=>{
-          const d=byP[p]; const net=d.gains+d.losses; const tax2=net>0?net*TAX_RATE:0;
+          const d=byP[p],net=d.gains+d.losses,tax2=net>0?net*TAX_RATE:0;
           return `<div style="padding:10px 0;border-bottom:1px solid var(--b1)">
-            <div class="flex ai jb" style="margin-bottom:6px">
-              <strong>${p}</strong>
-              <span class="badge ${tax2>0?'br':'bg'}">${tax2>0?'Imposta: '+fmt(tax2)+'€':'Nessuna imposta'}</span>
-            </div>
+            <div class="flex ai jb" style="margin-bottom:6px"><strong>${p}</strong>
+              <span class="badge ${tax2>0?'br':'bg'}">${tax2>0?'Imposta: '+fmt(tax2)+'€':'Nessuna imposta'}</span></div>
             <div class="gr3" style="font-size:11px;color:var(--t2)">
               <span>Plus: <span class="gr-text">+${fmt(d.gains)}€</span></span>
               <span>Minus: <span class="rd-text">${fmt(d.losses)}€</span></span>
               <span>Netto: <span class="${plClass(net)}">${fmtEur(net)}</span></span>
-            </div>
-          </div>`;
+            </div></div>`;
         }).join('')}
-        <div style="padding-top:10px;font-size:11px;color:var(--t3)">Fineco: regime amministrato — broker trattiene alla fonte<br>Minus compensabili entro 4 anni fiscali</div>
+        <div style="padding-top:10px;font-size:11px;color:var(--t3)">Fineco: regime amministrato — tasse alla fonte<br>Minus compensabili entro 4 anni fiscali</div>
       </div>
     </div>
   </div>
-  ${open.length?`
-  <div class="card">
-    <div class="card-head"><div class="card-title">⚠ Monitoraggio Stop — Posizioni Aperte</div></div>
+  ${open.length?`<div class="card">
+    <div class="card-head"><div class="card-title">⚠ Monitoraggio Stop</div></div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>Ticker</th><th>Dir.</th><th>Piattaforma</th><th>Entry $</th><th>Stop±M $</th><th>Dist. Stop</th><th>Investito €</th><th>Rischio Max €</th><th>Pot. Guadagno €</th></tr></thead>
-      <tbody>
-        ${open.map(t=>{
-          const sig=S.signals.find(s=>s.id===t.signal_id)||{};
-          const stop=nn(sig.stop_margine||t.sl_livello);
-          const tp=nn(t.tp_livello||sig.tp1);
-          const entry=nn(t.entry_price);
-          const inv=nn(t.investito_eur);
-          const distPct=entry&&stop?Math.abs(movePct(t.direzione,entry,stop)).toFixed(2)+'%':'—';
-          const riskEur=entry&&stop&&inv?fmt(Math.abs(calcPL_EUR(t.direzione,entry,stop,inv,0)))+'€':'—';
-          const gainEur=entry&&tp&&inv?fmt(Math.abs(calcPL_EUR(t.direzione,entry,tp,inv,0)))+'€':'—';
-          return `<tr>
-            <td><strong>${esc(t.ticker)}</strong></td>
-            <td>${dirBadge(t.direzione)}</td>
-            <td><span class="platform-tag">${esc(t.piattaforma)}</span></td>
-            <td class="mono">${fmt(entry)}</td>
-            <td class="mono rd-text">${stop?fmt(stop):'—'}</td>
-            <td class="mono dim">${distPct}</td>
-            <td class="mono">${inv?fmt(inv)+'€':'—'}</td>
-            <td class="mono rd-text">${riskEur}</td>
-            <td class="mono gr-text">${gainEur}</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
+      <thead><tr><th>Ticker</th><th>Dir.</th><th>Piattaforma</th><th>Entry $</th><th>Stop±M $</th><th>Dist. %</th><th>Investito €</th><th>Rischio Max €</th><th>Pot. Gain €</th></tr></thead>
+      <tbody>${open.map(t=>{
+        const sig=S.signals.find(s=>s.id===t.signal_id)||{};
+        const stop=nn(sig.stop_margine||t.sl_livello),tp=nn(t.tp_livello||sig.tp1),entry=nn(t.entry_price),inv=nn(t.investito_eur);
+        const distPct=entry&&stop?Math.abs(movePct(t.direzione,entry,stop)).toFixed(2)+'%':'—';
+        const riskEur=entry&&stop&&inv?fmt(Math.abs(calcPL_EUR(t.direzione,entry,stop,inv,0)))+'€':'—';
+        const gainEur=entry&&tp&&inv?fmt(Math.abs(calcPL_EUR(t.direzione,entry,tp,inv,0)))+'€':'—';
+        return `<tr><td><strong>${esc(t.ticker)}</strong></td><td>${dirBadge(t.direzione)}</td>
+          <td><span class="platform-tag">${esc(t.piattaforma)}</span></td>
+          <td class="mono">${fmt(entry)}</td><td class="mono rd-text">${stop?fmt(stop):'—'}</td>
+          <td class="mono dim">${distPct}</td><td class="mono">${inv?fmt(inv)+'€':'—'}</td>
+          <td class="mono rd-text">${riskEur}</td><td class="mono gr-text">${gainEur}</td></tr>`;
+      }).join('')}</tbody>
     </table></div>
-  </div>`:''}
-  `;
+  </div>`:''}`;
 }
 
-// ════════════════════════════════════════════════════
-// VIEW: SEGNALI
-// ════════════════════════════════════════════════════
 function viewSegnali() {
   const filter=S.filterSeg;
   const cnt=k=>S.signals.filter(s=>s.stato===k).length;
   const list=filter==='tutti'?[...S.signals]:S.signals.filter(s=>s.stato===filter);
-  const tabs2=[
-    {k:'tutti',l:'Tutti',n:S.signals.length},
-    {k:'ricevuto',l:'Ricevuti',n:cnt('ricevuto')},
-    {k:'attivato',l:'Attivati',n:cnt('attivato')},
-    {k:'aperto',l:'Aperti',n:cnt('aperto')},
-    {k:'chiuso_tp',l:'TP',n:cnt('chiuso_tp')},
-    {k:'chiuso_stop',l:'Stop',n:cnt('chiuso_stop')},
-    {k:'scartato',l:'Scartati',n:cnt('scartato')},
-  ];
+  const tabs2=[{k:'tutti',l:'Tutti',n:S.signals.length},{k:'ricevuto',l:'Ricevuti',n:cnt('ricevuto')},
+    {k:'attivato',l:'Attivati',n:cnt('attivato')},{k:'aperto',l:'Aperti',n:cnt('aperto')},
+    {k:'chiuso_tp',l:'TP',n:cnt('chiuso_tp')},{k:'chiuso_stop',l:'Stop',n:cnt('chiuso_stop')},{k:'scartato',l:'Scartati',n:cnt('scartato')}];
   return `
   <div class="ph"><div class="ph-title">Segnali EK</div><button class="btn btn-pr" onclick="openM('addSig')">+ Nuovo Segnale</button></div>
   <div class="flex gap2 fw" style="margin-bottom:16px">
     ${tabs2.map(t=>`<button class="btn btn-sm ${filter===t.k?'btn-pr':'btn-gh'}" onclick="S.filterSeg='${t.k}';render()">${t.l} <span style="opacity:.6">${t.n}</span></button>`).join('')}
   </div>
-  <div class="card" style="padding:0">
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>Data</th><th>Ticker</th><th>MKT</th><th>Dir.</th><th>Entry±M $</th><th>Stop±M $</th><th>% → TP1</th><th>% → Stop</th><th>Stato</th><th>Azioni</th></tr></thead>
-      <tbody>
-        ${list.length===0?`<tr><td colspan="10" class="empty">Nessun segnale</td></tr>`:''}
-        ${list.map(s=>{
-          const pctTp=movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1));
-          const pctSt=movePct(s.direzione,nn(s.entrata_margine),nn(s.stop_margine));
-          const acts=[];
-          if(s.stato==='ricevuto') acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('activateSig',{id:'${s.id}'})">Attiva</button>`);
-          if(s.stato==='attivato'){
-            acts.push(`<button class="btn btn-sm btn-pr" onclick="openM('openTrade',{id:'${s.id}'})">Apri Trade</button>`);
-            acts.push(`<button class="btn btn-sm btn-gh" onclick="updSig('${s.id}',{stato:'scartato'})">Scarta</button>`);
-          }
-          if(s.stato==='aperto'){
-            const t=S.trades.find(t=>t.signal_id===s.id&&t.stato==='aperto');
-            if(t) acts.push(`<button class="btn btn-sm btn-rd" onclick="openM('closeTrade',{sigId:'${s.id}',tradeId:'${t.id}'})">Chiudi</button>`);
-          }
-          acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('editSig',{id:'${s.id}'})">✏</button>`);
-          return `<tr>
-            <td class="dim mono">${fmtDate(s.data_segnale)}</td>
-            <td><strong>${esc(s.ticker)}</strong></td>
-            <td><span class="tag">${esc(s.market||'')}</span></td>
-            <td>${dirBadge(s.direzione)}</td>
-            <td class="mono">${fmt(s.entrata_margine)}</td>
-            <td class="mono rd-text">${fmt(s.stop_margine)}</td>
-            <td class="mono gr-text">${pctTp?fmtPct(pctTp):'—'}</td>
-            <td class="mono rd-text">${pctSt?fmtPct(pctSt):'—'}</td>
-            <td>${badge(s.stato)}</td>
-            <td><div class="flex gap1">${acts.join('')}</div></td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table></div>
-  </div>`;
+  <div class="card" style="padding:0"><div class="tbl-wrap"><table>
+    <thead><tr><th>Data</th><th>Ticker</th><th>MKT</th><th>Dir.</th><th>Entry±M $</th><th>Stop±M $</th><th>% → TP1</th><th>% → Stop</th><th>Stato</th><th>Azioni</th></tr></thead>
+    <tbody>
+      ${list.length===0?`<tr><td colspan="10" class="empty">Nessun segnale</td></tr>`:''}
+      ${list.map(s=>{
+        const pctTp=movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1));
+        const pctSt=movePct(s.direzione,nn(s.entrata_margine),nn(s.stop_margine));
+        const acts=[];
+        if(s.stato==='ricevuto') acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('activateSig',{id:'${s.id}'})">Attiva</button>`);
+        if(s.stato==='attivato'){
+          acts.push(`<button class="btn btn-sm btn-pr" onclick="openM('openTrade',{id:'${s.id}'})">Apri Trade</button>`);
+          acts.push(`<button class="btn btn-sm btn-gh" onclick="updSig('${s.id}',{stato:'scartato'})">Scarta</button>`);
+        }
+        if(s.stato==='aperto'){
+          const t=S.trades.find(t=>t.signal_id===s.id&&t.stato==='aperto');
+          if(t) acts.push(`<button class="btn btn-sm btn-rd" onclick="openM('closeTrade',{sigId:'${s.id}',tradeId:'${t.id}'})">Chiudi</button>`);
+        }
+        acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('editSig',{id:'${s.id}'})">✏</button>`);
+        return `<tr>
+          <td class="dim mono">${fmtDate(s.data_segnale)}</td><td><strong>${esc(s.ticker)}</strong></td>
+          <td><span class="tag">${esc(s.market||'')}</span></td><td>${dirBadge(s.direzione)}</td>
+          <td class="mono">${fmt(s.entrata_margine)}</td><td class="mono rd-text">${fmt(s.stop_margine)}</td>
+          <td class="mono gr-text">${pctTp?fmtPct(pctTp):'—'}</td><td class="mono rd-text">${pctSt?fmtPct(pctSt):'—'}</td>
+          <td>${badge(s.stato)}</td><td><div class="flex gap1">${acts.join('')}</div></td></tr>`;
+      }).join('')}
+    </tbody>
+  </table></div></div>`;
 }
 
-// ════════════════════════════════════════════════════
-// VIEW: PORTAFOGLIO
-// ════════════════════════════════════════════════════
 function viewPortafoglio() {
   const open=openTrades();
   return `
@@ -506,22 +569,14 @@ function viewPortafoglio() {
   ${open.length===0?`<div class="card"><div class="empty">Nessuna posizione aperta</div></div>`:''}
   ${open.map(t=>{
     const sig=S.signals.find(s=>s.id===t.signal_id)||{};
-    const entry=nn(t.entry_price), stop=nn(sig.stop_margine||t.sl_livello), tp=nn(t.tp_livello||sig.tp1);
-    const inv=nn(t.investito_eur);
-    const pctTp=movePct(t.direzione,entry,tp);
-    const pctSt=movePct(t.direzione,entry,stop);
+    const entry=nn(t.entry_price),stop=nn(sig.stop_margine||t.sl_livello),tp=nn(t.tp_livello||sig.tp1),inv=nn(t.investito_eur);
+    const pctTp=movePct(t.direzione,entry,tp),pctSt=movePct(t.direzione,entry,stop);
     const gainEur=entry&&tp&&inv?calcPL_EUR(t.direzione,entry,tp,inv,0):null;
     const lossEur=entry&&stop&&inv?calcPL_EUR(t.direzione,entry,stop,inv,nn(t.comm_open)||0):null;
     const rr=gainEur&&lossEur&&lossEur<0?(Math.abs(gainEur)/Math.abs(lossEur)).toFixed(2):null;
-    return `
-    <div class="card">
+    return `<div class="card">
       <div class="card-head">
-        <div class="flex ai gap2">
-          <span style="font-size:17px;font-weight:800">${esc(t.ticker)}</span>
-          ${dirBadge(t.direzione)}
-          <span class="platform-tag">${esc(t.piattaforma)}</span>
-          <span class="dim" style="font-size:11px">${esc(sig.market||t.market||'')}</span>
-        </div>
+        <div class="flex ai gap2"><span style="font-size:17px;font-weight:800">${esc(t.ticker)}</span>${dirBadge(t.direzione)}<span class="platform-tag">${esc(t.piattaforma)}</span><span class="dim" style="font-size:11px">${esc(sig.market||t.market||'')}</span></div>
         <button class="btn btn-sm btn-rd" onclick="openM('closeTrade',{sigId:'${sig.id||''}',tradeId:'${t.id}'})">Chiudi posizione</button>
       </div>
       <div class="card-body">
@@ -532,16 +587,12 @@ function viewPortafoglio() {
           <div><div class="stat-label">Apertura</div><div class="dim" style="font-size:13px;margin-top:2px">${fmtDate(t.data_apertura)}</div></div>
         </div>
         <div class="pot-row">
-          <div class="pot-item">
-            <div class="pot-label">🎯 Target TP1</div>
+          <div class="pot-item"><div class="pot-label">🎯 Target TP1</div>
             <div class="pot-val gr-text">${tp?fmt(tp)+' $':''} ${pctTp?'('+fmtPct(pctTp)+')':''}</div>
-            <div style="font-size:12px;color:var(--t2);margin-top:4px">Gain stimato: <span class="gr-text">${gainEur?'+'+fmt(gainEur)+'€':'—'}</span></div>
-          </div>
-          <div class="pot-item">
-            <div class="pot-label">🛑 Stop ± Margine</div>
+            <div style="font-size:12px;color:var(--t2);margin-top:4px">Gain stimato: <span class="gr-text">${gainEur?'+'+fmt(gainEur)+'€':'—'}</span></div></div>
+          <div class="pot-item"><div class="pot-label">🛑 Stop ± Margine</div>
             <div class="pot-val rd-text">${stop?fmt(stop)+' $':''} ${pctSt?'('+fmtPct(pctSt)+')':''}</div>
-            <div style="font-size:12px;color:var(--t2);margin-top:4px">Loss max: <span class="rd-text">${lossEur?fmt(lossEur)+'€':'—'}</span></div>
-          </div>
+            <div style="font-size:12px;color:var(--t2);margin-top:4px">Loss max: <span class="rd-text">${lossEur?fmt(lossEur)+'€':'—'}</span></div></div>
         </div>
         ${rr?`<div style="margin-top:10px;font-size:12px;color:var(--t2)">Risk/Reward: <span class="mono ${Number(rr)>=2?'gr-text':'yl-text'}"">1:${rr}</span></div>`:''}
         ${t.note?`<div class="dim" style="font-size:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--b1)">📝 ${esc(t.note)}</div>`:''}
@@ -550,12 +601,8 @@ function viewPortafoglio() {
   }).join('')}`;
 }
 
-// ════════════════════════════════════════════════════
-// VIEW: STORICO
-// ════════════════════════════════════════════════════
 function viewStorico() {
-  const closed=closedTrades();
-  const tpl=totalPL(), tax=totalTax(), netto=tpl-tax;
+  const closed=closedTrades(),tpl=totalPL(),tax=totalTax(),netto=tpl-tax;
   return `
   <div class="ph"><div class="ph-title">Storico Trade</div></div>
   <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
@@ -563,50 +610,67 @@ function viewStorico() {
     <div class="stat"><div class="stat-label">Tasse Stimate</div><div class="stat-val rd">-${fmt(tax)}€</div><div class="stat-sub">Piattaforme dichiarative</div></div>
     <div class="stat"><div class="stat-label">P&L Netto</div><div class="stat-val ${netto>=0?'gr':'rd'}">${netto>=0?'+':''}${fmt(netto)}€</div></div>
   </div>
-  <div class="card" style="padding:0">
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>Data</th><th>Ticker</th><th>Dir.</th><th>Piattaforma</th><th>Entry $</th><th>Exit $</th><th>Mvmnt%</th><th>Investito €</th><th>Comm €</th><th>P&L Lordo €</th><th>Tasse €</th><th>P&L Netto €</th><th>Stato</th><th>Note</th></tr></thead>
-      <tbody>
-        ${closed.length===0?`<tr><td colspan="14" class="empty">Nessun trade chiuso</td></tr>`:''}
-        ${closed.map(t=>{
-          const pl=nn(t.pl_lordo)||0, tax2=nn(t.tasse)||0, net=pl-tax2;
-          const pctMov=movePct(t.direzione,nn(t.entry_price),nn(t.exit_price));
-          const taxCell=t.piattaforma===FINECO?`<span class="dim">Gestito</span>`:`<span class="rd-text mono">${tax2?'-'+fmt(tax2)+'€':'—'}</span>`;
-          const netCell=t.piattaforma===FINECO?`<span class="dim">—</span>`:`<span class="mono ${plClass(net)}">${fmtEur(net)}</span>`;
-          const comm=((nn(t.comm_open)||0)+(nn(t.comm_close)||0)).toFixed(2);
-          return `<tr>
-            <td class="dim mono">${fmtDate(t.data_chiusura||t.data_apertura)}</td>
-            <td><strong>${esc(t.ticker)}</strong></td>
-            <td>${dirBadge(t.direzione)}</td>
-            <td><span class="platform-tag">${esc(t.piattaforma)}</span></td>
-            <td class="mono">${fmt(t.entry_price)}</td>
-            <td class="mono">${fmt(t.exit_price)}</td>
-            <td class="mono ${plClass(pctMov)}">${pctMov?fmtPct(pctMov):'—'}</td>
-            <td class="mono">${t.investito_eur?fmt(t.investito_eur)+'€':'—'}</td>
-            <td class="mono dim">${comm>0?comm+'€':'—'}</td>
-            <td class="mono"><span class="badge ${pl>=0?'bg':'br'}">${fmtEur(pl)}</span></td>
-            <td>${taxCell}</td>
-            <td>${netCell}</td>
-            <td>${badge(t.stato)}</td>
-            <td class="dim" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.note||'')}</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table></div>
-  </div>`;
+  <div class="card" style="padding:0"><div class="tbl-wrap"><table>
+    <thead><tr><th>Data</th><th>Ticker</th><th>Dir.</th><th>Piattaforma</th><th>Entry $</th><th>Exit $</th><th>Mvmnt%</th><th>Investito €</th><th>Comm €</th><th>P&L Lordo €</th><th>Tasse €</th><th>P&L Netto €</th><th>Stato</th><th>Note</th></tr></thead>
+    <tbody>
+      ${closed.length===0?`<tr><td colspan="14" class="empty">Nessun trade chiuso</td></tr>`:''}
+      ${closed.map(t=>{
+        const pl=nn(t.pl_lordo)||0,tax2=nn(t.tasse)||0,net=pl-tax2;
+        const pctMov=movePct(t.direzione,nn(t.entry_price),nn(t.exit_price));
+        const comm=((nn(t.comm_open)||0)+(nn(t.comm_close)||0)).toFixed(2);
+        return `<tr>
+          <td class="dim mono">${fmtDate(t.data_chiusura||t.data_apertura)}</td>
+          <td><strong>${esc(t.ticker)}</strong></td><td>${dirBadge(t.direzione)}</td>
+          <td><span class="platform-tag">${esc(t.piattaforma)}</span></td>
+          <td class="mono">${fmt(t.entry_price)}</td><td class="mono">${fmt(t.exit_price)}</td>
+          <td class="mono ${plClass(pctMov)}">${pctMov?fmtPct(pctMov):'—'}</td>
+          <td class="mono">${t.investito_eur?fmt(t.investito_eur)+'€':'—'}</td>
+          <td class="mono dim">${comm>0?comm+'€':'—'}</td>
+          <td class="mono"><span class="badge ${pl>=0?'bg':'br'}">${fmtEur(pl)}</span></td>
+          <td>${t.piattaforma===FINECO?`<span class="dim">Gestito</span>`:`<span class="rd-text mono">${tax2?'-'+fmt(tax2)+'€':'—'}</span>`}</td>
+          <td>${t.piattaforma===FINECO?`<span class="dim">—</span>`:`<span class="mono ${plClass(net)}">${fmtEur(net)}</span>`}</td>
+          <td>${badge(t.stato)}</td>
+          <td class="dim" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.note||'')}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table></div></div>`;
 }
 
-// ════════════════════════════════════════════════════
-// VIEW: SETUP
-// ════════════════════════════════════════════════════
 function viewSetup() {
   return `
   <div class="setup-wrap">
     <div class="ph"><div class="ph-title">Setup & Configurazione</div></div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">🔒 Sicurezza — Password / Token</div></div>
+      <div class="card-body">
+        <div class="alert al-warn">La password è usata sia per il login all'app sia come token di autenticazione per ogni chiamata al backend GAS. Cambiandola qui devi aggiornarla anche in GAS.</div>
+        <div class="gr2">
+          <div class="form-group">
+            <label>Nuova Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="newPwd1" placeholder="Nuova password">
+              <button class="pw-toggle" onclick="togglePwdVisibility('newPwd1')">👁</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Conferma Password</label>
+            <div class="pw-wrap">
+              <input type="password" id="newPwd2" placeholder="Ripeti">
+              <button class="pw-toggle" onclick="togglePwdVisibility('newPwd2')">👁</button>
+            </div>
+          </div>
+        </div>
+        <div id="pwdChangeErr"></div>
+        <button class="btn btn-pr" onclick="changePwd()">Aggiorna Password</button>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-head"><div class="card-title">Google Apps Script — Sync Cloud</div></div>
       <div class="card-body">
-        <div class="alert al-info">Connetti Google Sheets per sincronizzare su tutti i tuoi dispositivi. Senza connessione i dati restano solo nel browser locale.</div>
+        <div class="alert al-info">Ogni richiesta al backend include automaticamente il token (la tua password). Il backend GAS verificherà il token prima di rispondere.</div>
         <div class="form-group"><label>Web App URL</label><input type="url" id="gasInput" value="${esc(S.gasUrl)}" placeholder="https://script.google.com/macros/s/..."></div>
         <div class="flex gap2">
           <button class="btn btn-pr" onclick="saveGas()">Salva & Connetti</button>
@@ -616,45 +680,19 @@ function viewSetup() {
         <div id="gasStatus" style="margin-top:10px"></div>
       </div>
     </div>
+
     <div class="card">
-      <div class="card-head"><div class="card-title">Come configurare il backend</div></div>
+      <div class="card-head"><div class="card-title">Setup Google Apps Script</div></div>
       <div class="card-body">
         <ol class="step-list">
-          <li>Vai su <strong>script.google.com</strong> e crea un nuovo progetto vuoto</li>
-          <li>Incolla il contenuto di <code>gas_backend.gs</code> nell'editor</li>
-          <li>Menu <strong>Deploy → Nuova distribuzione → App web</strong></li>
-          <li>Esegui come: <strong>Me stesso</strong> · Accesso: <strong>Chiunque</strong></li>
-          <li>Clicca Distribuisci, autorizza l'accesso, copia l'URL</li>
-          <li>Incolla l'URL qui sopra e clicca Salva & Connetti</li>
+          <li>Vai su <strong>script.google.com</strong> → nuovo progetto vuoto</li>
+          <li>Incolla il contenuto di <code>gas_backend_v3.gs</code> nell'editor</li>
+          <li>Nella funzione <code>setToken()</code> sostituisci <code>LA_TUA_PASSWORD</code> con la password scelta → esegui <code>setToken</code> una volta dal menu Run</li>
+          <li>Menu <strong>Deploy → Nuova distribuzione → App web</strong><br>Esegui come: <strong>Me stesso</strong> · Accesso: <strong>Chiunque</strong></li>
+          <li>Copia l'URL generato e incollalo qui sopra → Salva & Connetti</li>
         </ol>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-head"><div class="card-title">Logica P&L — Come funziona il calcolo</div></div>
-      <div class="card-body">
-        <div style="font-size:13px;line-height:1.9;color:var(--t2)">
-          Inserisci il <strong style="color:var(--t1)">valore investito in euro</strong> e il <strong style="color:var(--t1)">numero di azioni</strong> (informativo). Il P&L è calcolato <strong style="color:var(--t1)">in percentuale</strong> sui prezzi USD dal punto di ingresso.<br><br>
-          <code>BUY: P&L% = (exit − entry) / entry × 100</code><br>
-          <code>SELL: P&L% = (entry − exit) / entry × 100</code><br>
-          <code>P&L€ = investito€ × P&L% − commissioni€</code><br><br>
-          Le commissioni broker vanno inserite in euro. Le stime su TP e Stop sono calcolate automaticamente nel Portafoglio.
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-head"><div class="card-title">Regime Fiscale Piattaforme</div></div>
-      <div class="card-body">
-        <div class="gr2">
-          <div>
-            <div class="section-title">Dichiarativo — 26% su plusvalenze nette</div>
-            ${['TradeZero','IBKR','Degiro'].map(p=>`<div class="badge bb" style="margin-bottom:6px;display:block;width:fit-content">${p}</div>`).join('')}
-            <div class="dim" style="font-size:11px;margin-top:6px">Quadro RT in dichiarazione. Minus compensabili entro 4 anni.</div>
-          </div>
-          <div>
-            <div class="section-title">Amministrato — Broker gestisce</div>
-            <div class="badge bg" style="margin-bottom:6px;display:block;width:fit-content">Fineco</div>
-            <div class="dim" style="font-size:11px;margin-top:6px">Il broker calcola, trattiene e versa l'imposta direttamente. Nessun adempimento dichiarativo.</div>
-          </div>
+        <div style="margin-top:12px;padding:12px;background:var(--s2);border-radius:8px;font-size:12px;color:var(--t2)">
+          <strong style="color:var(--yl)">Come funziona la protezione:</strong> chiunque trovi l'URL GAS senza il token riceve solo <code>{"error":"Accesso non autorizzato"}</code>. L'app invia automaticamente il token con ogni richiesta.
         </div>
       </div>
     </div>
@@ -666,9 +704,8 @@ function viewSetup() {
 // ════════════════════════════════════════════════════
 function renderModal() {
   if (!S.modal) return '';
-  const {type,data} = S.modal;
+  const {type,data}=S.modal;
 
-  /* ── ADD / EDIT SIGNAL ── */
   if (type==='addSig'||type==='editSig') {
     const s=type==='editSig'?(S.signals.find(x=>x.id===data.id)||{}):{};
     return `<div class="ov" onclick="if(event.target===this)closeM()">
@@ -713,7 +750,6 @@ function renderModal() {
     </div></div>`;
   }
 
-  /* ── ACTIVATE SIGNAL ── */
   if (type==='activateSig') {
     const s=S.signals.find(x=>x.id===data.id)||{};
     const pctTp=movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1));
@@ -722,15 +758,13 @@ function renderModal() {
     <div class="modal">
       <div class="modal-head"><div class="modal-title">Attiva Segnale — ${esc(s.ticker)}</div><button class="modal-close" onclick="closeM()">✕</button></div>
       <div class="modal-body">
-        <div class="alert al-warn">Confermi che sul sito EK le condizioni sono verificate (Valido = Sì)?</div>
-        <div style="background:var(--s2);border-radius:8px;padding:14px">
-          <div class="gr4">
-            <div><div class="stat-label">Entry±M</div><div class="mono">${fmt(s.entrata_margine)}</div></div>
-            <div><div class="stat-label">Stop±M</div><div class="mono rd-text">${fmt(s.stop_margine)}</div></div>
-            <div><div class="stat-label">% → TP1</div><div class="mono gr-text">${pctTp?fmtPct(pctTp):'—'}</div></div>
-            <div><div class="stat-label">% → Stop</div><div class="mono rd-text">${pctSt?fmtPct(pctSt):'—'}</div></div>
-          </div>
-        </div>
+        <div class="alert al-warn">Confermi che le condizioni sul sito EK sono verificate (Valido = Sì)?</div>
+        <div style="background:var(--s2);border-radius:8px;padding:14px"><div class="gr4">
+          <div><div class="stat-label">Entry±M</div><div class="mono">${fmt(s.entrata_margine)}</div></div>
+          <div><div class="stat-label">Stop±M</div><div class="mono rd-text">${fmt(s.stop_margine)}</div></div>
+          <div><div class="stat-label">% → TP1</div><div class="mono gr-text">${pctTp?fmtPct(pctTp):'—'}</div></div>
+          <div><div class="stat-label">% → Stop</div><div class="mono rd-text">${pctSt?fmtPct(pctSt):'—'}</div></div>
+        </div></div>
       </div>
       <div class="modal-foot">
         <button class="btn btn-gh" onclick="closeM()">Annulla</button>
@@ -739,7 +773,6 @@ function renderModal() {
     </div></div>`;
   }
 
-  /* ── OPEN TRADE ── */
   if (type==='openTrade') {
     const s=S.signals.find(x=>x.id===data.id)||{};
     return `<div class="ov" onclick="if(event.target===this)closeM()">
@@ -753,31 +786,14 @@ function renderModal() {
         </div>
         <div class="section-title">Esecuzione</div>
         <div class="gr2">
-          <div class="form-group">
-            <label>Valore Investito (€)</label>
-            <input type="number" id="ot_inv" step="10" placeholder="es. 1000" oninput="previewOpen()">
-            <div class="input-hint">Importo in euro messo sul trade</div>
-          </div>
-          <div class="form-group">
-            <label>Numero Azioni</label>
-            <input type="number" id="ot_naz" step="1" placeholder="es. 250">
-            <div class="input-hint">Quante azioni hai comprato (info)</div>
-          </div>
+          <div class="form-group"><label>Valore Investito (€)</label><input type="number" id="ot_inv" step="10" placeholder="es. 1000" oninput="previewOpen()"><div class="input-hint">Importo in euro messo sul trade</div></div>
+          <div class="form-group"><label>Numero Azioni</label><input type="number" id="ot_naz" step="1" placeholder="es. 250"><div class="input-hint">Quante azioni comprate (info)</div></div>
         </div>
         <div class="gr2">
-          <div class="form-group">
-            <label>Entry Effettivo ($)</label>
-            <input type="number" id="ot_ep" step="0.001" value="${s.entrata_margine||s.entrata||''}" oninput="previewOpen()">
-          </div>
-          <div class="form-group">
-            <label>TP Livello ($)</label>
-            <input type="number" id="ot_tp" step="0.001" value="${s.tp1||''}">
-          </div>
+          <div class="form-group"><label>Entry Effettivo ($)</label><input type="number" id="ot_ep" step="0.001" value="${s.entrata_margine||s.entrata||''}" oninput="previewOpen()"></div>
+          <div class="form-group"><label>TP Livello ($)</label><input type="number" id="ot_tp" step="0.001" value="${s.tp1||''}"></div>
         </div>
-        <div class="form-group">
-          <label>Commissioni Apertura (€)</label>
-          <input type="number" id="ot_co" step="0.01" value="0">
-        </div>
+        <div class="form-group"><label>Commissioni Apertura (€)</label><input type="number" id="ot_co" step="0.01" value="0"></div>
         <div id="openPreview"></div>
         <div class="form-group"><label>Note</label><textarea id="ot_nt" rows="2" placeholder="Note operative..."></textarea></div>
       </div>
@@ -788,7 +804,6 @@ function renderModal() {
     </div></div>`;
   }
 
-  /* ── CLOSE TRADE ── */
   if (type==='closeTrade') {
     const s=S.signals.find(x=>x.id===data.sigId)||{};
     const t=S.trades.find(x=>x.id===data.tradeId)||{};
@@ -796,31 +811,16 @@ function renderModal() {
     <div class="modal">
       <div class="modal-head"><div class="modal-title">Chiudi Trade — ${esc(t.ticker)}</div><button class="modal-close" onclick="closeM()">✕</button></div>
       <div class="modal-body">
-        <div class="alert al-warn">
-          Entry: <strong>${fmt(t.entry_price)} $</strong> · 
-          Stop±M: <strong>${fmt(s.stop_margine||t.sl_livello)} $</strong> · 
-          Investito: <strong>${t.investito_eur?fmt(t.investito_eur)+'€':'—'}</strong> · 
-          <strong>${esc(t.piattaforma)}</strong>
-        </div>
+        <div class="alert al-warn">Entry: <strong>${fmt(t.entry_price)} $</strong> · Stop: <strong>${fmt(s.stop_margine||t.sl_livello)} $</strong> · Investito: <strong>${t.investito_eur?fmt(t.investito_eur)+'€':'—'}</strong> · <strong>${esc(t.piattaforma)}</strong></div>
         <div class="gr2">
           <div class="form-group"><label>Motivo Chiusura</label>
-            <select id="ct_mo">
-              <option value="chiuso_tp">✅ Take Profit</option>
-              <option value="chiuso_stop">🛑 Stop Loss</option>
-              <option value="chiuso_man">🔒 Chiusura Manuale</option>
-            </select>
+            <select id="ct_mo"><option value="chiuso_tp">✅ Take Profit</option><option value="chiuso_stop">🛑 Stop Loss</option><option value="chiuso_man">🔒 Chiusura Manuale</option></select>
           </div>
           <div class="form-group"><label>Data Chiusura</label><input type="date" id="ct_dt" value="${today()}"></div>
         </div>
         <div class="gr2">
-          <div class="form-group">
-            <label>Prezzo Exit ($)</label>
-            <input type="number" id="ct_ex" step="0.001" placeholder="Prezzo di uscita" oninput="previewPL()">
-          </div>
-          <div class="form-group">
-            <label>Commissioni Chiusura (€)</label>
-            <input type="number" id="ct_cc" step="0.01" value="0" oninput="previewPL()">
-          </div>
+          <div class="form-group"><label>Prezzo Exit ($)</label><input type="number" id="ct_ex" step="0.001" placeholder="Prezzo di uscita" oninput="previewPL()"></div>
+          <div class="form-group"><label>Commissioni Chiusura (€)</label><input type="number" id="ct_cc" step="0.01" value="0" oninput="previewPL()"></div>
         </div>
         <div id="plPreview"></div>
         <div class="form-group"><label>Note / Lezione appresa</label><textarea id="ct_nt" rows="2" placeholder="Cosa ho imparato..."></textarea></div>
@@ -844,50 +844,37 @@ function collectSigForm() {
   const mrg=nn(document.getElementById('f_mrg').value)||0;
   let em=nn(document.getElementById('f_em').value);
   let sm=nn(document.getElementById('f_sm').value);
-  if (!em && ent && mrg) em = dir==='BUY' ? ent+mrg : ent-mrg;
-  if (!sm && sl1 && mrg) sm = dir==='BUY' ? sl1-mrg : sl1+mrg;
+  if(!em&&ent&&mrg) em=dir==='BUY'?ent+mrg:ent-mrg;
+  if(!sm&&sl1&&mrg) sm=dir==='BUY'?sl1-mrg:sl1+mrg;
   return {
-    data_segnale: document.getElementById('f_data').value,
-    market: document.getElementById('f_mkt').value,
-    ticker: document.getElementById('f_ticker').value.trim().toUpperCase(),
-    direzione: dir,
-    entrata:  nn(document.getElementById('f_ent').value),
-    tp1:      nn(document.getElementById('f_tp1').value),
-    tp2:      nn(document.getElementById('f_tp2').value),
-    sl1:      nn(document.getElementById('f_sl1').value),
-    sl2:      nn(document.getElementById('f_sl2').value),
-    margine:  mrg || null,
-    entrata_margine: em,
-    stop_margine:    sm,
-    link_telegram: document.getElementById('f_link').value,
-    a_mercato: document.getElementById('f_amk').value,
-    valido:    document.getElementById('f_val').value,
-    note_ek:   document.getElementById('f_note').value,
+    data_segnale:document.getElementById('f_data').value,
+    market:document.getElementById('f_mkt').value,
+    ticker:document.getElementById('f_ticker').value.trim().toUpperCase(),
+    direzione:dir,
+    entrata:nn(document.getElementById('f_ent').value),
+    tp1:nn(document.getElementById('f_tp1').value),
+    tp2:nn(document.getElementById('f_tp2').value),
+    sl1:nn(document.getElementById('f_sl1').value),
+    sl2:nn(document.getElementById('f_sl2').value),
+    margine:mrg||null, entrata_margine:em, stop_margine:sm,
+    link_telegram:document.getElementById('f_link').value,
+    a_mercato:document.getElementById('f_amk').value,
+    valido:document.getElementById('f_val').value,
+    note_ek:document.getElementById('f_note').value,
   };
 }
-
 function autoMargini() {
   const dir=document.getElementById('f_dir')?.value;
   const ent=nn(document.getElementById('f_ent')?.value)||0;
   const sl1=nn(document.getElementById('f_sl1')?.value)||0;
   const mrg=nn(document.getElementById('f_mrg')?.value)||0;
-  if (!mrg || !ent) return;
-  const emEl=document.getElementById('f_em'), smEl=document.getElementById('f_sm');
-  if (emEl) emEl.value=(dir==='BUY'?ent+mrg:ent-mrg).toFixed(4);
-  if (smEl) smEl.value=(dir==='BUY'?sl1-mrg:sl1+mrg).toFixed(4);
+  if(!mrg||!ent) return;
+  const emEl=document.getElementById('f_em'),smEl=document.getElementById('f_sm');
+  if(emEl) emEl.value=(dir==='BUY'?ent+mrg:ent-mrg).toFixed(4);
+  if(smEl) smEl.value=(dir==='BUY'?sl1-mrg:sl1+mrg).toFixed(4);
 }
-
-function submitAddSig() {
-  const d=collectSigForm();
-  if (!d.ticker) { alert('Ticker obbligatorio'); return; }
-  addSignal(d); closeM();
-}
-function submitEditSig(id) {
-  const d=collectSigForm();
-  const stato=document.getElementById('f_stato')?.value;
-  updSig(id, {...d, ...(stato?{stato}:{})});
-  closeM();
-}
+function submitAddSig() { const d=collectSigForm(); if(!d.ticker){alert('Ticker obbligatorio');return;} addSignal(d); closeM(); }
+function submitEditSig(id) { const d=collectSigForm(); const stato=document.getElementById('f_stato')?.value; updSig(id,{...d,...(stato?{stato}:{})}); closeM(); }
 
 function previewOpen() {
   const inv=nn(document.getElementById('ot_inv')?.value);
@@ -897,160 +884,147 @@ function previewOpen() {
   const stop=nn(s.stop_margine||s.sl1);
   const tp=nn(document.getElementById('ot_tp')?.value||s.tp1);
   const el=document.getElementById('openPreview'); if(!el) return;
-  if (!inv||!ep) { el.innerHTML=''; return; }
+  if(!inv||!ep){el.innerHTML='';return;}
   const gainEur=tp?calcPL_EUR(s.direzione,ep,tp,inv,0):null;
   const lossEur=stop?calcPL_EUR(s.direzione,ep,stop,inv,0):null;
   const rr=gainEur&&lossEur&&lossEur<0?(Math.abs(gainEur)/Math.abs(lossEur)).toFixed(2):null;
-  el.innerHTML=`<div style="background:var(--s2);border-radius:8px;padding:12px;margin-bottom:12px">
-    <div class="gr3">
-      <div><div class="stat-label">Pot. Gain (TP1)</div><div class="mono gr-text">${gainEur?'+'+fmt(gainEur)+'€':'—'}</div></div>
-      <div><div class="stat-label">Max Loss (Stop)</div><div class="mono rd-text">${lossEur?fmt(lossEur)+'€':'—'}</div></div>
-      <div><div class="stat-label">Risk/Reward</div><div class="mono ${rr&&Number(rr)>=2?'gr-text':'yl-text'}">${rr?'1:'+rr:'—'}</div></div>
-    </div>
-  </div>`;
+  el.innerHTML=`<div style="background:var(--s2);border-radius:8px;padding:12px;margin-bottom:12px"><div class="gr3">
+    <div><div class="stat-label">Pot. Gain (TP1)</div><div class="mono gr-text">${gainEur?'+'+fmt(gainEur)+'€':'—'}</div></div>
+    <div><div class="stat-label">Max Loss (Stop)</div><div class="mono rd-text">${lossEur?fmt(lossEur)+'€':'—'}</div></div>
+    <div><div class="stat-label">Risk/Reward</div><div class="mono ${rr&&Number(rr)>=2?'gr-text':'yl-text'}">${rr?'1:'+rr:'—'}</div></div>
+  </div></div>`;
 }
-
 function submitOpenTrade(sigId) {
   const inv=nn(document.getElementById('ot_inv')?.value);
   const ep=nn(document.getElementById('ot_ep')?.value);
-  if (!inv || !ep) { alert('Valore investito e Entry sono obbligatori'); return; }
+  if(!inv||!ep){alert('Valore investito e Entry sono obbligatori');return;}
   const s=S.signals.find(x=>x.id===sigId)||{};
-  addTrade({
-    signal_id:    sigId,
-    ticker:       s.ticker,
-    market:       s.market,
-    direzione:    s.direzione,
-    piattaforma:  document.getElementById('ot_pf').value,
+  addTrade({signal_id:sigId,ticker:s.ticker,market:s.market,direzione:s.direzione,
+    piattaforma:document.getElementById('ot_pf').value,
     data_apertura:document.getElementById('ot_dt').value,
-    entry_price:  ep,
-    investito_eur:inv,
-    num_azioni:   nn(document.getElementById('ot_naz')?.value),
-    sl_livello:   s.stop_margine||s.sl1,
-    tp_livello:   nn(document.getElementById('ot_tp')?.value),
-    comm_open:    nn(document.getElementById('ot_co')?.value)||0,
-    note:         document.getElementById('ot_nt').value,
-  });
-  updSig(sigId, {stato:'aperto'});
-  closeM();
+    entry_price:ep,investito_eur:inv,
+    num_azioni:nn(document.getElementById('ot_naz')?.value),
+    sl_livello:s.stop_margine||s.sl1,
+    tp_livello:nn(document.getElementById('ot_tp')?.value),
+    comm_open:nn(document.getElementById('ot_co')?.value)||0,
+    note:document.getElementById('ot_nt').value});
+  updSig(sigId,{stato:'aperto'}); closeM();
 }
-
 function previewPL() {
   const t=S.trades.find(x=>x.id===S.modal?.data?.tradeId);
-  if (!t) return;
+  if(!t) return;
   const exP=nn(document.getElementById('ct_ex')?.value);
   const cc=nn(document.getElementById('ct_cc')?.value)||0;
   const el=document.getElementById('plPreview'); if(!el) return;
-  if (!exP) { el.innerHTML=''; return; }
+  if(!exP){el.innerHTML='';return;}
   const pl=calcPL_EUR(t.direzione,nn(t.entry_price),exP,nn(t.investito_eur),cc);
-  if (pl==null) { el.innerHTML=''; return; }
-  const tax=calcTax(pl, t.piattaforma);
+  if(pl==null){el.innerHTML='';return;}
+  const tax=calcTax(pl,t.piattaforma);
   const pct=movePct(t.direzione,nn(t.entry_price),exP);
   el.innerHTML=`<div class="alert ${pl>=0?'al-success':'al-danger'}">
-    Movimento: <strong>${fmtPct(pct)}</strong> · 
-    P&L lordo: <strong>${fmtEur(pl)}</strong>
+    Movimento: <strong>${fmtPct(pct)}</strong> · P&L lordo: <strong>${fmtEur(pl)}</strong>
     ${t.piattaforma!==FINECO?` · Tasse: <strong>-${fmt(tax)}€</strong> · Netto: <strong>${fmtEur(pl-tax)}</strong>`:'· Fineco: tasse gestite dal broker'}
   </div>`;
 }
-
-function submitCloseTrade(tradeId, sigId) {
+function submitCloseTrade(tradeId,sigId) {
   const exP=nn(document.getElementById('ct_ex')?.value);
-  if (!exP) { alert('Inserisci il prezzo di exit'); return; }
+  if(!exP){alert('Inserisci il prezzo di exit');return;}
   const t=S.trades.find(x=>x.id===tradeId)||{};
   const cc=nn(document.getElementById('ct_cc')?.value)||0;
   const motivo=document.getElementById('ct_mo').value;
   const pl=calcPL_EUR(t.direzione,nn(t.entry_price),exP,nn(t.investito_eur),cc);
   const tax=calcTax(pl,t.piattaforma);
-  updTrade(tradeId, {
-    exit_price:   exP,
-    data_chiusura:document.getElementById('ct_dt').value,
-    comm_close:   cc,
-    pl_lordo:     pl!=null?+pl.toFixed(2):null,
-    tasse:        +tax.toFixed(2),
-    pl_netto:     pl!=null?+(pl-tax).toFixed(2):null,
-    stato:        motivo,
-    note:         document.getElementById('ct_nt').value,
-  });
-  if (sigId) updSig(sigId, {stato:motivo});
+  updTrade(tradeId,{exit_price:exP,data_chiusura:document.getElementById('ct_dt').value,
+    comm_close:cc,pl_lordo:pl!=null?+pl.toFixed(2):null,tasse:+tax.toFixed(2),
+    pl_netto:pl!=null?+(pl-tax).toFixed(2):null,stato:motivo,note:document.getElementById('ct_nt').value});
+  if(sigId) updSig(sigId,{stato:motivo});
   closeM();
 }
 
 // ════════════════════════════════════════════════════
 // SETUP ACTIONS
 // ════════════════════════════════════════════════════
+function changePwd() {
+  const p1=document.getElementById('newPwd1')?.value||'';
+  const p2=document.getElementById('newPwd2')?.value||'';
+  const el=document.getElementById('pwdChangeErr');
+  if(p1.length<6){if(el)el.innerHTML=`<div class="alert al-danger">Minimo 6 caratteri.</div>`;return;}
+  if(p1!==p2){if(el)el.innerHTML=`<div class="alert al-danger">Le password non corrispondono.</div>`;return;}
+  S.pwd=p1; localStorage.setItem('ek_pwd',p1);
+  if(el) el.innerHTML=`<div class="alert al-success">✅ Password aggiornata. Ricorda di aggiornare il token anche in GAS (funzione setToken).</div>`;
+}
 function saveGas() {
   const url=document.getElementById('gasInput')?.value?.trim();
-  if (!url) { alert('Inserisci un URL'); return; }
-  S.gasUrl=url; localStorage.setItem('ek_gas',url);
-  gasRead();
+  if(!url){alert('Inserisci un URL');return;}
+  S.gasUrl=url; localStorage.setItem('ek_gas',url); gasRead();
 }
 async function testGas() {
   const url=document.getElementById('gasInput')?.value?.trim();
   const el=document.getElementById('gasStatus');
-  if (!url) { if(el) el.innerHTML=`<div class="alert al-warn">Inserisci prima un URL</div>`; return; }
-  if (el) el.innerHTML=`<div class="alert al-info">Connessione in corso...</div>`;
+  if(!url){if(el)el.innerHTML=`<div class="alert al-warn">Inserisci prima un URL</div>`;return;}
+  if(el) el.innerHTML=`<div class="alert al-info">Connessione in corso...</div>`;
   try {
-    const r=await fetch(url+'?action=ping');
+    const r=await fetch(url+'?action=ping&token='+encodeURIComponent(S.pwd));
     const d=await r.json();
-    if (el) el.innerHTML=`<div class="alert al-success">✅ Connessione riuscita — ${d.ts||'OK'}</div>`;
+    if(d.error) throw new Error(d.error);
+    if(el) el.innerHTML=`<div class="alert al-success">✅ Connessione riuscita — token verificato</div>`;
   } catch(e) {
-    if (el) el.innerHTML=`<div class="alert al-danger">❌ Errore: ${esc(e.message)}</div>`;
+    if(el) el.innerHTML=`<div class="alert al-danger">❌ ${esc(e.message)}</div>`;
   }
 }
 
 // ════════════════════════════════════════════════════
-// MAIN RENDER
+// RENDER
 // ════════════════════════════════════════════════════
-const TABS = [
-  {id:'dashboard',   ic:'▦', l:'Dashboard'},
-  {id:'segnali',     ic:'◎', l:'Segnali EK'},
-  {id:'portafoglio', ic:'◈', l:'Portafoglio'},
-  {id:'storico',     ic:'≡', l:'Storico'},
-  {id:'setup',       ic:'⚙', l:'Setup'},
+const TABS=[
+  {id:'dashboard',   ic:'▦',l:'Dashboard'},
+  {id:'segnali',     ic:'◎',l:'Segnali EK'},
+  {id:'portafoglio', ic:'◈',l:'Portafoglio'},
+  {id:'storico',     ic:'≡',l:'Storico'},
+  {id:'setup',       ic:'⚙',l:'Setup'},
 ];
-const VIEWS = {
-  dashboard:   viewDashboard,
-  segnali:     viewSegnali,
-  portafoglio: viewPortafoglio,
-  storico:     viewStorico,
-  setup:       viewSetup,
-};
+const VIEWS={dashboard:viewDashboard,segnali:viewSegnali,portafoglio:viewPortafoglio,storico:viewStorico,setup:viewSetup};
 
-function render() {
-  document.getElementById('app').innerHTML = `
+function renderApp() {
+  return `
   <div class="app">
     <div class="sidebar">
       <div class="logo"><span class="logo-dot"></span><span>EK Tracker</span></div>
       <nav class="nav">
-        ${TABS.map(t=>`
-          <div class="nav-item ${S.tab===t.id?'active':''}" onclick="S.tab='${t.id}';render()">
-            <span class="nav-icon">${t.ic}</span>
-            <span>${t.l}</span>
-            ${navBadge(t.id)}
-          </div>`).join('')}
+        ${TABS.map(t=>`<div class="nav-item ${S.tab===t.id?'active':''}" onclick="S.tab='${t.id}';render()">
+          <span class="nav-icon">${t.ic}</span><span>${t.l}</span>${navBadge(t.id)}</div>`).join('')}
       </nav>
       <div class="sidebar-footer">
         <span class="conn-dot ${S.gasUrl?'ok':'err'}"></span>
         <span class="footer-text">${S.gasUrl?'Cloud sync':'Solo locale'}</span>
-        <button class="theme-btn" onclick="toggleTheme()" title="Cambia tema">
-          ${S.theme==='dark'?'☀':'🌙'}
-        </button>
+        <button class="icon-btn" onclick="toggleTheme()" title="Tema">${S.theme==='dark'?'☀':'🌙'}</button>
+        <button class="icon-btn" onclick="logout()" title="Esci">⏻</button>
       </div>
     </div>
-    <div class="main">
-      <div class="main-inner">
-        ${S.loading?`<div class="alert al-info" style="margin-bottom:16px">⏳ Sincronizzazione in corso...</div>`:''}
-        ${(VIEWS[S.tab]||viewDashboard)()}
-      </div>
-    </div>
+    <div class="main"><div class="main-inner">
+      ${S.loading?`<div class="alert al-info" style="margin-bottom:16px">⏳ Sincronizzazione...</div>`:''}
+      ${(VIEWS[S.tab]||viewDashboard)()}
+    </div></div>
   </div>
   ${renderModal()}`;
+}
+
+function render() {
+  if (!S.pwd) {
+    document.getElementById('app').innerHTML = viewFirstSetup();
+  } else if (!S.unlocked) {
+    document.getElementById('app').innerHTML = viewLogin();
+    setTimeout(()=>document.getElementById('loginPwd')?.focus(),50);
+  } else {
+    document.getElementById('app').innerHTML = renderApp();
+  }
 }
 
 // ════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════
 render();
-if (S.gasUrl) gasRead();
+if (S.unlocked && S.gasUrl) gasRead();
 </script>
 </body>
 </html>
