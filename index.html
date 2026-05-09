@@ -19,41 +19,16 @@
   --font-ui:'Syne',sans-serif;--font-mono:'JetBrains Mono',monospace;
 }
 [data-theme="light"]{
-  --bg:#f0f3fa;--s1:#ffffff;--s2:#f5f7fc;--s3:#eaeef8;
-  --b1:#d6dce8;--b2:#c4ccd8;
-  --t1:#141825;--t2:#5a6278;--t3:#9aa0b0;
-  --shadow:rgba(0,0,0,.12);
+  --bg:#f0f3fa;--s1:#fff;--s2:#f5f7fc;--s3:#eaeef8;
+  --b1:#d6dce8;--b2:#c4ccd8;--t1:#141825;--t2:#5a6278;--t3:#9aa0b0;--shadow:rgba(0,0,0,.1);
   --gr:#009e76;--rd:#e0203c;--yl:#c89500;--bl:#1a7de0;--pu:#7c5ce4;--or:#d4621a;
-  --gr-dim:rgba(0,158,118,.1);--rd-dim:rgba(224,32,60,.1);
-  --yl-dim:rgba(200,149,0,.1);--bl-dim:rgba(26,125,224,.1);--pu-dim:rgba(124,92,228,.1);
+  --gr-dim:rgba(0,158,118,.1);--rd-dim:rgba(224,32,60,.1);--yl-dim:rgba(200,149,0,.1);--bl-dim:rgba(26,125,224,.1);--pu-dim:rgba(124,92,228,.1);
 }
 body{background:var(--bg);color:var(--t1);font-family:var(--font-ui);font-size:14px;height:100vh;overflow:hidden;transition:background .2s,color .2s}
-
-/* ── LAYOUT ── */
 .app{display:flex;height:100vh}
-.sidebar{width:224px;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;flex-shrink:0;transition:background .2s,border-color .2s}
+.sidebar{width:224px;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;flex-shrink:0}
 .main{flex:1;overflow-y:auto;background:var(--bg)}
 .main-inner{padding:28px 32px;min-height:100%}
-
-/* ── LOGIN SCREEN ── */
-.login-wrap{height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)}
-.login-box{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:40px;width:380px;max-width:94vw;box-shadow:0 32px 80px var(--shadow)}
-.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
-.login-dot{width:10px;height:10px;border-radius:50%;background:var(--gr);box-shadow:0 0 10px var(--gr)}
-.login-name{font-size:18px;font-weight:800;letter-spacing:.06em}
-.login-title{font-size:13px;color:var(--t2);margin-bottom:24px;line-height:1.5}
-.login-error{background:var(--rd-dim);border:1px solid rgba(255,61,90,.2);color:var(--rd);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px}
-.login-form .form-group{margin-bottom:16px}
-.login-btn{width:100%;padding:11px;background:var(--bl);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-ui);transition:filter .15s}
-.login-btn:hover{filter:brightness(1.1)}
-.login-theme{position:absolute;top:16px;right:16px;background:var(--s1);border:1px solid var(--b1);color:var(--t2);font-size:15px;width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-
-/* ── FIRST SETUP SCREEN ── */
-.firstsetup-box{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:40px;width:420px;max-width:94vw;box-shadow:0 32px 80px var(--shadow)}
-.firstsetup-title{font-size:18px;font-weight:800;margin-bottom:8px}
-.firstsetup-sub{font-size:13px;color:var(--t2);margin-bottom:24px;line-height:1.6}
-
-/* ── SIDEBAR ── */
 .logo{padding:18px 22px 14px;font-size:15px;font-weight:800;letter-spacing:.08em;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px}
 .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--gr);box-shadow:0 0 8px var(--gr);flex-shrink:0}
 .nav{flex:1;padding:8px 0}
@@ -62,58 +37,55 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-ui);font-size:1
 .nav-item.active{color:var(--t1);background:var(--s2);border-left-color:var(--bl)}
 .nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
 .nav-badge{margin-left:auto;background:var(--bl);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
-.sidebar-footer{padding:12px 22px;border-top:1px solid var(--b1);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sidebar-footer{padding:12px 22px;border-top:1px solid var(--b1);display:flex;align-items:center;gap:8px}
 .conn-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .conn-dot.ok{background:var(--gr)}.conn-dot.err{background:var(--rd)}
 .footer-text{font-size:11px;color:var(--t3);flex:1}
 .icon-btn{background:var(--s2);border:1px solid var(--b1);color:var(--t2);font-size:14px;width:28px;height:28px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
-.icon-btn:hover{color:var(--t1);border-color:var(--b2)}
-
-/* ── PAGE HEADER ── */
+.icon-btn:hover{color:var(--t1)}
+.login-wrap{height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);position:relative}
+.login-box,.firstsetup-box{background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:40px;width:380px;max-width:94vw;box-shadow:0 32px 80px var(--shadow)}
+.firstsetup-box{width:420px}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.login-dot{width:10px;height:10px;border-radius:50%;background:var(--gr);box-shadow:0 0 10px var(--gr)}
+.login-name{font-size:18px;font-weight:800;letter-spacing:.06em}
+.login-error{background:var(--rd-dim);border:1px solid rgba(255,61,90,.2);color:var(--rd);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px}
+.login-btn{width:100%;padding:11px;background:var(--bl);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-ui);transition:filter .15s}
+.login-btn:hover{filter:brightness(1.1)}
+.login-theme-btn{position:absolute;top:16px;right:16px}
 .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:10px}
-.ph-title{font-size:20px;font-weight:800;letter-spacing:.02em}
+.ph-title{font-size:20px;font-weight:800}
 .ph-sub{font-size:12px;color:var(--t2);margin-top:2px}
-
-/* ── STAT CARDS ── */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:24px}
-.stat{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:16px 18px;transition:background .2s,border-color .2s}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.stat{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:16px 18px}
 .stat-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--t3);margin-bottom:8px}
-.stat-val{font-size:22px;font-weight:800;font-family:var(--font-mono);letter-spacing:-.02em}
+.stat-val{font-size:22px;font-weight:800;font-family:var(--font-mono)}
 .stat-sub{font-size:11px;color:var(--t2);margin-top:4px}
 .stat-val.gr{color:var(--gr)}.stat-val.rd{color:var(--rd)}.stat-val.bl{color:var(--bl)}.stat-val.yl{color:var(--yl)}
-
-/* ── CARD ── */
-.card{background:var(--s1);border:1px solid var(--b1);border-radius:10px;margin-bottom:16px;overflow:hidden;transition:background .2s,border-color .2s}
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:10px;margin-bottom:16px;overflow:hidden}
 .card-head{padding:13px 18px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
 .card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t2)}
 .card-body{padding:18px}
-
-/* ── TABLE ── */
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
 th{background:var(--s2);color:var(--t3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:10px 14px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--b1)}
 td{padding:10px 14px;border-bottom:1px solid var(--b1);vertical-align:middle;font-size:13px}
 tbody tr:last-child td{border-bottom:none}
-tbody tr:hover td{background:var(--s2);transition:background .1s}
+tbody tr:hover td{background:var(--s2)}
 .mono{font-family:var(--font-mono);font-size:12px}
-
-/* ── BADGES ── */
 .badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap}
 .bg{background:var(--gr-dim);color:var(--gr)}.br{background:var(--rd-dim);color:var(--rd)}
 .by{background:var(--yl-dim);color:var(--yl)}.bb{background:var(--bl-dim);color:var(--bl)}
 .bp{background:var(--pu-dim);color:var(--pu)}.bgr{background:var(--s3);color:var(--t2)}
-
-/* ── BUTTONS ── */
+.bo{background:rgba(255,140,66,.12);color:var(--or)}
 .btn{padding:8px 16px;border-radius:7px;border:none;cursor:pointer;font-size:12px;font-weight:700;transition:all .15s;font-family:var(--font-ui);display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
 .btn:hover{filter:brightness(1.1);transform:translateY(-1px)}.btn:active{transform:none}
 .btn-pr{background:var(--bl);color:#fff}.btn-gr{background:var(--gr);color:#000}
 .btn-rd{background:var(--rd);color:#fff}.btn-gh{background:var(--s2);color:var(--t1);border:1px solid var(--b1)}
-.btn-sm{padding:5px 11px;font-size:11px}
-
-/* ── FORMS ── */
+.btn-yl{background:var(--yl);color:#000}.btn-sm{padding:5px 11px;font-size:11px}
 .form-group{margin-bottom:14px}
 .form-group label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t2);margin-bottom:5px}
-input,select,textarea{background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:9px 12px;border-radius:7px;width:100%;font-size:13px;font-family:var(--font-ui);transition:border .15s,background .2s}
+input,select,textarea{background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:9px 12px;border-radius:7px;width:100%;font-size:13px;font-family:var(--font-ui);transition:border .15s}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--bl)}
 select option{background:var(--s1)}
 .input-hint{font-size:10px;color:var(--t3);margin-top:4px}
@@ -123,42 +95,45 @@ select option{background:var(--s1)}
 .pw-wrap{position:relative}
 .pw-wrap input{padding-right:40px}
 .pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--t2);cursor:pointer;font-size:16px;padding:4px}
-
-/* ── MODAL ── */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px}
-.modal{background:var(--s1);border:1px solid var(--b2);border-radius:14px;width:640px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px var(--shadow);transition:background .2s}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:14px;width:680px;max-width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px var(--shadow)}
+.modal-wide{width:860px}
 .modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--s1);z-index:1}
 .modal-title{font-size:16px;font-weight:800}
 .modal-close{background:none;border:none;color:var(--t2);font-size:20px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:4px}
 .modal-close:hover{color:var(--t1);background:var(--s2)}
 .modal-body{padding:20px 24px}
 .modal-foot{padding:14px 24px;border-top:1px solid var(--b1);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:var(--s1)}
-
-/* ── ALERTS ── */
 .alert{padding:11px 15px;border-radius:8px;font-size:13px;margin-bottom:14px;line-height:1.5}
 .al-info{background:var(--bl-dim);border:1px solid rgba(77,158,255,.2);color:var(--bl)}
 .al-warn{background:var(--yl-dim);border:1px solid rgba(245,197,66,.2);color:var(--yl)}
 .al-danger{background:var(--rd-dim);border:1px solid rgba(255,61,90,.2);color:var(--rd)}
 .al-success{background:var(--gr-dim);border:1px solid rgba(0,200,150,.2);color:var(--gr)}
-
-/* ── MISC ── */
 .gr-text{color:var(--gr)}.rd-text{color:var(--rd)}.yl-text{color:var(--yl)}.bl-text{color:var(--bl)}.dim{color:var(--t2)}
 .flex{display:flex}.gap1{gap:4px}.gap2{gap:8px}.gap3{gap:12px}.ai{align-items:center}.jb{justify-content:space-between}.fw{flex-wrap:wrap}
 .empty{text-align:center;padding:48px;color:var(--t3);font-size:13px}
 .tag{display:inline-flex;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;background:var(--s3);color:var(--t2);letter-spacing:.04em}
 .platform-tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;background:var(--s3);color:var(--t1)}
-.section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--b1)}
-.pot-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.pot-item{background:var(--s2);border-radius:8px;padding:12px}
-.pot-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:4px}
-.pot-val{font-size:15px;font-weight:700;font-family:var(--font-mono)}
+.section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--b1)}
+.section-title:first-child{margin-top:0}
 .setup-wrap{max-width:580px;margin:0 auto}
 .step-list{counter-reset:step;list-style:none}
 .step-list li{counter-increment:step;display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--b1);color:var(--t2);font-size:13px;line-height:1.5}
 .step-list li::before{content:counter(step);background:var(--bl);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:2px}
 .step-list li:last-child{border-bottom:none}
 code{background:var(--s3);padding:2px 6px;border-radius:4px;font-family:var(--font-mono);font-size:11px;color:var(--yl)}
-
+.risultati-box{background:var(--s2);border-radius:10px;padding:16px;margin-top:14px}
+.risultati-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.ris-item{background:var(--s1);border-radius:7px;padding:10px 12px;border:1px solid var(--b1)}
+.ris-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);margin-bottom:4px}
+.ris-val{font-size:14px;font-weight:700;font-family:var(--font-mono)}
+.uscite-table{width:100%;border-collapse:collapse;margin-top:8px}
+.uscite-table th{background:var(--s3);color:var(--t3);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:8px 10px;text-align:left}
+.uscite-table td{padding:8px 10px;border-bottom:1px solid var(--b1);font-size:12px;vertical-align:middle}
+.uscite-table tr:last-child td{border-bottom:none}
+.override-wrap{background:var(--yl-dim);border:1px solid rgba(245,197,66,.2);border-radius:8px;padding:12px;margin-top:12px}
+.override-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--yl);margin-bottom:8px}
+.filter-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
 @media(max-width:768px){
   .sidebar{width:56px}.nav-item span,.nav-badge,.logo span,.footer-text{display:none}
   .main-inner{padding:16px}.gr3,.gr4{grid-template-columns:1fr 1fr}.stats-grid{grid-template-columns:1fr 1fr}
@@ -168,863 +143,336 @@ code{background:var(--s3);padding:2px 6px;border-radius:4px;font-family:var(--fo
 <body>
 <div id="app"></div>
 <script>
-// ════════════════════════════════════════════════════
-// CONSTANTS
-// ════════════════════════════════════════════════════
-const PLATFORMS = ['TradeZero','IBKR','Degiro','Fineco'];
-const TAX_RATE  = 0.26;
-const FINECO    = 'Fineco';
+const PLATFORMS=['TradeZero','IBKR','Degiro','Fineco'];
+const MARKETS=['Azioni','Crypto','Materie Prime','Forex'];
+const STRATEGIES=['EK Investing','Personale'];
+const TAX_RATE=0.26;
+const FINECO='Fineco';
+const STATI_SIG={ricevuto:{l:'Ricevuto',cls:'bgr',ic:'📨'},attivato:{l:'Attivato',cls:'by',ic:'⚡'},aperto:{l:'Aperto',cls:'bb',ic:'📈'},chiuso_tp:{l:'TP ✓',cls:'bg',ic:'✅'},chiuso_stop:{l:'Stop Loss',cls:'br',ic:'🛑'},chiuso_man:{l:'Chiuso',cls:'bp',ic:'🔒'},scartato:{l:'Scartato',cls:'bgr',ic:'✕'}};
+const CHIUSI_SIG=new Set(['chiuso_tp','chiuso_stop','chiuso_man']);
 
-const STATI = {
-  ricevuto:    {l:'Ricevuto',  cls:'bgr',ic:'📨'},
-  attivato:    {l:'Attivato',  cls:'by', ic:'⚡'},
-  aperto:      {l:'Aperto',   cls:'bb', ic:'📈'},
-  chiuso_tp:   {l:'TP ✓',    cls:'bg', ic:'✅'},
-  chiuso_stop: {l:'Stop Loss',cls:'br', ic:'🛑'},
-  chiuso_man:  {l:'Chiuso',  cls:'bp', ic:'🔒'},
-  scartato:    {l:'Scartato', cls:'bgr',ic:'✕'},
+let S={
+  tab:'dashboard',theme:localStorage.getItem('ek_theme')||'dark',
+  gasUrl:localStorage.getItem('ek_gas')||'',pwd:localStorage.getItem('ek_pwd')||'',
+  unlocked:sessionStorage.getItem('ek_auth')==='1',loginErr:false,
+  signals:JSON.parse(localStorage.getItem('ek_segnali')||'[]'),
+  trades:JSON.parse(localStorage.getItem('ek_trades')||'[]'),
+  ordini:JSON.parse(localStorage.getItem('ek_ordini')||'[]'),
+  loading:false,modal:null,filterSeg:'tutti',filterOrd:'tutti',
+  lastSync:localStorage.getItem('ek_sync')||null,syncErr:null
 };
-const CHIUSI = new Set(['chiuso_tp','chiuso_stop','chiuso_man']);
+document.documentElement.setAttribute('data-theme',S.theme);
 
-// ════════════════════════════════════════════════════
-// STATE
-// ════════════════════════════════════════════════════
-let S = {
-  tab:       'dashboard',
-  theme:     localStorage.getItem('ek_theme') || 'dark',
-  gasUrl:    localStorage.getItem('ek_gas')   || '',
-  pwd:       localStorage.getItem('ek_pwd')   || '',   // password = token GAS
-  unlocked:  sessionStorage.getItem('ek_auth') === '1',
-  loginErr:  false,
-  signals:   JSON.parse(localStorage.getItem('ek_segnali') || '[]'),
-  trades:    JSON.parse(localStorage.getItem('ek_trades')  || '[]'),
-  loading:   false,
-  modal:     null,
-  filterSeg: 'tutti',
-  lastSync:  localStorage.getItem('ek_sync') || null,
-  syncErr:   null,
-};
-document.documentElement.setAttribute('data-theme', S.theme);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const today=()=>new Date().toISOString().split('T')[0];
+const nowDT=()=>new Date().toISOString().slice(0,16);
+const nn=v=>(v==null||v==='')?null:Number(v);
+const fmt=(n,d=2)=>n==null||n===''?'—':Number(n).toFixed(d);
+const fmtPct=n=>n==null?'—':(Number(n)>=0?'+':'')+Number(n).toFixed(2)+'%';
+const fmtEur=n=>n==null?'—':(Number(n)>=0?'+':'')+Number(n).toFixed(2)+'€';
+const fmtUSD=n=>n==null?'—':'$'+Number(n).toFixed(2);
+const fmtDate=d=>d?new Date(d.length<=10?d+'T12:00:00':d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—';
+const fmtDT=d=>d?new Date(d).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function persist(){localStorage.setItem('ek_segnali',JSON.stringify(S.signals));localStorage.setItem('ek_trades',JSON.stringify(S.trades));localStorage.setItem('ek_ordini',JSON.stringify(S.ordini));}
 
-// ════════════════════════════════════════════════════
-// UTILS
-// ════════════════════════════════════════════════════
-const uid    = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-const today  = () => new Date().toISOString().split('T')[0];
-const nn     = v  => (v == null || v === '') ? null : Number(v);
-const fmt    = (n,d=2) => n==null||n===''?'—':Number(n).toFixed(d);
-const fmtPct = n  => n==null?'—':(Number(n)>=0?'+':'')+Number(n).toFixed(2)+'%';
-const fmtEur = n  => n==null?'—':(Number(n)>=0?'+':'')+Number(n).toFixed(2)+'€';
-const fmtDate= d  => d?new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—';
-const esc    = s  => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function tryLogin(){const v=document.getElementById('loginPwd')?.value||'';if(v===S.pwd){sessionStorage.setItem('ek_auth','1');S.unlocked=true;S.loginErr=false;render();if(S.gasUrl)gasRead();}else{S.loginErr=true;render();setTimeout(()=>document.getElementById('loginPwd')?.focus(),50);}}
+function logout(){sessionStorage.removeItem('ek_auth');S.unlocked=false;render();}
+function togglePwdVisibility(id){const el=document.getElementById(id);if(el)el.type=el.type==='password'?'text':'password';}
+function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';localStorage.setItem('ek_theme',S.theme);document.documentElement.setAttribute('data-theme',S.theme);render();}
+function savePassword(p){S.pwd=p;localStorage.setItem('ek_pwd',p);sessionStorage.setItem('ek_auth','1');S.unlocked=true;render();}
+function submitFirstSetup(){const p1=document.getElementById('setupPwd1')?.value||'';const p2=document.getElementById('setupPwd2')?.value||'';const el=document.getElementById('setupErr');if(p1.length<6){if(el)el.innerHTML=`<div class="login-error">Minimo 6 caratteri.</div>`;return;}if(p1!==p2){if(el)el.innerHTML=`<div class="login-error">Non corrispondono.</div>`;return;}savePassword(p1);}
 
-function persist() {
-  localStorage.setItem('ek_segnali', JSON.stringify(S.signals));
-  localStorage.setItem('ek_trades',  JSON.stringify(S.trades));
-}
+function movePct(dir,entry,target){if(!entry||!target)return null;return dir==='BUY'?(target-entry)/entry*100:(entry-target)/entry*100;}
+function calcTax(pl,platform){if(platform===FINECO||!pl||pl<=0)return 0;return pl*TAX_RATE;}
 
-// ════════════════════════════════════════════════════
-// AUTH
-// ════════════════════════════════════════════════════
-function tryLogin() {
-  const input = document.getElementById('loginPwd')?.value || '';
-  if (input === S.pwd) {
-    sessionStorage.setItem('ek_auth', '1');
-    S.unlocked = true;
-    S.loginErr = false;
-    render();
-    if (S.gasUrl) gasRead();
-  } else {
-    S.loginErr = true;
-    render();
-    setTimeout(() => { document.getElementById('loginPwd')?.focus(); }, 50);
-  }
+function calcOrdine(o){
+  const uscite=JSON.parse(o.uscite||'[]');
+  const entryP=nn(o.entry_price)||0,posSize=nn(o.position_size)||0,invEur=nn(o.investito_eur)||0,stopP=nn(o.stop_loss)||0;
+  const buyAmount=entryP*posSize;
+  const qtyExited=uscite.reduce((s,u)=>s+(nn(u.quantity)||0),0);
+  const sellAmount=uscite.reduce((s,u)=>s+(nn(u.exit_price)||0)*(nn(u.quantity)||0),0);
+  const totalComm=uscite.reduce((s,u)=>s+(nn(u.commission_eur)||0),0);
+  const buyExited=entryP*qtyExited;
+  const plUSD=o.position==='Long'?sellAmount-buyExited:buyExited-sellAmount;
+  let plEur=null;
+  if(buyAmount&&invEur&&qtyExited){const fraz=qtyExited/posSize;const pct=buyExited?plUSD/buyExited:0;plEur=invEur*fraz*pct-totalComm;}
+  const plOverride=nn(o.pl_override);
+  const plFinal=plOverride!==null?plOverride:plEur;
+  const invFraz=invEur&&posSize&&qtyExited?invEur*(qtyExited/posSize):null;
+  const plPct=invFraz&&plFinal!==null?plFinal/invFraz*100:null;
+  let duration=null;
+  if(uscite.length>0&&o.entry_datetime){const lastExit=uscite.map(u=>u.exit_datetime).filter(Boolean).sort().pop();if(lastExit)duration=Math.round((new Date(lastExit)-new Date(o.entry_datetime))/(1000*60*60*24));}
+  const maxLossUSD=stopP&&entryP&&posSize?Math.abs(entryP-stopP)*posSize:null;
+  const maxLossEur=maxLossUSD&&buyAmount&&invEur?invEur*(maxLossUSD/buyAmount):null;
+  const rMultiple=plFinal!==null&&maxLossEur?(plFinal/maxLossEur).toFixed(2):null;
+  const qtyRem=posSize-qtyExited;
+  const stato=qtyRem<=0?'chiuso':qtyExited>0?'parziale':'aperto';
+  const tax=calcTax(plFinal,o.piattaforma);
+  return{buyAmount,sellAmount,qtyExited,qtyRem,plUSD,plEur,plFinal,plPct,totalComm,duration,maxLossEur,rMultiple,tax,stato};
 }
 
-function logout() {
-  sessionStorage.removeItem('ek_auth');
-  S.unlocked = false;
-  render();
-}
+function gasUrlWith(extra){return S.gasUrl+'?token='+encodeURIComponent(S.pwd)+(extra?'&'+extra:'');}
+async function gasRead(){if(!S.gasUrl||!S.pwd)return;S.loading=true;S.syncErr=null;render();try{const r=await fetch(gasUrlWith('action=read'));if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();if(d.error)throw new Error(d.error);if(Array.isArray(d.signals))S.signals=d.signals;if(Array.isArray(d.trades))S.trades=d.trades;if(Array.isArray(d.ordini))S.ordini=d.ordini;S.lastSync=new Date().toISOString();localStorage.setItem('ek_sync',S.lastSync);persist();}catch(e){S.syncErr=e.message;}finally{S.loading=false;render();}}
+async function gasWrite(type,op,record){if(!S.gasUrl||!S.pwd)return;try{await fetch(gasUrlWith(`action=write&type=${type}&op=${op}&record=${encodeURIComponent(JSON.stringify(record))}`));}catch{}}
 
-function savePassword(newPwd) {
-  if (!newPwd) { alert('La password non può essere vuota'); return; }
-  S.pwd = newPwd;
-  localStorage.setItem('ek_pwd', newPwd);
-  sessionStorage.setItem('ek_auth', '1');
-  S.unlocked = true;
-  alert('Password salvata. Usala anche come Token nel backend GAS.');
-  render();
-}
+function addSignal(d){const s={id:uid(),created:new Date().toISOString(),stato:'ricevuto',...d};S.signals.unshift(s);persist();gasWrite('signal','add',s);render();}
+function updSig(id,p){const i=S.signals.findIndex(s=>s.id===id);if(i<0)return;S.signals[i]={...S.signals[i],...p,updated:new Date().toISOString()};persist();gasWrite('signal','update',S.signals[i]);render();}
+function addOrdine(d){const o={id:uid(),created:new Date().toISOString(),stato:'aperto',uscite:'[]',...d};S.ordini.unshift(o);persist();gasWrite('ordine','add',o);render();}
+function updOrdine(id,p){const i=S.ordini.findIndex(o=>o.id===id);if(i<0)return;const merged={...S.ordini[i],...p};const res=calcOrdine(merged);S.ordini[i]={...merged,stato:res.stato,updated:new Date().toISOString()};persist();gasWrite('ordine','update',S.ordini[i]);render();}
+function addUscita(ordineId,uscita){const i=S.ordini.findIndex(o=>o.id===ordineId);if(i<0)return;const uscite=JSON.parse(S.ordini[i].uscite||'[]');uscite.push({id:uid(),...uscita});const newU=JSON.stringify(uscite);const res=calcOrdine({...S.ordini[i],uscite:newU});S.ordini[i]={...S.ordini[i],uscite:newU,stato:res.stato,updated:new Date().toISOString()};persist();gasWrite('ordine','update',S.ordini[i]);render();}
+function delUscita(ordineId,uscitaId){const i=S.ordini.findIndex(o=>o.id===ordineId);if(i<0)return;const uscite=JSON.parse(S.ordini[i].uscite||'[]').filter(u=>u.id!==uscitaId);const newU=JSON.stringify(uscite);const res=calcOrdine({...S.ordini[i],uscite:newU});S.ordini[i]={...S.ordini[i],uscite:newU,stato:res.stato,updated:new Date().toISOString()};persist();gasWrite('ordine','update',S.ordini[i]);render();}
 
-function togglePwdVisibility(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.type = el.type === 'password' ? 'text' : 'password';
-}
+const openOrdini=()=>S.ordini.filter(o=>o.stato==='aperto'||o.stato==='parziale');
+const closedOrdini=()=>S.ordini.filter(o=>o.stato==='chiuso');
+function totalOrdiniPL(){return S.ordini.map(o=>calcOrdine(o)).reduce((s,r)=>s+(r.plFinal||0),0);}
+function totalOrdiniTax(){return S.ordini.map(o=>calcOrdine(o)).reduce((s,r)=>s+(r.tax||0),0);}
+function summaryByPlatform(){const r={};PLATFORMS.forEach(p=>r[p]={pl:0,gains:0,losses:0,trades:0,wins:0});S.ordini.forEach(o=>{const res=calcOrdine(o);const p=o.piattaforma||'';if(!r[p])return;const pl=res.plFinal||0;r[p].trades++;if(res.stato!=='aperto'){r[p].pl+=pl;if(pl>0){r[p].gains+=pl;r[p].wins++;}else if(pl<0)r[p].losses+=pl;}});return r;}
 
-// ════════════════════════════════════════════════════
-// P&L LOGIC
-// ════════════════════════════════════════════════════
-function movePct(dir, entry, target) {
-  if (!entry || !target) return null;
-  return dir==='BUY' ? (target-entry)/entry*100 : (entry-target)/entry*100;
-}
-function calcPL_EUR(dir, entryUSD, exitUSD, investitoEUR, commEUR) {
-  if (!entryUSD || !exitUSD || !investitoEUR) return null;
-  return investitoEUR * movePct(dir,entryUSD,exitUSD)/100 - (commEUR||0);
-}
-function calcTax(plEur, platform) {
-  if (platform===FINECO || !plEur || plEur<=0) return 0;
-  return plEur * TAX_RATE;
-}
+function openM(type,data={}){S.modal={type,data};render();}
+function closeM(){S.modal=null;render();}
 
-// ════════════════════════════════════════════════════
-// GAS SYNC  (token su ogni richiesta)
-// ════════════════════════════════════════════════════
-function gasUrl(extra) {
-  const base = S.gasUrl + '?token=' + encodeURIComponent(S.pwd);
-  return base + (extra ? '&' + extra : '');
-}
+function badgeSig(stato){const s=STATI_SIG[stato]||STATI_SIG.ricevuto;return `<span class="badge ${s.cls}">${s.ic} ${s.l}</span>`;}
+function dirBadge(dir){return (dir==='Long'||dir==='BUY')?`<span class="badge bg">▲ ${dir}</span>`:`<span class="badge br">▼ ${dir}</span>`;}
+function statoBadge(stato){const m={aperto:'bb',parziale:'by',chiuso:'bgr'};const l={aperto:'Aperto',parziale:'Parziale',chiuso:'Chiuso'};return `<span class="badge ${m[stato]||'bgr'}">${l[stato]||stato}</span>`;}
+function stratBadge(s){return s==='EK Investing'?`<span class="badge bb">EK</span>`:`<span class="badge bgr">Personal</span>`;}
+function marketBadge(m){const map={Azioni:'bg',Crypto:'bp',Forex:'bo','Materie Prime':'by'};return `<span class="badge ${map[m]||'bgr'}">${m}</span>`;}
+function plClass(n){return Number(n)>=0?'gr-text':'rd-text';}
+function navBadge(tab){if(tab==='segnali'){const n=S.signals.filter(s=>s.stato==='attivato').length;return n?`<span class="nav-badge">${n}</span>`:'';}if(tab==='ordini'){const n=openOrdini().length;return n?`<span class="nav-badge">${n}</span>`:'';}return '';}
 
-async function gasRead() {
-  if (!S.gasUrl || !S.pwd) return;
-  S.loading = true; S.syncErr = null; render();
-  try {
-    const r = await fetch(gasUrl('action=read'));
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const d = await r.json();
-    if (d.error) throw new Error(d.error);
-    if (Array.isArray(d.signals)) S.signals = d.signals;
-    if (Array.isArray(d.trades))  S.trades  = d.trades;
-    S.lastSync = new Date().toISOString();
-    localStorage.setItem('ek_sync', S.lastSync);
-    persist();
-  } catch(e) { S.syncErr = e.message; }
-  finally { S.loading = false; render(); }
-}
+function viewFirstSetup(){return `<div class="login-wrap"><button class="login-theme-btn icon-btn" onclick="toggleTheme()">${S.theme==='dark'?'☀':'🌙'}</button><div class="firstsetup-box"><div class="login-logo"><span class="login-dot"></span><span class="login-name">EK Tracker</span></div><div style="font-size:18px;font-weight:800;margin-bottom:8px">Primo accesso</div><div style="font-size:13px;color:var(--t2);margin-bottom:24px;line-height:1.6">Scegli una password — usata sia per il login che come token GAS.</div><div class="form-group"><label>Scegli Password</label><div class="pw-wrap"><input type="password" id="setupPwd1" placeholder="Minimo 6 caratteri"><button class="pw-toggle" onclick="togglePwdVisibility('setupPwd1')">👁</button></div></div><div class="form-group"><label>Conferma Password</label><div class="pw-wrap"><input type="password" id="setupPwd2" placeholder="Ripeti"><button class="pw-toggle" onclick="togglePwdVisibility('setupPwd2')">👁</button></div></div><div id="setupErr"></div><button class="login-btn" onclick="submitFirstSetup()">Imposta Password →</button></div></div>`;}
+function viewLogin(){return `<div class="login-wrap"><button class="login-theme-btn icon-btn" onclick="toggleTheme()">${S.theme==='dark'?'☀':'🌙'}</button><div class="login-box"><div class="login-logo"><span class="login-dot"></span><span class="login-name">EK Tracker</span></div><div style="font-size:13px;color:var(--t2);margin-bottom:24px">Inserisci la password per accedere.</div>${S.loginErr?`<div class="login-error">Password errata.</div>`:''}<div class="form-group"><label>Password</label><div class="pw-wrap"><input type="password" id="loginPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')tryLogin()" autofocus><button class="pw-toggle" onclick="togglePwdVisibility('loginPwd')">👁</button></div></div><button class="login-btn" onclick="tryLogin()">Accedi →</button></div></div>`;}
 
-async function gasWrite(type, op, record) {
-  if (!S.gasUrl || !S.pwd) return;
-  try {
-    const p = encodeURIComponent(JSON.stringify(record));
-    await fetch(gasUrl(`action=write&type=${type}&op=${op}&record=${p}`));
-  } catch {}
-}
-
-// ════════════════════════════════════════════════════
-// DATA OPS
-// ════════════════════════════════════════════════════
-function addSignal(data) {
-  const sig={id:uid(),created:new Date().toISOString(),stato:'ricevuto',...data};
-  S.signals.unshift(sig); persist(); gasWrite('signal','add',sig); render();
-}
-function updSig(id,patch) {
-  const i=S.signals.findIndex(s=>s.id===id); if(i<0)return;
-  S.signals[i]={...S.signals[i],...patch,updated:new Date().toISOString()};
-  persist(); gasWrite('signal','update',S.signals[i]); render();
-}
-function addTrade(data) {
-  const t={id:uid(),created:new Date().toISOString(),stato:'aperto',...data};
-  S.trades.unshift(t); persist(); gasWrite('trade','add',t); render();
-}
-function updTrade(id,patch) {
-  const i=S.trades.findIndex(t=>t.id===id); if(i<0)return;
-  S.trades[i]={...S.trades[i],...patch,updated:new Date().toISOString()};
-  persist(); gasWrite('trade','update',S.trades[i]); render();
-}
-
-// ════════════════════════════════════════════════════
-// COMPUTED
-// ════════════════════════════════════════════════════
-const openTrades   = () => S.trades.filter(t=>t.stato==='aperto');
-const closedTrades = () => S.trades.filter(t=>CHIUSI.has(t.stato));
-function totalPL()  { return closedTrades().reduce((s,t)=>s+(nn(t.pl_lordo)||0),0); }
-function totalTax() { return closedTrades().reduce((s,t)=>s+(nn(t.tasse)||0),0); }
-function summaryByPlatform() {
-  const r={};
-  PLATFORMS.forEach(p=>r[p]={pl:0,gains:0,losses:0,trades:0,wins:0});
-  closedTrades().forEach(t=>{
-    const p=t.piattaforma||''; if(!r[p])return;
-    const pl=nn(t.pl_lordo)||0;
-    r[p].pl+=pl; r[p].trades++;
-    if(pl>0){r[p].gains+=pl;r[p].wins++;}
-    else if(pl<0) r[p].losses+=pl;
-  });
-  return r;
-}
-
-// ════════════════════════════════════════════════════
-// THEME
-// ════════════════════════════════════════════════════
-function toggleTheme() {
-  S.theme = S.theme==='dark'?'light':'dark';
-  localStorage.setItem('ek_theme', S.theme);
-  document.documentElement.setAttribute('data-theme', S.theme);
-  render();
-}
-
-// ════════════════════════════════════════════════════
-// MODAL
-// ════════════════════════════════════════════════════
-function openM(type,data={}) { S.modal={type,data}; render(); }
-function closeM() { S.modal=null; render(); }
-
-// ════════════════════════════════════════════════════
-// UI HELPERS
-// ════════════════════════════════════════════════════
-function badge(stato) { const s=STATI[stato]||STATI.ricevuto; return `<span class="badge ${s.cls}">${s.ic} ${s.l}</span>`; }
-function dirBadge(dir) { return dir==='BUY'?`<span class="badge bg">▲ BUY</span>`:`<span class="badge br">▼ SELL</span>`; }
-function plClass(n) { return Number(n)>=0?'gr-text':'rd-text'; }
-function navBadge(tab) {
-  if(tab==='segnali'){const n=S.signals.filter(s=>s.stato==='attivato').length;return n?`<span class="nav-badge">${n}</span>`:'';}
-  if(tab==='portafoglio'){const n=openTrades().length;return n?`<span class="nav-badge">${n}</span>`:''}
-  return '';
-}
-
-// ════════════════════════════════════════════════════
-// LOGIN / FIRST SETUP VIEWS
-// ════════════════════════════════════════════════════
-function viewFirstSetup() {
-  return `
-  <div class="login-wrap" style="position:relative">
-    <button class="login-theme icon-btn" onclick="toggleTheme()">${S.theme==='dark'?'☀':'🌙'}</button>
-    <div class="firstsetup-box">
-      <div class="login-logo"><span class="login-dot"></span><span class="login-name">EK Tracker</span></div>
-      <div class="firstsetup-title">Primo accesso</div>
-      <div class="firstsetup-sub">Scegli una password. Sarà usata sia per accedere all'app sia come token di autenticazione per il backend Google Apps Script.</div>
-      <div class="form-group">
-        <label>Scegli Password</label>
-        <div class="pw-wrap">
-          <input type="password" id="setupPwd1" placeholder="Minimo 6 caratteri">
-          <button class="pw-toggle" onclick="togglePwdVisibility('setupPwd1')">👁</button>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Conferma Password</label>
-        <div class="pw-wrap">
-          <input type="password" id="setupPwd2" placeholder="Ripeti la password">
-          <button class="pw-toggle" onclick="togglePwdVisibility('setupPwd2')">👁</button>
-        </div>
-      </div>
-      <div id="setupErr"></div>
-      <button class="login-btn" onclick="submitFirstSetup()">Imposta Password →</button>
-    </div>
-  </div>`;
-}
-
-function submitFirstSetup() {
-  const p1=document.getElementById('setupPwd1')?.value||'';
-  const p2=document.getElementById('setupPwd2')?.value||'';
-  const el=document.getElementById('setupErr');
-  if (p1.length < 6) { if(el) el.innerHTML=`<div class="login-error">La password deve avere almeno 6 caratteri.</div>`; return; }
-  if (p1 !== p2) { if(el) el.innerHTML=`<div class="login-error">Le due password non corrispondono.</div>`; return; }
-  savePassword(p1);
-}
-
-function viewLogin() {
-  return `
-  <div class="login-wrap" style="position:relative">
-    <button class="login-theme icon-btn" onclick="toggleTheme()">${S.theme==='dark'?'☀':'🌙'}</button>
-    <div class="login-box">
-      <div class="login-logo"><span class="login-dot"></span><span class="login-name">EK Tracker</span></div>
-      <div class="login-title">Inserisci la password per accedere ai tuoi dati di trading.</div>
-      ${S.loginErr?`<div class="login-error">Password errata. Riprova.</div>`:''}
-      <div class="login-form">
-        <div class="form-group">
-          <label>Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="loginPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')tryLogin()" autofocus>
-            <button class="pw-toggle" onclick="togglePwdVisibility('loginPwd')">👁</button>
-          </div>
-        </div>
-        <button class="login-btn" onclick="tryLogin()">Accedi →</button>
-      </div>
-    </div>
-  </div>`;
-}
-
-// ════════════════════════════════════════════════════
-// MAIN VIEWS
-// ════════════════════════════════════════════════════
-function viewDashboard() {
-  const closed=closedTrades(),open=openTrades();
-  const tpl=totalPL(),tax=totalTax(),netto=tpl-tax;
-  const wins=closed.filter(t=>(nn(t.pl_lordo)||0)>0).length;
-  const wr=closed.length?(wins/closed.length*100).toFixed(0):0;
-  const bySeg=S.signals.reduce((a,s)=>{a[s.stato]=(a[s.stato]||0)+1;return a},{});
+function viewDashboard(){
+  const tpl=totalOrdiniPL(),tax=totalOrdiniTax(),netto=tpl-tax;
+  const chiusi=closedOrdini(),aperti=openOrdini();
+  const wins=chiusi.filter(o=>(calcOrdine(o).plFinal||0)>0).length;
+  const wr=chiusi.length?(wins/chiusi.length*100).toFixed(0):0;
   const byP=summaryByPlatform();
-  const totalInv=open.reduce((s,t)=>s+(nn(t.investito_eur)||0),0);
-  return `
-  <div class="ph">
-    <div><div class="ph-title">Dashboard</div><div class="ph-sub">${S.lastSync?'Sync: '+new Date(S.lastSync).toLocaleTimeString('it-IT'):''}</div></div>
-    <div class="flex gap2 ai">${S.gasUrl?`<button class="btn btn-gh btn-sm" onclick="gasRead()">↻ Sync</button>`:''}</div>
-  </div>
-  ${S.syncErr?`<div class="alert al-danger">⚠ Sync error: ${esc(S.syncErr)}</div>`:''}
+  return `<div class="ph"><div><div class="ph-title">Dashboard</div><div class="ph-sub">${S.lastSync?'Sync: '+new Date(S.lastSync).toLocaleTimeString('it-IT'):''}</div></div><div class="flex gap2 ai">${S.gasUrl?`<button class="btn btn-gh btn-sm" onclick="gasRead()">↻ Sync</button>`:''}</div></div>
+  ${S.syncErr?`<div class="alert al-danger">⚠ ${esc(S.syncErr)}</div>`:''}
   <div class="stats-grid">
-    <div class="stat"><div class="stat-label">P&L Lordo</div><div class="stat-val ${tpl>=0?'gr':'rd'}">${tpl>=0?'+':''}${fmt(tpl)}€</div><div class="stat-sub">${closed.length} trade chiusi</div></div>
-    <div class="stat"><div class="stat-label">Tasse Stimate</div><div class="stat-val rd">-${fmt(tax)}€</div><div class="stat-sub">26% dichiarativo</div></div>
+    <div class="stat"><div class="stat-label">P&L Lordo</div><div class="stat-val ${tpl>=0?'gr':'rd'}">${tpl>=0?'+':''}${fmt(tpl)}€</div><div class="stat-sub">${S.ordini.length} ordini totali</div></div>
+    <div class="stat"><div class="stat-label">Tasse Stimate</div><div class="stat-val rd">-${fmt(tax)}€</div><div class="stat-sub">Dichiarativo 26%</div></div>
     <div class="stat"><div class="stat-label">P&L Netto</div><div class="stat-val ${netto>=0?'gr':'rd'}">${netto>=0?'+':''}${fmt(netto)}€</div><div class="stat-sub">Post imposte stimate</div></div>
-    <div class="stat"><div class="stat-label">Win Rate</div><div class="stat-val ${wr>=50?'gr':'rd'}">${wr}%</div><div class="stat-sub">${wins}W · ${closed.length-wins}L</div></div>
-    <div class="stat"><div class="stat-label">Portafoglio Aperto</div><div class="stat-val bl">${open.length} pos.</div><div class="stat-sub">${totalInv?fmt(totalInv)+'€ inv.':'—'}</div></div>
-    <div class="stat"><div class="stat-label">Segnali Attivati</div><div class="stat-val yl">${bySeg.attivato||0}</div><div class="stat-sub">In attesa di apertura</div></div>
+    <div class="stat"><div class="stat-label">Win Rate</div><div class="stat-val ${wr>=50?'gr':'rd'}">${wr}%</div><div class="stat-sub">${wins}W · ${chiusi.length-wins}L</div></div>
+    <div class="stat"><div class="stat-label">Ordini Aperti</div><div class="stat-val bl">${aperti.length}</div><div class="stat-sub">${aperti.filter(o=>o.stato==='parziale').length} parziali</div></div>
+    <div class="stat"><div class="stat-label">Segnali Attivati</div><div class="stat-val yl">${S.signals.filter(s=>s.stato==='attivato').length}</div><div class="stat-sub">In attesa apertura</div></div>
   </div>
   <div class="gr2">
-    <div class="card">
-      <div class="card-head"><div class="card-title">P&L per Piattaforma</div></div>
-      <div class="tbl-wrap"><table>
-        <thead><tr><th>Piattaforma</th><th>Trade</th><th>Win%</th><th>Lordo</th><th>Netto</th></tr></thead>
-        <tbody>${PLATFORMS.map(p=>{
-          const d=byP[p],wr2=d.trades?(d.wins/d.trades*100).toFixed(0)+'%':'—';
-          const net=d.pl-calcTax(d.pl,p);
-          return `<tr><td><strong>${p}</strong></td><td class="dim">${d.trades}</td><td class="dim">${wr2}</td>
-            <td class="mono ${plClass(d.pl)}">${d.pl?fmtEur(d.pl):'—'}</td>
-            <td>${p===FINECO?`<span class="dim">Gestito</span>`:`<span class="mono ${plClass(net)}">${fmtEur(net)}</span>`}</td></tr>`;
-        }).join('')}</tbody>
-      </table></div>
-    </div>
-    <div class="card">
-      <div class="card-head"><div class="card-title">Fiscalità Anno Corrente</div></div>
-      <div class="card-body">
-        ${PLATFORMS.filter(p=>p!==FINECO).map(p=>{
-          const d=byP[p],net=d.gains+d.losses,tax2=net>0?net*TAX_RATE:0;
-          return `<div style="padding:10px 0;border-bottom:1px solid var(--b1)">
-            <div class="flex ai jb" style="margin-bottom:6px"><strong>${p}</strong>
-              <span class="badge ${tax2>0?'br':'bg'}">${tax2>0?'Imposta: '+fmt(tax2)+'€':'Nessuna imposta'}</span></div>
-            <div class="gr3" style="font-size:11px;color:var(--t2)">
-              <span>Plus: <span class="gr-text">+${fmt(d.gains)}€</span></span>
-              <span>Minus: <span class="rd-text">${fmt(d.losses)}€</span></span>
-              <span>Netto: <span class="${plClass(net)}">${fmtEur(net)}</span></span>
-            </div></div>`;
-        }).join('')}
-        <div style="padding-top:10px;font-size:11px;color:var(--t3)">Fineco: regime amministrato — tasse alla fonte<br>Minus compensabili entro 4 anni fiscali</div>
-      </div>
-    </div>
+    <div class="card"><div class="card-head"><div class="card-title">P&L per Piattaforma</div></div><div class="tbl-wrap"><table><thead><tr><th>Piattaforma</th><th>Ordini</th><th>Win%</th><th>Lordo</th><th>Netto</th></tr></thead><tbody>
+    ${PLATFORMS.map(p=>{const d=byP[p];const wr2=d.trades?(d.wins/d.trades*100).toFixed(0)+'%':'—';const net=d.pl-calcTax(d.pl,p);return `<tr><td><strong>${p}</strong></td><td class="dim">${d.trades}</td><td class="dim">${wr2}</td><td class="mono ${plClass(d.pl)}">${d.pl?fmtEur(d.pl):'—'}</td><td>${p===FINECO?`<span class="dim">Gestito</span>`:`<span class="mono ${plClass(net)}">${fmtEur(net)}</span>`}</td></tr>`;}).join('')}
+    </tbody></table></div></div>
+    <div class="card"><div class="card-head"><div class="card-title">Fiscalità Anno Corrente</div></div><div class="card-body">
+    ${PLATFORMS.filter(p=>p!==FINECO).map(p=>{const d=byP[p];const net=d.gains+d.losses;const t2=net>0?net*TAX_RATE:0;return `<div style="padding:10px 0;border-bottom:1px solid var(--b1)"><div class="flex ai jb" style="margin-bottom:6px"><strong>${p}</strong><span class="badge ${t2>0?'br':'bg'}">${t2>0?'Imposta: '+fmt(t2)+'€':'Nessuna imposta'}</span></div><div class="gr3" style="font-size:11px;color:var(--t2)"><span>Plus: <span class="gr-text">+${fmt(d.gains)}€</span></span><span>Minus: <span class="rd-text">${fmt(d.losses)}€</span></span><span>Netto: <span class="${plClass(net)}">${fmtEur(net)}</span></span></div></div>`;}).join('')}
+    <div style="padding-top:10px;font-size:11px;color:var(--t3)">Fineco: regime amministrato — tasse alla fonte<br>Minus compensabili entro 4 anni fiscali</div></div></div>
   </div>
-  ${open.length?`<div class="card">
-    <div class="card-head"><div class="card-title">⚠ Monitoraggio Stop</div></div>
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>Ticker</th><th>Dir.</th><th>Piattaforma</th><th>Entry $</th><th>Stop±M $</th><th>Dist. %</th><th>Investito €</th><th>Rischio Max €</th><th>Pot. Gain €</th></tr></thead>
-      <tbody>${open.map(t=>{
-        const sig=S.signals.find(s=>s.id===t.signal_id)||{};
-        const stop=nn(sig.stop_margine||t.sl_livello),tp=nn(t.tp_livello||sig.tp1),entry=nn(t.entry_price),inv=nn(t.investito_eur);
-        const distPct=entry&&stop?Math.abs(movePct(t.direzione,entry,stop)).toFixed(2)+'%':'—';
-        const riskEur=entry&&stop&&inv?fmt(Math.abs(calcPL_EUR(t.direzione,entry,stop,inv,0)))+'€':'—';
-        const gainEur=entry&&tp&&inv?fmt(Math.abs(calcPL_EUR(t.direzione,entry,tp,inv,0)))+'€':'—';
-        return `<tr><td><strong>${esc(t.ticker)}</strong></td><td>${dirBadge(t.direzione)}</td>
-          <td><span class="platform-tag">${esc(t.piattaforma)}</span></td>
-          <td class="mono">${fmt(entry)}</td><td class="mono rd-text">${stop?fmt(stop):'—'}</td>
-          <td class="mono dim">${distPct}</td><td class="mono">${inv?fmt(inv)+'€':'—'}</td>
-          <td class="mono rd-text">${riskEur}</td><td class="mono gr-text">${gainEur}</td></tr>`;
-      }).join('')}</tbody>
-    </table></div>
-  </div>`:''}`;
+  ${aperti.length?`<div class="card"><div class="card-head"><div class="card-title">⚠ Monitoraggio Stop</div></div><div class="tbl-wrap"><table><thead><tr><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>Dist.%</th><th>Investito €</th><th>Rischio Max €</th></tr></thead><tbody>
+  ${aperti.map(o=>{const ep=nn(o.entry_price),sl=nn(o.stop_loss),inv=nn(o.investito_eur),ps=nn(o.position_size)||0;const dist=ep&&sl?Math.abs(ep-sl)/ep*100:null;const risk=ep&&sl&&ps&&inv?inv*(Math.abs(ep-sl)/ep):null;return `<tr><td><strong>${esc(o.symbol)}</strong></td><td>${dirBadge(o.position)}</td><td><span class="platform-tag">${esc(o.piattaforma)}</span></td><td class="mono">${fmt(ep)}</td><td class="mono rd-text">${sl?fmt(sl):'—'}</td><td class="mono dim">${dist?dist.toFixed(2)+'%':'—'}</td><td class="mono">${inv?fmt(inv)+'€':'—'}</td><td class="mono rd-text">${risk?fmt(risk)+'€':'—'}</td></tr>`;}).join('')}
+  </tbody></table></div></div>`:''}`;
 }
 
-function viewSegnali() {
+function viewSegnali(){
   const filter=S.filterSeg;
   const cnt=k=>S.signals.filter(s=>s.stato===k).length;
   const list=filter==='tutti'?[...S.signals]:S.signals.filter(s=>s.stato===filter);
-  const tabs2=[{k:'tutti',l:'Tutti',n:S.signals.length},{k:'ricevuto',l:'Ricevuti',n:cnt('ricevuto')},
-    {k:'attivato',l:'Attivati',n:cnt('attivato')},{k:'aperto',l:'Aperti',n:cnt('aperto')},
-    {k:'chiuso_tp',l:'TP',n:cnt('chiuso_tp')},{k:'chiuso_stop',l:'Stop',n:cnt('chiuso_stop')},{k:'scartato',l:'Scartati',n:cnt('scartato')}];
-  return `
-  <div class="ph"><div class="ph-title">Segnali EK</div><button class="btn btn-pr" onclick="openM('addSig')">+ Nuovo Segnale</button></div>
-  <div class="flex gap2 fw" style="margin-bottom:16px">
-    ${tabs2.map(t=>`<button class="btn btn-sm ${filter===t.k?'btn-pr':'btn-gh'}" onclick="S.filterSeg='${t.k}';render()">${t.l} <span style="opacity:.6">${t.n}</span></button>`).join('')}
-  </div>
+  const tabs2=[{k:'tutti',l:'Tutti',n:S.signals.length},{k:'ricevuto',l:'Ricevuti',n:cnt('ricevuto')},{k:'attivato',l:'Attivati',n:cnt('attivato')},{k:'aperto',l:'Aperti',n:cnt('aperto')},{k:'chiuso_tp',l:'TP',n:cnt('chiuso_tp')},{k:'chiuso_stop',l:'Stop',n:cnt('chiuso_stop')},{k:'scartato',l:'Scartati',n:cnt('scartato')}];
+  return `<div class="ph"><div class="ph-title">Segnali EK</div><button class="btn btn-pr" onclick="openM('addSig')">+ Nuovo Segnale</button></div>
+  <div class="filter-tabs">${tabs2.map(t=>`<button class="btn btn-sm ${filter===t.k?'btn-pr':'btn-gh'}" onclick="S.filterSeg='${t.k}';render()">${t.l} <span style="opacity:.6">${t.n}</span></button>`).join('')}</div>
   <div class="card" style="padding:0"><div class="tbl-wrap"><table>
-    <thead><tr><th>Data</th><th>Ticker</th><th>MKT</th><th>Dir.</th><th>Entry±M $</th><th>Stop±M $</th><th>% → TP1</th><th>% → Stop</th><th>Stato</th><th>Azioni</th></tr></thead>
-    <tbody>
-      ${list.length===0?`<tr><td colspan="10" class="empty">Nessun segnale</td></tr>`:''}
-      ${list.map(s=>{
-        const pctTp=movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1));
-        const pctSt=movePct(s.direzione,nn(s.entrata_margine),nn(s.stop_margine));
-        const acts=[];
-        if(s.stato==='ricevuto') acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('activateSig',{id:'${s.id}'})">Attiva</button>`);
-        if(s.stato==='attivato'){
-          acts.push(`<button class="btn btn-sm btn-pr" onclick="openM('openTrade',{id:'${s.id}'})">Apri Trade</button>`);
-          acts.push(`<button class="btn btn-sm btn-gh" onclick="updSig('${s.id}',{stato:'scartato'})">Scarta</button>`);
-        }
-        if(s.stato==='aperto'){
-          const t=S.trades.find(t=>t.signal_id===s.id&&t.stato==='aperto');
-          if(t) acts.push(`<button class="btn btn-sm btn-rd" onclick="openM('closeTrade',{sigId:'${s.id}',tradeId:'${t.id}'})">Chiudi</button>`);
-        }
-        acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('editSig',{id:'${s.id}'})">✏</button>`);
-        return `<tr>
-          <td class="dim mono">${fmtDate(s.data_segnale)}</td><td><strong>${esc(s.ticker)}</strong></td>
-          <td><span class="tag">${esc(s.market||'')}</span></td><td>${dirBadge(s.direzione)}</td>
-          <td class="mono">${fmt(s.entrata_margine)}</td><td class="mono rd-text">${fmt(s.stop_margine)}</td>
-          <td class="mono gr-text">${pctTp?fmtPct(pctTp):'—'}</td><td class="mono rd-text">${pctSt?fmtPct(pctSt):'—'}</td>
-          <td>${badge(s.stato)}</td><td><div class="flex gap1">${acts.join('')}</div></td></tr>`;
-      }).join('')}
-    </tbody>
-  </table></div></div>`;
+  <thead><tr><th>Data</th><th>Ticker</th><th>MKT</th><th>Dir.</th><th>Entry±M</th><th>Stop±M</th><th>%→TP</th><th>%→Stop</th><th>Stato</th><th>Azioni</th></tr></thead>
+  <tbody>${list.length===0?`<tr><td colspan="10" class="empty">Nessun segnale</td></tr>`:''}
+  ${list.map(s=>{const pTp=movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1));const pSt=movePct(s.direzione,nn(s.entrata_margine),nn(s.stop_margine));const acts=[];if(s.stato==='ricevuto')acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('activateSig',{id:'${s.id}'})">Attiva</button>`);if(s.stato==='attivato'){acts.push(`<button class="btn btn-sm btn-pr" onclick="openM('openOrdineFromSig',{sigId:'${s.id}'})">Apri Ordine</button>`);acts.push(`<button class="btn btn-sm btn-gh" onclick="updSig('${s.id}',{stato:'scartato'})">Scarta</button>`);}acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('editSig',{id:'${s.id}'})">✏</button>`);return `<tr><td class="dim mono">${fmtDate(s.data_segnale)}</td><td><strong>${esc(s.ticker)}</strong></td><td><span class="tag">${esc(s.market||'')}</span></td><td>${dirBadge(s.direzione)}</td><td class="mono">${fmt(s.entrata_margine)}</td><td class="mono rd-text">${fmt(s.stop_margine)}</td><td class="mono gr-text">${pTp?fmtPct(pTp):'—'}</td><td class="mono rd-text">${pSt?fmtPct(pSt):'—'}</td><td>${badgeSig(s.stato)}</td><td><div class="flex gap1">${acts.join('')}</div></td></tr>`;}).join('')}
+  </tbody></table></div></div>`;
 }
 
-function viewPortafoglio() {
-  const open=openTrades();
-  return `
-  <div class="ph"><div class="ph-title">Portafoglio — Posizioni Aperte</div></div>
-  ${open.length===0?`<div class="card"><div class="empty">Nessuna posizione aperta</div></div>`:''}
-  ${open.map(t=>{
-    const sig=S.signals.find(s=>s.id===t.signal_id)||{};
-    const entry=nn(t.entry_price),stop=nn(sig.stop_margine||t.sl_livello),tp=nn(t.tp_livello||sig.tp1),inv=nn(t.investito_eur);
-    const pctTp=movePct(t.direzione,entry,tp),pctSt=movePct(t.direzione,entry,stop);
-    const gainEur=entry&&tp&&inv?calcPL_EUR(t.direzione,entry,tp,inv,0):null;
-    const lossEur=entry&&stop&&inv?calcPL_EUR(t.direzione,entry,stop,inv,nn(t.comm_open)||0):null;
-    const rr=gainEur&&lossEur&&lossEur<0?(Math.abs(gainEur)/Math.abs(lossEur)).toFixed(2):null;
-    return `<div class="card">
-      <div class="card-head">
-        <div class="flex ai gap2"><span style="font-size:17px;font-weight:800">${esc(t.ticker)}</span>${dirBadge(t.direzione)}<span class="platform-tag">${esc(t.piattaforma)}</span><span class="dim" style="font-size:11px">${esc(sig.market||t.market||'')}</span></div>
-        <button class="btn btn-sm btn-rd" onclick="openM('closeTrade',{sigId:'${sig.id||''}',tradeId:'${t.id}'})">Chiudi posizione</button>
-      </div>
-      <div class="card-body">
-        <div class="gr4" style="margin-bottom:16px">
-          <div><div class="stat-label">Investito</div><div class="mono" style="font-size:16px;font-weight:700">${inv?fmt(inv)+'€':'—'}</div></div>
-          <div><div class="stat-label">Azioni</div><div style="font-size:16px;font-weight:700">${t.num_azioni||'—'}</div></div>
-          <div><div class="stat-label">Entry $</div><div class="mono" style="font-size:16px;font-weight:700">${fmt(entry)}</div></div>
-          <div><div class="stat-label">Apertura</div><div class="dim" style="font-size:13px;margin-top:2px">${fmtDate(t.data_apertura)}</div></div>
-        </div>
-        <div class="pot-row">
-          <div class="pot-item"><div class="pot-label">🎯 Target TP1</div>
-            <div class="pot-val gr-text">${tp?fmt(tp)+' $':''} ${pctTp?'('+fmtPct(pctTp)+')':''}</div>
-            <div style="font-size:12px;color:var(--t2);margin-top:4px">Gain stimato: <span class="gr-text">${gainEur?'+'+fmt(gainEur)+'€':'—'}</span></div></div>
-          <div class="pot-item"><div class="pot-label">🛑 Stop ± Margine</div>
-            <div class="pot-val rd-text">${stop?fmt(stop)+' $':''} ${pctSt?'('+fmtPct(pctSt)+')':''}</div>
-            <div style="font-size:12px;color:var(--t2);margin-top:4px">Loss max: <span class="rd-text">${lossEur?fmt(lossEur)+'€':'—'}</span></div></div>
-        </div>
-        ${rr?`<div style="margin-top:10px;font-size:12px;color:var(--t2)">Risk/Reward: <span class="mono ${Number(rr)>=2?'gr-text':'yl-text'}"">1:${rr}</span></div>`:''}
-        ${t.note?`<div class="dim" style="font-size:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--b1)">📝 ${esc(t.note)}</div>`:''}
-      </div>
-    </div>`;
-  }).join('')}`;
-}
-
-function viewStorico() {
-  const closed=closedTrades(),tpl=totalPL(),tax=totalTax(),netto=tpl-tax;
-  return `
-  <div class="ph"><div class="ph-title">Storico Trade</div></div>
-  <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
-    <div class="stat"><div class="stat-label">P&L Lordo</div><div class="stat-val ${tpl>=0?'gr':'rd'}">${tpl>=0?'+':''}${fmt(tpl)}€</div></div>
-    <div class="stat"><div class="stat-label">Tasse Stimate</div><div class="stat-val rd">-${fmt(tax)}€</div><div class="stat-sub">Piattaforme dichiarative</div></div>
-    <div class="stat"><div class="stat-label">P&L Netto</div><div class="stat-val ${netto>=0?'gr':'rd'}">${netto>=0?'+':''}${fmt(netto)}€</div></div>
-  </div>
+function viewOrdini(){
+  const filter=S.filterOrd;
+  const filteredOrdini=filter==='tutti'?[...S.ordini]:filter==='aperti'?S.ordini.filter(o=>o.stato==='aperto'||o.stato==='parziale'):S.ordini.filter(o=>o.stato===filter);
+  const tabs=[{k:'tutti',l:'Tutti',n:S.ordini.length},{k:'aperti',l:'Aperti / Parziali',n:openOrdini().length},{k:'chiuso',l:'Chiusi',n:closedOrdini().length}];
+  return `<div class="ph"><div class="ph-title">Ordini</div><button class="btn btn-pr" onclick="openM('addOrdine',{})">+ Nuovo Ordine</button></div>
+  <div class="filter-tabs">${tabs.map(t=>`<button class="btn btn-sm ${filter===t.k?'btn-pr':'btn-gh'}" onclick="S.filterOrd='${t.k}';render()">${t.l} <span style="opacity:.6">${t.n}</span></button>`).join('')}</div>
   <div class="card" style="padding:0"><div class="tbl-wrap"><table>
-    <thead><tr><th>Data</th><th>Ticker</th><th>Dir.</th><th>Piattaforma</th><th>Entry $</th><th>Exit $</th><th>Mvmnt%</th><th>Investito €</th><th>Comm €</th><th>P&L Lordo €</th><th>Tasse €</th><th>P&L Netto €</th><th>Stato</th><th>Note</th></tr></thead>
-    <tbody>
-      ${closed.length===0?`<tr><td colspan="14" class="empty">Nessun trade chiuso</td></tr>`:''}
-      ${closed.map(t=>{
-        const pl=nn(t.pl_lordo)||0,tax2=nn(t.tasse)||0,net=pl-tax2;
-        const pctMov=movePct(t.direzione,nn(t.entry_price),nn(t.exit_price));
-        const comm=((nn(t.comm_open)||0)+(nn(t.comm_close)||0)).toFixed(2);
-        return `<tr>
-          <td class="dim mono">${fmtDate(t.data_chiusura||t.data_apertura)}</td>
-          <td><strong>${esc(t.ticker)}</strong></td><td>${dirBadge(t.direzione)}</td>
-          <td><span class="platform-tag">${esc(t.piattaforma)}</span></td>
-          <td class="mono">${fmt(t.entry_price)}</td><td class="mono">${fmt(t.exit_price)}</td>
-          <td class="mono ${plClass(pctMov)}">${pctMov?fmtPct(pctMov):'—'}</td>
-          <td class="mono">${t.investito_eur?fmt(t.investito_eur)+'€':'—'}</td>
-          <td class="mono dim">${comm>0?comm+'€':'—'}</td>
-          <td class="mono"><span class="badge ${pl>=0?'bg':'br'}">${fmtEur(pl)}</span></td>
-          <td>${t.piattaforma===FINECO?`<span class="dim">Gestito</span>`:`<span class="rd-text mono">${tax2?'-'+fmt(tax2)+'€':'—'}</span>`}</td>
-          <td>${t.piattaforma===FINECO?`<span class="dim">—</span>`:`<span class="mono ${plClass(net)}">${fmtEur(net)}</span>`}</td>
-          <td>${badge(t.stato)}</td>
-          <td class="dim" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.note||'')}</td>
-        </tr>`;
-      }).join('')}
-    </tbody>
-  </table></div></div>`;
+  <thead><tr><th>#</th><th>Symbol</th><th>Market</th><th>Pos.</th><th>Strategia</th><th>Piattaforma</th><th>Entry $</th><th>Size</th><th>Investito €</th><th>P&L €</th><th>P&L%</th><th>Stato</th><th>Azioni</th></tr></thead>
+  <tbody>${filteredOrdini.length===0?`<tr><td colspan="13" class="empty">Nessun ordine</td></tr>`:''}
+  ${filteredOrdini.map((o)=>{
+    const res=calcOrdine(o);
+    const plD=res.plFinal!==null?`<span class="badge ${res.plFinal>=0?'bg':'br'}">${fmtEur(res.plFinal)}</span>`:'<span class="dim">—</span>';
+    const pctD=res.plPct!==null?`<span class="mono ${plClass(res.plPct)}">${fmtPct(res.plPct)}</span>`:'—';
+    const ovrIcon=nn(o.pl_override)!==null?`<span class="badge by" style="padding:1px 5px;font-size:9px">OVR</span>`:'';
+    return `<tr>
+      <td class="dim mono" style="font-size:11px">${S.ordini.indexOf(o)+1}</td>
+      <td><strong>${esc(o.symbol)}</strong></td>
+      <td>${marketBadge(o.market||'')}</td>
+      <td>${dirBadge(o.position)}</td>
+      <td>${stratBadge(o.strategy)}</td>
+      <td><span class="platform-tag">${esc(o.piattaforma)}</span></td>
+      <td class="mono">${fmt(o.entry_price)}</td>
+      <td class="dim">${o.position_size||'—'} ${res.qtyRem>0?`<span style="font-size:10px;color:var(--yl)">(${res.qtyRem} rim.)</span>`:''}</td>
+      <td class="mono">${o.investito_eur?fmt(o.investito_eur)+'€':'—'}</td>
+      <td>${plD} ${ovrIcon}</td>
+      <td>${pctD}</td>
+      <td>${statoBadge(res.stato)}</td>
+      <td><div class="flex gap1">
+        <button class="btn btn-sm btn-gh" onclick="openM('dettaglioOrdine',{id:'${o.id}'})">Dettaglio</button>
+        ${res.stato!=='chiuso'?`<button class="btn btn-sm btn-pr" onclick="openM('addUscita',{id:'${o.id}'})">+ Uscita</button>`:''}
+      </div></td>
+    </tr>`;
+  }).join('')}</tbody></table></div></div>`;
 }
 
-function viewSetup() {
-  return `
-  <div class="setup-wrap">
-    <div class="ph"><div class="ph-title">Setup & Configurazione</div></div>
+function viewSetup(){return `<div class="setup-wrap"><div class="ph"><div class="ph-title">Setup</div></div>
+  <div class="card"><div class="card-head"><div class="card-title">🔒 Password / Token</div></div><div class="card-body">
+  <div class="alert al-warn">La stessa password protegge sia il login che ogni chiamata al backend GAS.</div>
+  <div class="gr2"><div class="form-group"><label>Nuova Password</label><div class="pw-wrap"><input type="password" id="newPwd1"><button class="pw-toggle" onclick="togglePwdVisibility('newPwd1')">👁</button></div></div><div class="form-group"><label>Conferma</label><div class="pw-wrap"><input type="password" id="newPwd2"><button class="pw-toggle" onclick="togglePwdVisibility('newPwd2')">👁</button></div></div></div>
+  <div id="pwdErr"></div><button class="btn btn-pr" onclick="changePwd()">Aggiorna Password</button></div></div>
+  <div class="card"><div class="card-head"><div class="card-title">Google Apps Script</div></div><div class="card-body">
+  <div class="form-group"><label>Web App URL</label><input type="url" id="gasInput" value="${esc(S.gasUrl)}" placeholder="https://script.google.com/macros/s/..."></div>
+  <div class="flex gap2"><button class="btn btn-pr" onclick="saveGas()">Salva & Connetti</button><button class="btn btn-gh" onclick="testGas()">Test</button>${S.gasUrl?`<button class="btn btn-gh" onclick="gasRead()">↻ Sync</button>`:''}</div>
+  <div id="gasStatus" style="margin-top:10px"></div></div></div></div>`;}
 
-    <div class="card">
-      <div class="card-head"><div class="card-title">🔒 Sicurezza — Password / Token</div></div>
-      <div class="card-body">
-        <div class="alert al-warn">La password è usata sia per il login all'app sia come token di autenticazione per ogni chiamata al backend GAS. Cambiandola qui devi aggiornarla anche in GAS.</div>
-        <div class="gr2">
-          <div class="form-group">
-            <label>Nuova Password</label>
-            <div class="pw-wrap">
-              <input type="password" id="newPwd1" placeholder="Nuova password">
-              <button class="pw-toggle" onclick="togglePwdVisibility('newPwd1')">👁</button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Conferma Password</label>
-            <div class="pw-wrap">
-              <input type="password" id="newPwd2" placeholder="Ripeti">
-              <button class="pw-toggle" onclick="togglePwdVisibility('newPwd2')">👁</button>
-            </div>
-          </div>
-        </div>
-        <div id="pwdChangeErr"></div>
-        <button class="btn btn-pr" onclick="changePwd()">Aggiorna Password</button>
-      </div>
-    </div>
+function renderModal(){
+  if(!S.modal)return '';
+  const{type,data}=S.modal;
 
-    <div class="card">
-      <div class="card-head"><div class="card-title">Google Apps Script — Sync Cloud</div></div>
-      <div class="card-body">
-        <div class="alert al-info">Ogni richiesta al backend include automaticamente il token (la tua password). Il backend GAS verificherà il token prima di rispondere.</div>
-        <div class="form-group"><label>Web App URL</label><input type="url" id="gasInput" value="${esc(S.gasUrl)}" placeholder="https://script.google.com/macros/s/..."></div>
-        <div class="flex gap2">
-          <button class="btn btn-pr" onclick="saveGas()">Salva & Connetti</button>
-          <button class="btn btn-gh" onclick="testGas()">Test</button>
-          ${S.gasUrl?`<button class="btn btn-gh" onclick="gasRead()">↻ Sync ora</button>`:''}
-        </div>
-        <div id="gasStatus" style="margin-top:10px"></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-head"><div class="card-title">Setup Google Apps Script</div></div>
-      <div class="card-body">
-        <ol class="step-list">
-          <li>Vai su <strong>script.google.com</strong> → nuovo progetto vuoto</li>
-          <li>Incolla il contenuto di <code>gas_backend_v3.gs</code> nell'editor</li>
-          <li>Nella funzione <code>setToken()</code> sostituisci <code>LA_TUA_PASSWORD</code> con la password scelta → esegui <code>setToken</code> una volta dal menu Run</li>
-          <li>Menu <strong>Deploy → Nuova distribuzione → App web</strong><br>Esegui come: <strong>Me stesso</strong> · Accesso: <strong>Chiunque</strong></li>
-          <li>Copia l'URL generato e incollalo qui sopra → Salva & Connetti</li>
-        </ol>
-        <div style="margin-top:12px;padding:12px;background:var(--s2);border-radius:8px;font-size:12px;color:var(--t2)">
-          <strong style="color:var(--yl)">Come funziona la protezione:</strong> chiunque trovi l'URL GAS senza il token riceve solo <code>{"error":"Accesso non autorizzato"}</code>. L'app invia automaticamente il token con ogni richiesta.
-        </div>
-      </div>
-    </div>
-  </div>`;
-}
-
-// ════════════════════════════════════════════════════
-// MODALS
-// ════════════════════════════════════════════════════
-function renderModal() {
-  if (!S.modal) return '';
-  const {type,data}=S.modal;
-
-  if (type==='addSig'||type==='editSig') {
+  if(type==='addSig'||type==='editSig'){
     const s=type==='editSig'?(S.signals.find(x=>x.id===data.id)||{}):{};
-    return `<div class="ov" onclick="if(event.target===this)closeM()">
-    <div class="modal">
-      <div class="modal-head"><div class="modal-title">${type==='addSig'?'Nuovo Segnale EK':'Modifica Segnale'}</div><button class="modal-close" onclick="closeM()">✕</button></div>
-      <div class="modal-body">
-        <div class="gr2">
-          <div class="form-group"><label>Data Segnale</label><input type="date" id="f_data" value="${esc(s.data_segnale||today())}"></div>
-          <div class="form-group"><label>Market</label><select id="f_mkt"><option ${s.market==='NYSE'?'selected':''}>NYSE</option><option ${s.market==='NASDAQ'?'selected':''}>NASDAQ</option><option ${s.market==='OTHER'?'selected':''}>OTHER</option></select></div>
-        </div>
-        <div class="gr2">
-          <div class="form-group"><label>Ticker</label><input type="text" id="f_ticker" value="${esc(s.ticker||'')}" placeholder="es. APPS" oninput="this.value=this.value.toUpperCase()"></div>
-          <div class="form-group"><label>Direzione</label><select id="f_dir"><option ${s.direzione==='BUY'||!s.direzione?'selected':''}>BUY</option><option ${s.direzione==='SELL'?'selected':''}>SELL</option></select></div>
-        </div>
-        <div class="section-title" style="margin-top:4px">Livelli di Prezzo (USD)</div>
-        <div class="gr3">
-          <div class="form-group"><label>Entrata</label><input type="number" id="f_ent" step="0.001" value="${s.entrata||''}" oninput="autoMargini()"></div>
-          <div class="form-group"><label>TP1</label><input type="number" id="f_tp1" step="0.001" value="${s.tp1||''}"></div>
-          <div class="form-group"><label>TP2</label><input type="number" id="f_tp2" step="0.001" value="${s.tp2||''}"></div>
-        </div>
-        <div class="gr3">
-          <div class="form-group"><label>SL1</label><input type="number" id="f_sl1" step="0.001" value="${s.sl1||''}" oninput="autoMargini()"></div>
-          <div class="form-group"><label>SL2</label><input type="number" id="f_sl2" step="0.001" value="${s.sl2||''}"></div>
-          <div class="form-group"><label>Margine</label><input type="number" id="f_mrg" step="0.0001" value="${s.margine||''}" oninput="autoMargini()"></div>
-        </div>
-        <div class="gr2">
-          <div class="form-group"><label>Entrata ± Margine <span class="dim">(auto)</span></label><input type="number" id="f_em" step="0.0001" value="${s.entrata_margine||''}"><div class="input-hint">Entry effettivo di ingresso</div></div>
-          <div class="form-group"><label>Stop ± Margine <span class="dim">(auto)</span></label><input type="number" id="f_sm" step="0.0001" value="${s.stop_margine||''}"><div class="input-hint">Stop loss effettivo</div></div>
-        </div>
-        <div class="gr2">
-          <div class="form-group"><label>A mercato?</label><select id="f_amk"><option ${s.a_mercato==='No'?'selected':''}>No</option><option ${s.a_mercato==='Si'?'selected':''}>Si</option></select></div>
-          <div class="form-group"><label>Valido?</label><select id="f_val"><option ${s.valido==='Si'?'selected':''}>Si</option><option ${s.valido==='No'?'selected':''}>No</option></select></div>
-        </div>
-        <div class="form-group"><label>Link Telegram</label><input type="url" id="f_link" value="${esc(s.link_telegram||'')}" placeholder="https://t.me/..."></div>
-        <div class="form-group"><label>Note EK</label><textarea id="f_note" rows="2">${esc(s.note_ek||'')}</textarea></div>
-        ${type==='editSig'?`<div class="form-group"><label>Stato</label><select id="f_stato">${Object.entries(STATI).map(([k,v])=>`<option value="${k}" ${s.stato===k?'selected':''}>${v.l}</option>`).join('')}</select></div>`:''}
-      </div>
-      <div class="modal-foot">
-        <button class="btn btn-gh" onclick="closeM()">Annulla</button>
-        <button class="btn btn-pr" onclick="${type==='addSig'?'submitAddSig()':'submitEditSig(\''+s.id+'\')'}">Salva Segnale</button>
-      </div>
-    </div></div>`;
+    return `<div class="ov" onclick="if(event.target===this)closeM()"><div class="modal"><div class="modal-head"><div class="modal-title">${type==='addSig'?'Nuovo Segnale EK':'Modifica Segnale'}</div><button class="modal-close" onclick="closeM()">✕</button></div><div class="modal-body">
+    <div class="gr2"><div class="form-group"><label>Data</label><input type="date" id="f_data" value="${esc(s.data_segnale||today())}"></div><div class="form-group"><label>Market</label><select id="f_mkt"><option ${s.market==='NYSE'?'selected':''}>NYSE</option><option ${s.market==='NASDAQ'?'selected':''}>NASDAQ</option><option ${s.market==='OTHER'?'selected':''}>OTHER</option></select></div></div>
+    <div class="gr2"><div class="form-group"><label>Ticker</label><input type="text" id="f_ticker" value="${esc(s.ticker||'')}" oninput="this.value=this.value.toUpperCase()"></div><div class="form-group"><label>Direzione</label><select id="f_dir"><option ${s.direzione==='BUY'||!s.direzione?'selected':''}>BUY</option><option ${s.direzione==='SELL'?'selected':''}>SELL</option></select></div></div>
+    <div class="section-title">Livelli USD</div>
+    <div class="gr3"><div class="form-group"><label>Entrata</label><input type="number" id="f_ent" step="0.001" value="${s.entrata||''}" oninput="autoMargini()"></div><div class="form-group"><label>TP1</label><input type="number" id="f_tp1" step="0.001" value="${s.tp1||''}"></div><div class="form-group"><label>TP2</label><input type="number" id="f_tp2" step="0.001" value="${s.tp2||''}"></div></div>
+    <div class="gr3"><div class="form-group"><label>SL1</label><input type="number" id="f_sl1" step="0.001" value="${s.sl1||''}" oninput="autoMargini()"></div><div class="form-group"><label>SL2</label><input type="number" id="f_sl2" step="0.001" value="${s.sl2||''}"></div><div class="form-group"><label>Margine</label><input type="number" id="f_mrg" step="0.0001" value="${s.margine||''}" oninput="autoMargini()"></div></div>
+    <div class="gr2"><div class="form-group"><label>Entrata±M <span class="dim">(auto)</span></label><input type="number" id="f_em" step="0.0001" value="${s.entrata_margine||''}"></div><div class="form-group"><label>Stop±M <span class="dim">(auto)</span></label><input type="number" id="f_sm" step="0.0001" value="${s.stop_margine||''}"></div></div>
+    <div class="gr2"><div class="form-group"><label>A mercato?</label><select id="f_amk"><option ${s.a_mercato==='No'?'selected':''}>No</option><option ${s.a_mercato==='Si'?'selected':''}>Si</option></select></div><div class="form-group"><label>Valido?</label><select id="f_val"><option ${s.valido==='Si'?'selected':''}>Si</option><option ${s.valido==='No'?'selected':''}>No</option></select></div></div>
+    <div class="form-group"><label>Link Telegram</label><input type="url" id="f_link" value="${esc(s.link_telegram||'')}"></div>
+    <div class="form-group"><label>Note EK</label><textarea id="f_note" rows="2">${esc(s.note_ek||'')}</textarea></div>
+    ${type==='editSig'?`<div class="form-group"><label>Stato</label><select id="f_stato">${Object.entries(STATI_SIG).map(([k,v])=>`<option value="${k}" ${s.stato===k?'selected':''}>${v.l}</option>`).join('')}</select></div>`:''}
+    </div><div class="modal-foot"><button class="btn btn-gh" onclick="closeM()">Annulla</button><button class="btn btn-pr" onclick="${type==='addSig'?'submitAddSig()':'submitEditSig(\''+s.id+'\')'}">Salva</button></div></div></div>`;
   }
 
-  if (type==='activateSig') {
+  if(type==='activateSig'){
     const s=S.signals.find(x=>x.id===data.id)||{};
-    const pctTp=movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1));
-    const pctSt=movePct(s.direzione,nn(s.entrata_margine),nn(s.stop_margine));
-    return `<div class="ov" onclick="if(event.target===this)closeM()">
-    <div class="modal">
-      <div class="modal-head"><div class="modal-title">Attiva Segnale — ${esc(s.ticker)}</div><button class="modal-close" onclick="closeM()">✕</button></div>
-      <div class="modal-body">
-        <div class="alert al-warn">Confermi che le condizioni sul sito EK sono verificate (Valido = Sì)?</div>
-        <div style="background:var(--s2);border-radius:8px;padding:14px"><div class="gr4">
-          <div><div class="stat-label">Entry±M</div><div class="mono">${fmt(s.entrata_margine)}</div></div>
-          <div><div class="stat-label">Stop±M</div><div class="mono rd-text">${fmt(s.stop_margine)}</div></div>
-          <div><div class="stat-label">% → TP1</div><div class="mono gr-text">${pctTp?fmtPct(pctTp):'—'}</div></div>
-          <div><div class="stat-label">% → Stop</div><div class="mono rd-text">${pctSt?fmtPct(pctSt):'—'}</div></div>
-        </div></div>
-      </div>
-      <div class="modal-foot">
-        <button class="btn btn-gh" onclick="closeM()">Annulla</button>
-        <button class="btn btn-pr" onclick="updSig('${s.id}',{stato:'attivato'});closeM()">⚡ Attiva</button>
-      </div>
-    </div></div>`;
+    return `<div class="ov" onclick="if(event.target===this)closeM()"><div class="modal"><div class="modal-head"><div class="modal-title">Attiva — ${esc(s.ticker)}</div><button class="modal-close" onclick="closeM()">✕</button></div><div class="modal-body">
+    <div class="alert al-warn">Confermi che su EK le condizioni sono verificate (Valido = Sì)?</div>
+    <div style="background:var(--s2);border-radius:8px;padding:14px"><div class="gr4"><div><div class="stat-label">Entry±M</div><div class="mono">${fmt(s.entrata_margine)}</div></div><div><div class="stat-label">Stop±M</div><div class="mono rd-text">${fmt(s.stop_margine)}</div></div><div><div class="stat-label">%→TP1</div><div class="mono gr-text">${movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1))?fmtPct(movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1))):'—'}</div></div><div><div class="stat-label">%→Stop</div><div class="mono rd-text">${movePct(s.direzione,nn(s.entrata_margine),nn(s.stop_margine))?fmtPct(movePct(s.direzione,nn(s.entrata_margine),nn(s.stop_margine))):'—'}</div></div></div></div>
+    </div><div class="modal-foot"><button class="btn btn-gh" onclick="closeM()">Annulla</button><button class="btn btn-pr" onclick="updSig('${s.id}',{stato:'attivato'});closeM()">⚡ Attiva</button></div></div></div>`;
   }
 
-  if (type==='openTrade') {
-    const s=S.signals.find(x=>x.id===data.id)||{};
-    return `<div class="ov" onclick="if(event.target===this)closeM()">
-    <div class="modal">
-      <div class="modal-head"><div class="modal-title">Apri Trade — ${esc(s.ticker)}</div><button class="modal-close" onclick="closeM()">✕</button></div>
-      <div class="modal-body">
-        <div class="alert al-info">Entry±M: <strong>${fmt(s.entrata_margine)} $</strong> · Stop±M: <strong>${fmt(s.stop_margine)} $</strong> · TP1: <strong>${fmt(s.tp1)} $</strong></div>
-        <div class="gr2">
-          <div class="form-group"><label>Piattaforma</label><select id="ot_pf">${PLATFORMS.map(p=>`<option>${p}</option>`).join('')}</select></div>
-          <div class="form-group"><label>Data Apertura</label><input type="date" id="ot_dt" value="${today()}"></div>
-        </div>
-        <div class="section-title">Esecuzione</div>
-        <div class="gr2">
-          <div class="form-group"><label>Valore Investito (€)</label><input type="number" id="ot_inv" step="10" placeholder="es. 1000" oninput="previewOpen()"><div class="input-hint">Importo in euro messo sul trade</div></div>
-          <div class="form-group"><label>Numero Azioni</label><input type="number" id="ot_naz" step="1" placeholder="es. 250"><div class="input-hint">Quante azioni comprate (info)</div></div>
-        </div>
-        <div class="gr2">
-          <div class="form-group"><label>Entry Effettivo ($)</label><input type="number" id="ot_ep" step="0.001" value="${s.entrata_margine||s.entrata||''}" oninput="previewOpen()"></div>
-          <div class="form-group"><label>TP Livello ($)</label><input type="number" id="ot_tp" step="0.001" value="${s.tp1||''}"></div>
-        </div>
-        <div class="form-group"><label>Commissioni Apertura (€)</label><input type="number" id="ot_co" step="0.01" value="0"></div>
-        <div id="openPreview"></div>
-        <div class="form-group"><label>Note</label><textarea id="ot_nt" rows="2" placeholder="Note operative..."></textarea></div>
-      </div>
-      <div class="modal-foot">
-        <button class="btn btn-gh" onclick="closeM()">Annulla</button>
-        <button class="btn btn-gr" onclick="submitOpenTrade('${s.id}')">✅ Apri Trade</button>
-      </div>
-    </div></div>`;
+  if(type==='addOrdine'||type==='openOrdineFromSig'){
+    const sig=type==='openOrdineFromSig'?(S.signals.find(x=>x.id===data.sigId)||{}):{}; const sigId=type==='openOrdineFromSig'?data.sigId:null;
+    return `<div class="ov" onclick="if(event.target===this)closeM()"><div class="modal modal-wide"><div class="modal-head"><div class="modal-title">${sigId?'Apri Ordine — '+esc(sig.ticker||''):'Nuovo Ordine'}</div><button class="modal-close" onclick="closeM()">✕</button></div><div class="modal-body">
+    ${sigId?`<div class="alert al-info">Segnale EK: <strong>${esc(sig.ticker)}</strong> ${sig.direzione} · Entry±M: <strong>${fmt(sig.entrata_margine)}$</strong> · Stop±M: <strong>${fmt(sig.stop_margine)}$</strong></div>`:''}
+    <div class="section-title">Identificazione</div>
+    <div class="gr4"><div class="form-group"><label>Piattaforma</label><select id="o_pf">${PLATFORMS.map(p=>`<option>${p}</option>`).join('')}</select></div><div class="form-group"><label>Market</label><select id="o_mkt">${MARKETS.map(m=>`<option>${m}</option>`).join('')}</select></div><div class="form-group"><label>Strategia</label><select id="o_str">${STRATEGIES.map(s=>`<option ${sigId&&s==='EK Investing'?'selected':''}>${s}</option>`).join('')}</select></div><div class="form-group"><label>Posizione</label><select id="o_pos"><option ${(!sig.direzione||sig.direzione==='BUY')?'selected':''}>Long</option><option ${sig.direzione==='SELL'?'selected':''}>Short</option></select></div></div>
+    <div class="form-group"><label>Symbol</label><input type="text" id="o_sym" value="${esc(sig.ticker||'')}" oninput="this.value=this.value.toUpperCase()" placeholder="es. MSFT, AAPL, BTC-USD"></div>
+    <div class="section-title">Apertura</div>
+    <div class="gr3"><div class="form-group"><label>Data & Ora Entry</label><input type="datetime-local" id="o_edt" value="${nowDT()}"></div><div class="form-group"><label>Entry Price ($)</label><input type="number" id="o_ep" step="0.001" value="${sig.entrata_margine||sig.entrata||''}" oninput="previewOrdine()"></div><div class="form-group"><label>N. Azioni / Unità</label><input type="number" id="o_ps" step="1" placeholder="es. 100" oninput="previewOrdine()"></div></div>
+    <div class="gr2"><div class="form-group"><label>Investito (€)</label><input type="number" id="o_inv" step="10" placeholder="es. 2000" oninput="previewOrdine()"><div class="input-hint">Controvalore in euro investito</div></div><div class="form-group"><label>Stop Loss ($)</label><input type="number" id="o_sl" step="0.001" value="${sig.stop_margine||sig.sl1||''}"></div></div>
+    <div id="ordinePreview"></div>
+    <div class="form-group"><label>Note</label><textarea id="o_note" rows="2" placeholder="Note operative..."></textarea></div>
+    </div><div class="modal-foot"><button class="btn btn-gh" onclick="closeM()">Annulla</button><button class="btn btn-gr" onclick="submitAddOrdine('${sigId||''}')">✅ Crea Ordine</button></div></div></div>`;
   }
 
-  if (type==='closeTrade') {
-    const s=S.signals.find(x=>x.id===data.sigId)||{};
-    const t=S.trades.find(x=>x.id===data.tradeId)||{};
-    return `<div class="ov" onclick="if(event.target===this)closeM()">
-    <div class="modal">
-      <div class="modal-head"><div class="modal-title">Chiudi Trade — ${esc(t.ticker)}</div><button class="modal-close" onclick="closeM()">✕</button></div>
-      <div class="modal-body">
-        <div class="alert al-warn">Entry: <strong>${fmt(t.entry_price)} $</strong> · Stop: <strong>${fmt(s.stop_margine||t.sl_livello)} $</strong> · Investito: <strong>${t.investito_eur?fmt(t.investito_eur)+'€':'—'}</strong> · <strong>${esc(t.piattaforma)}</strong></div>
-        <div class="gr2">
-          <div class="form-group"><label>Motivo Chiusura</label>
-            <select id="ct_mo"><option value="chiuso_tp">✅ Take Profit</option><option value="chiuso_stop">🛑 Stop Loss</option><option value="chiuso_man">🔒 Chiusura Manuale</option></select>
-          </div>
-          <div class="form-group"><label>Data Chiusura</label><input type="date" id="ct_dt" value="${today()}"></div>
-        </div>
-        <div class="gr2">
-          <div class="form-group"><label>Prezzo Exit ($)</label><input type="number" id="ct_ex" step="0.001" placeholder="Prezzo di uscita" oninput="previewPL()"></div>
-          <div class="form-group"><label>Commissioni Chiusura (€)</label><input type="number" id="ct_cc" step="0.01" value="0" oninput="previewPL()"></div>
-        </div>
-        <div id="plPreview"></div>
-        <div class="form-group"><label>Note / Lezione appresa</label><textarea id="ct_nt" rows="2" placeholder="Cosa ho imparato..."></textarea></div>
+  if(type==='addUscita'){
+    const o=S.ordini.find(x=>x.id===data.id)||{};const res=calcOrdine(o);
+    return `<div class="ov" onclick="if(event.target===this)closeM()"><div class="modal"><div class="modal-head"><div class="modal-title">Aggiungi Uscita — ${esc(o.symbol)}</div><button class="modal-close" onclick="closeM()">✕</button></div><div class="modal-body">
+    <div class="alert al-info">Entry: <strong>${fmt(o.entry_price)}$</strong> · Qty residua: <strong>${res.qtyRem}</strong> · <strong>${esc(o.piattaforma)}</strong></div>
+    <div class="gr2"><div class="form-group"><label>Data & Ora Uscita</label><input type="datetime-local" id="u_dt" value="${nowDT()}"></div><div class="form-group"><label>Exit Price ($)</label><input type="number" id="u_ep" step="0.001" placeholder="Prezzo di uscita" oninput="previewUscita('${o.id}')"></div></div>
+    <div class="gr2"><div class="form-group"><label>Quantità Uscita</label><input type="number" id="u_qty" step="1" value="${res.qtyRem}" max="${res.qtyRem}" oninput="previewUscita('${o.id}')"><div class="input-hint">Max: ${res.qtyRem} unità residue</div></div><div class="form-group"><label>Commissioni (€)</label><input type="number" id="u_comm" step="0.01" value="0" oninput="previewUscita('${o.id}')"></div></div>
+    <div id="uscitaPreview"></div>
+    <div class="override-wrap"><div class="override-label">⚡ P&L Reale dalla Piattaforma (opzionale)</div>
+    <div class="gr2"><div class="form-group" style="margin-bottom:0"><label>P&L Effettivo (€)</label><input type="number" id="u_plreal" step="0.01" placeholder="Lascia vuoto per usare il calcolato"><div class="input-hint">Compila se diverso dal calcolato</div></div><div class="form-group" style="margin-bottom:0"><label>Note</label><input type="text" id="u_note" placeholder="es. Eseguito a mercato"></div></div></div>
+    </div><div class="modal-foot"><button class="btn btn-gh" onclick="closeM()">Annulla</button><button class="btn btn-rd" onclick="submitAddUscita('${o.id}')">Conferma Uscita</button></div></div></div>`;
+  }
+
+  if(type==='dettaglioOrdine'){
+    const o=S.ordini.find(x=>x.id===data.id)||{};const res=calcOrdine(o);const uscite=JSON.parse(o.uscite||'[]');const sig=S.signals.find(s=>s.id===o.signal_id)||null;
+    return `<div class="ov" onclick="if(event.target===this)closeM()"><div class="modal modal-wide"><div class="modal-head">
+    <div><div class="modal-title">${esc(o.symbol)} — ${dirBadge(o.position)} ${marketBadge(o.market||'')}</div><div style="font-size:11px;color:var(--t2);margin-top:3px">${esc(o.piattaforma)} · ${esc(o.strategy)} · ${fmtDate(o.entry_datetime)}</div></div>
+    <div class="flex gap2 ai"><button class="btn btn-sm btn-gh" onclick="openM('editOrdine',{id:'${o.id}'})">✏ Modifica</button>${res.stato!=='chiuso'?`<button class="btn btn-sm btn-pr" onclick="closeM();openM('addUscita',{id:'${o.id}'})">+ Uscita</button>`:''}<button class="modal-close" onclick="closeM()">✕</button></div>
+    </div><div class="modal-body">
+    ${sig?`<div class="alert al-info">Segnale EK: <strong>${esc(sig.ticker)}</strong> · ${badgeSig(sig.stato)}</div>`:''}
+    <div class="section-title">Apertura</div>
+    <div class="gr4">
+      <div><div class="stat-label">Data & Ora</div><div class="dim" style="font-size:12px">${fmtDT(o.entry_datetime)}</div></div>
+      <div><div class="stat-label">Entry Price</div><div class="mono" style="font-size:15px;font-weight:700">${fmt(o.entry_price)} $</div></div>
+      <div><div class="stat-label">N. Azioni</div><div style="font-size:15px;font-weight:700">${o.position_size||'—'}</div></div>
+      <div><div class="stat-label">Investito</div><div class="mono" style="font-size:15px;font-weight:700">${o.investito_eur?fmt(o.investito_eur)+'€':'—'}</div></div>
+    </div>
+    <div class="gr4" style="margin-top:10px">
+      <div><div class="stat-label">Stop Loss</div><div class="mono rd-text">${o.stop_loss?fmt(o.stop_loss)+' $':'—'}</div></div>
+      <div><div class="stat-label">Buy Amount</div><div class="mono">${res.buyAmount?fmtUSD(res.buyAmount):'—'}</div></div>
+      <div><div class="stat-label">Qty Residua</div><div class="${res.qtyRem>0?'yl-text':'dim'}">${res.qtyRem} / ${o.position_size||'?'}</div></div>
+      <div><div class="stat-label">Stato</div>${statoBadge(res.stato)}</div>
+    </div>
+    ${uscite.length>0?`<div class="section-title">Uscite (${uscite.length})</div>
+    <table class="uscite-table"><thead><tr><th>Data & Ora</th><th>Exit $</th><th>Qty</th><th>Sell Amt</th><th>Comm €</th><th>P&L calc €</th><th>P&L reale €</th><th></th></tr></thead>
+    <tbody>${uscite.map(u=>{const qtyU=nn(u.quantity)||0,epU=nn(u.exit_price)||0,epO=nn(o.entry_price)||0,invO=nn(o.investito_eur)||0,psO=nn(o.position_size)||1;const sellU=epU*qtyU,buyU=epO*qtyU,plU=o.position==='Long'?sellU-buyU:buyU-sellU;const plEurU=psO&&invO?invO*(qtyU/psO)*(buyU?plU/buyU:0)-(nn(u.commission_eur)||0):null;return `<tr><td class="dim" style="font-size:11px">${fmtDT(u.exit_datetime)}</td><td class="mono">${fmt(epU)}</td><td>${qtyU}</td><td class="mono">${fmtUSD(sellU)}</td><td class="mono dim">${u.commission_eur?fmt(u.commission_eur)+'€':'—'}</td><td class="mono ${plClass(plEurU)}">${plEurU!==null?fmtEur(plEurU):'—'}</td><td>${nn(u.pl_override)!==null?`<span class="mono by">${fmtEur(u.pl_override)}</span>`:'<span class="dim">—</span>'}</td><td><button class="btn btn-sm btn-gh" onclick="if(confirm('Eliminare?'))delUscita('${o.id}','${u.id}')">✕</button></td></tr>`;}).join('')}</tbody></table>`:'<div class="dim" style="font-size:12px;margin-top:8px;padding:12px 0">Nessuna uscita registrata.</div>'}
+    <div class="risultati-box">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t2);margin-bottom:10px">Risultati</div>
+      <div class="risultati-grid">
+        <div class="ris-item"><div class="ris-label">Sell Amount</div><div class="ris-val">${res.sellAmount?fmtUSD(res.sellAmount):'—'}</div></div>
+        <div class="ris-item"><div class="ris-label">P&L Calcolato</div><div class="ris-val ${plClass(res.plEur)}">${res.plEur!==null?fmtEur(res.plEur):'—'}</div></div>
+        <div class="ris-item"><div class="ris-label">P&L Finale ${nn(o.pl_override)!==null?'<span class="badge by" style="font-size:8px;padding:1px 4px">OVR</span>':''}</div><div class="ris-val ${plClass(res.plFinal)}">${res.plFinal!==null?fmtEur(res.plFinal):'—'}</div></div>
+        <div class="ris-item"><div class="ris-label">P&L %</div><div class="ris-val ${plClass(res.plPct)}">${res.plPct!==null?fmtPct(res.plPct):'—'}</div></div>
+        <div class="ris-item"><div class="ris-label">Commissioni</div><div class="ris-val dim">${res.totalComm?fmt(res.totalComm)+'€':'—'}</div></div>
+        <div class="ris-item"><div class="ris-label">Durata</div><div class="ris-val dim">${res.duration!==null?res.duration+' gg':'—'}</div></div>
+        <div class="ris-item"><div class="ris-label">R-Multiple</div><div class="ris-val ${plClass(res.rMultiple)}">${res.rMultiple?'1:'+res.rMultiple:'—'}</div></div>
+        <div class="ris-item"><div class="ris-label">Tasse Stimate</div><div class="ris-val rd-text">${o.piattaforma===FINECO?'Gestito':res.tax?'-'+fmt(res.tax)+'€':'—'}</div></div>
       </div>
-      <div class="modal-foot">
-        <button class="btn btn-gh" onclick="closeM()">Annulla</button>
-        <button class="btn btn-rd" onclick="submitCloseTrade('${t.id}','${s.id||''}')">Conferma Chiusura</button>
-      </div>
-    </div></div>`;
+      ${res.plFinal!==null&&o.piattaforma!==FINECO?`<div style="margin-top:10px;font-size:12px;color:var(--t2)">P&L Netto: <span class="mono ${plClass(res.plFinal-res.tax)}">${fmtEur(res.plFinal-res.tax)}</span></div>`:''}
+    </div>
+    <div class="override-wrap" style="margin-top:14px"><div class="override-label">⚡ Override P&L Globale Ordine</div>
+    <div class="gr2">
+      <div class="form-group" style="margin-bottom:0"><label>P&L Reale Totale (€)</label><input type="number" id="ovr_pl" step="0.01" value="${o.pl_override!==null&&o.pl_override!==undefined?o.pl_override:''}" placeholder="Lascia vuoto per usare il calcolato"></div>
+      <div style="display:flex;align-items:flex-end;gap:6px"><button class="btn btn-yl" onclick="submitOverridePL('${o.id}')">Applica</button><button class="btn btn-gh" onclick="submitOverridePL('${o.id}',true)">Rimuovi</button></div>
+    </div></div>
+    ${o.note?`<div class="dim" style="font-size:12px;margin-top:14px;padding-top:12px;border-top:1px solid var(--b1)">📝 ${esc(o.note)}</div>`:''}
+    </div></div></div>`;
+  }
+
+  if(type==='editOrdine'){
+    const o=S.ordini.find(x=>x.id===data.id)||{};
+    return `<div class="ov" onclick="if(event.target===this)closeM()"><div class="modal modal-wide"><div class="modal-head"><div class="modal-title">Modifica Ordine — ${esc(o.symbol)}</div><button class="modal-close" onclick="closeM()">✕</button></div><div class="modal-body">
+    <div class="section-title">Identificazione</div>
+    <div class="gr4"><div class="form-group"><label>Piattaforma</label><select id="eo_pf">${PLATFORMS.map(p=>`<option ${o.piattaforma===p?'selected':''}>${p}</option>`).join('')}</select></div><div class="form-group"><label>Market</label><select id="eo_mkt">${MARKETS.map(m=>`<option ${o.market===m?'selected':''}>${m}</option>`).join('')}</select></div><div class="form-group"><label>Strategia</label><select id="eo_str">${STRATEGIES.map(s=>`<option ${o.strategy===s?'selected':''}>${s}</option>`).join('')}</select></div><div class="form-group"><label>Posizione</label><select id="eo_pos"><option ${o.position==='Long'?'selected':''}>Long</option><option ${o.position==='Short'?'selected':''}>Short</option></select></div></div>
+    <div class="form-group"><label>Symbol</label><input type="text" id="eo_sym" value="${esc(o.symbol||'')}" oninput="this.value=this.value.toUpperCase()"></div>
+    <div class="section-title">Apertura</div>
+    <div class="gr3"><div class="form-group"><label>Data & Ora Entry</label><input type="datetime-local" id="eo_edt" value="${o.entry_datetime||''}"></div><div class="form-group"><label>Entry Price ($)</label><input type="number" id="eo_ep" step="0.001" value="${o.entry_price||''}"></div><div class="form-group"><label>N. Azioni</label><input type="number" id="eo_ps" step="1" value="${o.position_size||''}"></div></div>
+    <div class="gr2"><div class="form-group"><label>Investito (€)</label><input type="number" id="eo_inv" step="10" value="${o.investito_eur||''}"></div><div class="form-group"><label>Stop Loss ($)</label><input type="number" id="eo_sl" step="0.001" value="${o.stop_loss||''}"></div></div>
+    <div class="form-group"><label>Note</label><textarea id="eo_note" rows="2">${esc(o.note||'')}</textarea></div>
+    </div><div class="modal-foot"><button class="btn btn-gh" onclick="closeM()">Annulla</button><button class="btn btn-pr" onclick="submitEditOrdine('${o.id}')">Salva</button></div></div></div>`;
   }
   return '';
 }
 
-// ════════════════════════════════════════════════════
-// MODAL LOGIC
-// ════════════════════════════════════════════════════
-function collectSigForm() {
-  const dir=document.getElementById('f_dir').value;
-  const ent=nn(document.getElementById('f_ent').value)||0;
-  const sl1=nn(document.getElementById('f_sl1').value)||0;
-  const mrg=nn(document.getElementById('f_mrg').value)||0;
-  let em=nn(document.getElementById('f_em').value);
-  let sm=nn(document.getElementById('f_sm').value);
-  if(!em&&ent&&mrg) em=dir==='BUY'?ent+mrg:ent-mrg;
-  if(!sm&&sl1&&mrg) sm=dir==='BUY'?sl1-mrg:sl1+mrg;
-  return {
-    data_segnale:document.getElementById('f_data').value,
-    market:document.getElementById('f_mkt').value,
-    ticker:document.getElementById('f_ticker').value.trim().toUpperCase(),
-    direzione:dir,
-    entrata:nn(document.getElementById('f_ent').value),
-    tp1:nn(document.getElementById('f_tp1').value),
-    tp2:nn(document.getElementById('f_tp2').value),
-    sl1:nn(document.getElementById('f_sl1').value),
-    sl2:nn(document.getElementById('f_sl2').value),
-    margine:mrg||null, entrata_margine:em, stop_margine:sm,
-    link_telegram:document.getElementById('f_link').value,
-    a_mercato:document.getElementById('f_amk').value,
-    valido:document.getElementById('f_val').value,
-    note_ek:document.getElementById('f_note').value,
-  };
-}
-function autoMargini() {
-  const dir=document.getElementById('f_dir')?.value;
-  const ent=nn(document.getElementById('f_ent')?.value)||0;
-  const sl1=nn(document.getElementById('f_sl1')?.value)||0;
-  const mrg=nn(document.getElementById('f_mrg')?.value)||0;
-  if(!mrg||!ent) return;
-  const emEl=document.getElementById('f_em'),smEl=document.getElementById('f_sm');
-  if(emEl) emEl.value=(dir==='BUY'?ent+mrg:ent-mrg).toFixed(4);
-  if(smEl) smEl.value=(dir==='BUY'?sl1-mrg:sl1+mrg).toFixed(4);
-}
-function submitAddSig() { const d=collectSigForm(); if(!d.ticker){alert('Ticker obbligatorio');return;} addSignal(d); closeM(); }
-function submitEditSig(id) { const d=collectSigForm(); const stato=document.getElementById('f_stato')?.value; updSig(id,{...d,...(stato?{stato}:{})}); closeM(); }
+function collectSigForm(){const dir=document.getElementById('f_dir').value;const ent=nn(document.getElementById('f_ent').value)||0;const sl1=nn(document.getElementById('f_sl1').value)||0;const mrg=nn(document.getElementById('f_mrg').value)||0;let em=nn(document.getElementById('f_em').value);let sm=nn(document.getElementById('f_sm').value);if(!em&&ent&&mrg)em=dir==='BUY'?ent+mrg:ent-mrg;if(!sm&&sl1&&mrg)sm=dir==='BUY'?sl1-mrg:sl1+mrg;return{data_segnale:document.getElementById('f_data').value,market:document.getElementById('f_mkt').value,ticker:document.getElementById('f_ticker').value.trim().toUpperCase(),direzione:dir,entrata:ent,tp1:nn(document.getElementById('f_tp1').value),tp2:nn(document.getElementById('f_tp2').value),sl1:sl1,sl2:nn(document.getElementById('f_sl2').value),margine:mrg||null,entrata_margine:em,stop_margine:sm,link_telegram:document.getElementById('f_link').value,a_mercato:document.getElementById('f_amk').value,valido:document.getElementById('f_val').value,note_ek:document.getElementById('f_note').value};}
+function autoMargini(){const dir=document.getElementById('f_dir')?.value;const ent=nn(document.getElementById('f_ent')?.value)||0;const sl1=nn(document.getElementById('f_sl1')?.value)||0;const mrg=nn(document.getElementById('f_mrg')?.value)||0;if(!mrg||!ent)return;const emEl=document.getElementById('f_em'),smEl=document.getElementById('f_sm');if(emEl)emEl.value=(dir==='BUY'?ent+mrg:ent-mrg).toFixed(4);if(smEl)smEl.value=(dir==='BUY'?sl1-mrg:sl1+mrg).toFixed(4);}
+function submitAddSig(){const d=collectSigForm();if(!d.ticker){alert('Ticker obbligatorio');return;}addSignal(d);closeM();}
+function submitEditSig(id){const d=collectSigForm();const stato=document.getElementById('f_stato')?.value;updSig(id,{...d,...(stato?{stato}:{})});closeM();}
 
-function previewOpen() {
-  const inv=nn(document.getElementById('ot_inv')?.value);
-  const ep=nn(document.getElementById('ot_ep')?.value);
-  const sigId=S.modal?.data?.id;
-  const s=S.signals.find(x=>x.id===sigId)||{};
-  const stop=nn(s.stop_margine||s.sl1);
-  const tp=nn(document.getElementById('ot_tp')?.value||s.tp1);
-  const el=document.getElementById('openPreview'); if(!el) return;
-  if(!inv||!ep){el.innerHTML='';return;}
-  const gainEur=tp?calcPL_EUR(s.direzione,ep,tp,inv,0):null;
-  const lossEur=stop?calcPL_EUR(s.direzione,ep,stop,inv,0):null;
-  const rr=gainEur&&lossEur&&lossEur<0?(Math.abs(gainEur)/Math.abs(lossEur)).toFixed(2):null;
-  el.innerHTML=`<div style="background:var(--s2);border-radius:8px;padding:12px;margin-bottom:12px"><div class="gr3">
-    <div><div class="stat-label">Pot. Gain (TP1)</div><div class="mono gr-text">${gainEur?'+'+fmt(gainEur)+'€':'—'}</div></div>
-    <div><div class="stat-label">Max Loss (Stop)</div><div class="mono rd-text">${lossEur?fmt(lossEur)+'€':'—'}</div></div>
-    <div><div class="stat-label">Risk/Reward</div><div class="mono ${rr&&Number(rr)>=2?'gr-text':'yl-text'}">${rr?'1:'+rr:'—'}</div></div>
-  </div></div>`;
-}
-function submitOpenTrade(sigId) {
-  const inv=nn(document.getElementById('ot_inv')?.value);
-  const ep=nn(document.getElementById('ot_ep')?.value);
-  if(!inv||!ep){alert('Valore investito e Entry sono obbligatori');return;}
-  const s=S.signals.find(x=>x.id===sigId)||{};
-  addTrade({signal_id:sigId,ticker:s.ticker,market:s.market,direzione:s.direzione,
-    piattaforma:document.getElementById('ot_pf').value,
-    data_apertura:document.getElementById('ot_dt').value,
-    entry_price:ep,investito_eur:inv,
-    num_azioni:nn(document.getElementById('ot_naz')?.value),
-    sl_livello:s.stop_margine||s.sl1,
-    tp_livello:nn(document.getElementById('ot_tp')?.value),
-    comm_open:nn(document.getElementById('ot_co')?.value)||0,
-    note:document.getElementById('ot_nt').value});
-  updSig(sigId,{stato:'aperto'}); closeM();
-}
-function previewPL() {
-  const t=S.trades.find(x=>x.id===S.modal?.data?.tradeId);
-  if(!t) return;
-  const exP=nn(document.getElementById('ct_ex')?.value);
-  const cc=nn(document.getElementById('ct_cc')?.value)||0;
-  const el=document.getElementById('plPreview'); if(!el) return;
-  if(!exP){el.innerHTML='';return;}
-  const pl=calcPL_EUR(t.direzione,nn(t.entry_price),exP,nn(t.investito_eur),cc);
-  if(pl==null){el.innerHTML='';return;}
-  const tax=calcTax(pl,t.piattaforma);
-  const pct=movePct(t.direzione,nn(t.entry_price),exP);
-  el.innerHTML=`<div class="alert ${pl>=0?'al-success':'al-danger'}">
-    Movimento: <strong>${fmtPct(pct)}</strong> · P&L lordo: <strong>${fmtEur(pl)}</strong>
-    ${t.piattaforma!==FINECO?` · Tasse: <strong>-${fmt(tax)}€</strong> · Netto: <strong>${fmtEur(pl-tax)}</strong>`:'· Fineco: tasse gestite dal broker'}
-  </div>`;
-}
-function submitCloseTrade(tradeId,sigId) {
-  const exP=nn(document.getElementById('ct_ex')?.value);
-  if(!exP){alert('Inserisci il prezzo di exit');return;}
-  const t=S.trades.find(x=>x.id===tradeId)||{};
-  const cc=nn(document.getElementById('ct_cc')?.value)||0;
-  const motivo=document.getElementById('ct_mo').value;
-  const pl=calcPL_EUR(t.direzione,nn(t.entry_price),exP,nn(t.investito_eur),cc);
-  const tax=calcTax(pl,t.piattaforma);
-  updTrade(tradeId,{exit_price:exP,data_chiusura:document.getElementById('ct_dt').value,
-    comm_close:cc,pl_lordo:pl!=null?+pl.toFixed(2):null,tasse:+tax.toFixed(2),
-    pl_netto:pl!=null?+(pl-tax).toFixed(2):null,stato:motivo,note:document.getElementById('ct_nt').value});
-  if(sigId) updSig(sigId,{stato:motivo});
-  closeM();
-}
+function previewOrdine(){const ep=nn(document.getElementById('o_ep')?.value);const ps=nn(document.getElementById('o_ps')?.value);const inv=nn(document.getElementById('o_inv')?.value);const el=document.getElementById('ordinePreview');if(!el)return;if(!ep||!ps){el.innerHTML='';return;}const buyAmt=ep*ps;el.innerHTML=`<div style="background:var(--s2);border-radius:8px;padding:12px;margin-bottom:12px"><div class="gr3"><div><div class="stat-label">Buy Amount</div><div class="mono">${fmtUSD(buyAmt)}</div></div><div><div class="stat-label">Investito</div><div class="mono">${inv?fmt(inv)+'€':'—'}</div></div><div><div class="stat-label">€/Azione</div><div class="mono dim">${inv&&ps?fmt(inv/ps)+'€':'—'}</div></div></div></div>`;}
+function submitAddOrdine(sigId){const ep=nn(document.getElementById('o_ep')?.value);const ps=nn(document.getElementById('o_ps')?.value);if(!ep||!ps){alert('Entry price e N. Azioni sono obbligatori');return;}const inv=nn(document.getElementById('o_inv')?.value);if(!inv){alert('Investito in euro è obbligatorio');return;}const sym=document.getElementById('o_sym')?.value?.trim().toUpperCase();if(!sym){alert('Symbol obbligatorio');return;}addOrdine({signal_id:sigId||null,piattaforma:document.getElementById('o_pf').value,market:document.getElementById('o_mkt').value,strategy:document.getElementById('o_str').value,symbol:sym,position:document.getElementById('o_pos').value,entry_datetime:document.getElementById('o_edt').value,entry_price:ep,position_size:ps,investito_eur:inv,stop_loss:nn(document.getElementById('o_sl')?.value),note:document.getElementById('o_note').value});if(sigId)updSig(sigId,{stato:'aperto'});closeM();}
+function submitEditOrdine(id){updOrdine(id,{piattaforma:document.getElementById('eo_pf').value,market:document.getElementById('eo_mkt').value,strategy:document.getElementById('eo_str').value,symbol:document.getElementById('eo_sym').value.trim().toUpperCase(),position:document.getElementById('eo_pos').value,entry_datetime:document.getElementById('eo_edt').value,entry_price:nn(document.getElementById('eo_ep').value),position_size:nn(document.getElementById('eo_ps').value),investito_eur:nn(document.getElementById('eo_inv').value),stop_loss:nn(document.getElementById('eo_sl').value),note:document.getElementById('eo_note').value});closeM();}
 
-// ════════════════════════════════════════════════════
-// SETUP ACTIONS
-// ════════════════════════════════════════════════════
-function changePwd() {
-  const p1=document.getElementById('newPwd1')?.value||'';
-  const p2=document.getElementById('newPwd2')?.value||'';
-  const el=document.getElementById('pwdChangeErr');
-  if(p1.length<6){if(el)el.innerHTML=`<div class="alert al-danger">Minimo 6 caratteri.</div>`;return;}
-  if(p1!==p2){if(el)el.innerHTML=`<div class="alert al-danger">Le password non corrispondono.</div>`;return;}
-  S.pwd=p1; localStorage.setItem('ek_pwd',p1);
-  if(el) el.innerHTML=`<div class="alert al-success">✅ Password aggiornata. Ricorda di aggiornare il token anche in GAS (funzione setToken).</div>`;
-}
-function saveGas() {
-  const url=document.getElementById('gasInput')?.value?.trim();
-  if(!url){alert('Inserisci un URL');return;}
-  S.gasUrl=url; localStorage.setItem('ek_gas',url); gasRead();
-}
-async function testGas() {
-  const url=document.getElementById('gasInput')?.value?.trim();
-  const el=document.getElementById('gasStatus');
-  if(!url){if(el)el.innerHTML=`<div class="alert al-warn">Inserisci prima un URL</div>`;return;}
-  if(el) el.innerHTML=`<div class="alert al-info">Connessione in corso...</div>`;
-  try {
-    const r=await fetch(url+'?action=ping&token='+encodeURIComponent(S.pwd));
-    const d=await r.json();
-    if(d.error) throw new Error(d.error);
-    if(el) el.innerHTML=`<div class="alert al-success">✅ Connessione riuscita — token verificato</div>`;
-  } catch(e) {
-    if(el) el.innerHTML=`<div class="alert al-danger">❌ ${esc(e.message)}</div>`;
-  }
-}
+function previewUscita(ordineId){const o=S.ordini.find(x=>x.id===ordineId);if(!o)return;const ep=nn(document.getElementById('u_ep')?.value);const qty=nn(document.getElementById('u_qty')?.value);const comm=nn(document.getElementById('u_comm')?.value)||0;const el=document.getElementById('uscitaPreview');if(!el)return;if(!ep||!qty){el.innerHTML='';return;}const entryP=nn(o.entry_price)||0,invEur=nn(o.investito_eur)||0,psOrd=nn(o.position_size)||1;const sellAmt=ep*qty,buyExited=entryP*qty;const plUSD=o.position==='Long'?sellAmt-buyExited:buyExited-sellAmt;const plEur=invEur&&psOrd?invEur*(qty/psOrd)*(buyExited?plUSD/buyExited:0)-comm:null;el.innerHTML=`<div class="alert ${plEur!==null&&plEur>=0?'al-success':'al-danger'}">Sell Amount: <strong>${fmtUSD(sellAmt)}</strong> · P&L calcolato: <strong>${plEur!==null?fmtEur(plEur):'—'}</strong></div>`;}
+function submitAddUscita(ordineId){const ep=nn(document.getElementById('u_ep')?.value);const qty=nn(document.getElementById('u_qty')?.value);if(!ep||!qty){alert('Exit price e Quantità sono obbligatori');return;}addUscita(ordineId,{exit_datetime:document.getElementById('u_dt').value,exit_price:ep,quantity:qty,commission_eur:nn(document.getElementById('u_comm')?.value)||0,pl_override:nn(document.getElementById('u_plreal')?.value),note:document.getElementById('u_note')?.value||''});closeM();}
+function submitOverridePL(ordineId,remove=false){if(remove){updOrdine(ordineId,{pl_override:null});closeM();return;}const val=nn(document.getElementById('ovr_pl')?.value);updOrdine(ordineId,{pl_override:val});closeM();}
 
-// ════════════════════════════════════════════════════
-// RENDER
-// ════════════════════════════════════════════════════
-const TABS=[
-  {id:'dashboard',   ic:'▦',l:'Dashboard'},
-  {id:'segnali',     ic:'◎',l:'Segnali EK'},
-  {id:'portafoglio', ic:'◈',l:'Portafoglio'},
-  {id:'storico',     ic:'≡',l:'Storico'},
-  {id:'setup',       ic:'⚙',l:'Setup'},
-];
-const VIEWS={dashboard:viewDashboard,segnali:viewSegnali,portafoglio:viewPortafoglio,storico:viewStorico,setup:viewSetup};
+function changePwd(){const p1=document.getElementById('newPwd1')?.value||'';const p2=document.getElementById('newPwd2')?.value||'';const el=document.getElementById('pwdErr');if(p1.length<6){if(el)el.innerHTML=`<div class="alert al-danger">Minimo 6 caratteri.</div>`;return;}if(p1!==p2){if(el)el.innerHTML=`<div class="alert al-danger">Non corrispondono.</div>`;return;}S.pwd=p1;localStorage.setItem('ek_pwd',p1);if(el)el.innerHTML=`<div class="alert al-success">✅ Aggiornata. Ricorda di aggiornare anche in GAS.</div>`;}
+function saveGas(){const url=document.getElementById('gasInput')?.value?.trim();if(!url){alert('Inserisci un URL');return;}S.gasUrl=url;localStorage.setItem('ek_gas',url);gasRead();}
+async function testGas(){const url=document.getElementById('gasInput')?.value?.trim();const el=document.getElementById('gasStatus');if(!url){if(el)el.innerHTML=`<div class="alert al-warn">Inserisci un URL</div>`;return;}if(el)el.innerHTML=`<div class="alert al-info">Connessione...</div>`;try{const r=await fetch(url+'?action=ping&token='+encodeURIComponent(S.pwd));const d=await r.json();if(d.error)throw new Error(d.error);if(el)el.innerHTML=`<div class="alert al-success">✅ Connessione OK</div>`;}catch(e){if(el)el.innerHTML=`<div class="alert al-danger">❌ ${esc(e.message)}</div>`;}}
 
-function renderApp() {
-  return `
-  <div class="app">
-    <div class="sidebar">
-      <div class="logo"><span class="logo-dot"></span><span>EK Tracker</span></div>
-      <nav class="nav">
-        ${TABS.map(t=>`<div class="nav-item ${S.tab===t.id?'active':''}" onclick="S.tab='${t.id}';render()">
-          <span class="nav-icon">${t.ic}</span><span>${t.l}</span>${navBadge(t.id)}</div>`).join('')}
-      </nav>
-      <div class="sidebar-footer">
-        <span class="conn-dot ${S.gasUrl?'ok':'err'}"></span>
-        <span class="footer-text">${S.gasUrl?'Cloud sync':'Solo locale'}</span>
-        <button class="icon-btn" onclick="toggleTheme()" title="Tema">${S.theme==='dark'?'☀':'🌙'}</button>
-        <button class="icon-btn" onclick="logout()" title="Esci">⏻</button>
-      </div>
-    </div>
-    <div class="main"><div class="main-inner">
-      ${S.loading?`<div class="alert al-info" style="margin-bottom:16px">⏳ Sincronizzazione...</div>`:''}
-      ${(VIEWS[S.tab]||viewDashboard)()}
-    </div></div>
-  </div>
-  ${renderModal()}`;
-}
+const TABS=[{id:'dashboard',ic:'▦',l:'Dashboard'},{id:'segnali',ic:'◎',l:'Segnali EK'},{id:'ordini',ic:'◈',l:'Ordini'},{id:'setup',ic:'⚙',l:'Setup'}];
+const VIEWS={dashboard:viewDashboard,segnali:viewSegnali,ordini:viewOrdini,setup:viewSetup};
 
-function render() {
-  if (!S.pwd) {
-    document.getElementById('app').innerHTML = viewFirstSetup();
-  } else if (!S.unlocked) {
-    document.getElementById('app').innerHTML = viewLogin();
-    setTimeout(()=>document.getElementById('loginPwd')?.focus(),50);
-  } else {
-    document.getElementById('app').innerHTML = renderApp();
-  }
-}
+function renderApp(){return `<div class="app"><div class="sidebar"><div class="logo"><span class="logo-dot"></span><span>EK Tracker</span></div><nav class="nav">${TABS.map(t=>`<div class="nav-item ${S.tab===t.id?'active':''}" onclick="S.tab='${t.id}';render()"><span class="nav-icon">${t.ic}</span><span>${t.l}</span>${navBadge(t.id)}</div>`).join('')}</nav><div class="sidebar-footer"><span class="conn-dot ${S.gasUrl?'ok':'err'}"></span><span class="footer-text">${S.gasUrl?'Cloud sync':'Locale'}</span><button class="icon-btn" onclick="toggleTheme()">${S.theme==='dark'?'☀':'🌙'}</button><button class="icon-btn" onclick="logout()" title="Esci">⏻</button></div></div><div class="main"><div class="main-inner">${S.loading?`<div class="alert al-info" style="margin-bottom:16px">⏳ Sincronizzazione...</div>`:''} ${(VIEWS[S.tab]||viewDashboard)()}</div></div></div>${renderModal()}`;}
 
-// ════════════════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════════════════
+function render(){if(!S.pwd)document.getElementById('app').innerHTML=viewFirstSetup();else if(!S.unlocked){document.getElementById('app').innerHTML=viewLogin();setTimeout(()=>document.getElementById('loginPwd')?.focus(),50);}else document.getElementById('app').innerHTML=renderApp();}
+
 render();
-if (S.unlocked && S.gasUrl) gasRead();
+if(S.unlocked&&S.gasUrl)gasRead();
 </script>
 </body>
 </html>
