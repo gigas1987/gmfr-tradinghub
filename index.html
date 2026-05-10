@@ -229,7 +229,20 @@ function calcOrdine(o){
   const minusComp=Math.max(0,nn(o.minus_compensata)||0);
   const baseImp=plFinal!==null?Math.max(0,plFinal-minusComp):null;
   const tax=baseImp!==null&&baseImp>0?baseImp*TAX_RATE:0;
-  return{buyAmount,sellAmount,qtyExited,qtyRem,plUSD,plEur,plFinal,plPct,totalComm,duration,maxLossEur,rMultiple,minusComp,baseImp,tax,stato};
+  // Giorni aperti (da entry a oggi se ancora aperto, o all'ultima uscita se chiuso)
+  let daysOpen=null;
+  if(o.entry_datetime){
+    const entryD=new Date(o.entry_datetime);
+    let toDate;
+    if(stato==='chiuso'&&uscite.length>0){
+      const lastExit=uscite.map(u=>u.exit_datetime).filter(Boolean).sort().pop();
+      toDate=lastExit?new Date(lastExit):new Date();
+    } else {
+      toDate=new Date();
+    }
+    daysOpen=Math.round((toDate-entryD)/(1000*60*60*24));
+  }
+  return{buyAmount,sellAmount,qtyExited,qtyRem,plUSD,plEur,plFinal,plPct,totalComm,duration:daysOpen,daysOpen,maxLossEur,rMultiple,minusComp,baseImp,tax,stato};
 }
 
 function gasUrlWith(extra){return S.gasUrl+'?token='+encodeURIComponent(S.pwd)+(extra?'&'+extra:'');}
@@ -355,20 +368,27 @@ function viewSegnali(){
 
 function viewOrdini(){
   const filter=S.filterOrd;
-  const filteredOrdini=filter==='tutti'?[...S.ordini]:filter==='aperti'?S.ordini.filter(o=>o.stato==='aperto'||o.stato==='parziale'):S.ordini.filter(o=>o.stato===filter);
+  const sortByDate=(arr)=>[...arr].sort((a,b)=>{
+    const da=new Date(a.entry_datetime||a.created||0);
+    const db=new Date(b.entry_datetime||b.created||0);
+    return db-da; // più recente prima
+  });
+  const filteredOrdini=sortByDate(filter==='tutti'?S.ordini:filter==='aperti'?S.ordini.filter(o=>o.stato==='aperto'||o.stato==='parziale'):S.ordini.filter(o=>o.stato===filter));
   const tabs=[{k:'tutti',l:'Tutti',n:S.ordini.length},{k:'aperti',l:'Aperti / Parziali',n:openOrdini().length},{k:'chiuso',l:'Chiusi',n:closedOrdini().length}];
   return `<div class="ph"><div class="ph-title">Ordini</div><button class="btn btn-pr" onclick="openM('addOrdine',{})">+ Nuovo Ordine</button></div>
   <div class="filter-tabs">${tabs.map(t=>`<button class="btn btn-sm ${filter===t.k?'btn-pr':'btn-gh'}" onclick="S.filterOrd='${t.k}';render()">${t.l} <span style="opacity:.6">${t.n}</span></button>`).join('')}</div>
   <div class="card" style="padding:0"><div class="tbl-wrap"><table>
-  <thead><tr><th>#</th><th>Symbol</th><th>Market</th><th>Pos.</th><th>Strategia</th><th>Piattaforma</th><th>Entry $</th><th>Size</th><th>Investito €</th><th>P&L €</th><th>P&L%</th><th>Stato</th><th>Azioni</th></tr></thead>
+  <thead><tr><th>Data</th><th>Symbol</th><th>Market</th><th>Pos.</th><th>Strategia</th><th>Piattaforma</th><th>Entry $</th><th>Size</th><th>Investito €</th><th>Giorni</th><th>P&L €</th><th>P&L%</th><th>Stato</th><th>Azioni</th></tr></thead>
   <tbody>${filteredOrdini.length===0?`<tr><td colspan="13" class="empty">Nessun ordine</td></tr>`:''}
   ${filteredOrdini.map((o)=>{
     const res=calcOrdine(o);
     const plD=res.plFinal!==null?`<span class="badge ${res.plFinal>=0?'bg':'br'}">${fmtEur(res.plFinal)}</span>`:'<span class="dim">—</span>';
     const pctD=res.plPct!==null?`<span class="mono ${plClass(res.plPct)}">${fmtPct(res.plPct)}</span>`:'—';
     const ovrIcon=nn(o.pl_override)!==null?`<span class="badge by" style="padding:1px 5px;font-size:9px">OVR</span>`:'';
+    const daysLabel=res.daysOpen!==null?`<span class="mono dim">${res.daysOpen}g</span>`:'<span class="dim">—</span>';
+    const entryDateLabel=o.entry_datetime?fmtDate(o.entry_datetime):'<span class="dim">—</span>';
     return `<tr>
-      <td class="dim mono" style="font-size:11px">${S.ordini.indexOf(o)+1}</td>
+      <td class="dim mono" style="font-size:11px">${entryDateLabel}</td>
       <td><strong>${esc(o.symbol)}</strong></td>
       <td>${marketBadge(o.market||'')}</td>
       <td>${dirBadge(o.position)}</td>
@@ -377,6 +397,7 @@ function viewOrdini(){
       <td class="mono">${fmt(o.entry_price)}</td>
       <td class="dim">${o.position_size||'—'} ${res.qtyRem>0?`<span style="font-size:10px;color:var(--yl)">(${res.qtyRem} rim.)</span>`:''}</td>
       <td class="mono">${o.investito_eur?fmt(o.investito_eur)+'€':'—'}</td>
+      <td>${daysLabel}</td>
       <td>${plD} ${ovrIcon}</td>
       <td>${pctD}</td>
       <td>${statoBadge(res.stato)}</td>
@@ -462,7 +483,11 @@ function renderModal(){
     ${sig?`<div class="alert al-info">Segnale EK: <strong>${esc(sig.ticker)}</strong> · ${badgeSig(sig.stato)}</div>`:''}
     <div class="section-title">Apertura</div>
     <div class="gr4">
-      <div><div class="stat-label">Data & Ora</div><div class="dim" style="font-size:12px">${fmtDT(o.entry_datetime)}</div></div>
+      <div>
+        <div class="stat-label">Data & Ora</div>
+        <div class="mono" style="font-size:13px;font-weight:700">${fmtDT(o.entry_datetime)}</div>
+        ${res.daysOpen!==null?`<div class="dim" style="font-size:11px;margin-top:3px">${res.stato==='chiuso'?'Durata: '+res.daysOpen+' giorni':'Aperto da '+res.daysOpen+' giorni'}</div>`:''}
+      </div>
       <div><div class="stat-label">Entry Price</div><div class="mono" style="font-size:15px;font-weight:700">${fmt(o.entry_price)} $</div></div>
       <div><div class="stat-label">N. Azioni</div><div style="font-size:15px;font-weight:700">${o.position_size||'—'}</div></div>
       <div><div class="stat-label">Investito</div><div class="mono" style="font-size:15px;font-weight:700">${o.investito_eur?fmt(o.investito_eur)+'€':'—'}</div></div>
@@ -484,7 +509,7 @@ function renderModal(){
         <div class="ris-item"><div class="ris-label">P&L Finale ${nn(o.pl_override)!==null?'<span class="badge by" style="font-size:8px;padding:1px 4px">OVR</span>':''}</div><div class="ris-val ${plClass(res.plFinal)}">${res.plFinal!==null?fmtEur(res.plFinal):'—'}</div></div>
         <div class="ris-item"><div class="ris-label">P&L %</div><div class="ris-val ${plClass(res.plPct)}">${res.plPct!==null?fmtPct(res.plPct):'—'}</div></div>
         <div class="ris-item"><div class="ris-label">Commissioni</div><div class="ris-val dim">${res.totalComm?fmt(res.totalComm)+'€':'—'}</div></div>
-        <div class="ris-item"><div class="ris-label">Durata</div><div class="ris-val dim">${res.duration!==null?res.duration+' gg':'—'}</div></div>
+        <div class="ris-item"><div class="ris-label">Durata</div><div class="ris-val dim">${res.daysOpen!==null?res.daysOpen+(res.stato==='chiuso'?' gg tot.':' gg aperti'):'—'}</div></div>
         <div class="ris-item"><div class="ris-label">R-Multiple</div><div class="ris-val ${plClass(res.rMultiple)}">${res.rMultiple?'1:'+res.rMultiple:'—'}</div></div>
         <div class="ris-item"><div class="ris-label">Minus Comp.</div><div class="ris-val yl-text">${res.minusComp>0?'-'+fmt(res.minusComp)+'€':'—'}</div></div>
         <div class="ris-item"><div class="ris-label">Base Imponibile</div><div class="ris-val">${res.baseImp!==null?fmt(res.baseImp)+'€':'—'}</div></div>
