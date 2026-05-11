@@ -354,73 +354,224 @@ function viewDashboard(){
   const wins=chiusi.filter(o=>(calcOrdine(o).plFinal||0)>0).length;
   const wr=chiusi.length?(wins/chiusi.length*100).toFixed(0):0;
   const byP=summaryByPlatform();
-  return `<div class="ph"><div><div class="ph-title">Dashboard</div><div class="ph-sub">${S.lastSync?'Sync: '+new Date(S.lastSync).toLocaleTimeString('it-IT'):''}</div></div><div class="flex gap2 ai">
-    ${S.gasUrl?`<button class="btn btn-gh btn-sm" onclick="gasRead()">↻ Sync</button>`:''}
-    ${S.gasUrl?`<button class="btn btn-gh btn-sm" onclick="fetchPrezziLive()">📡 Prezzi</button>`:''}
-    ${S_prezziTs?`<span class="dim" style="font-size:11px">Prezzi: ${new Date(S_prezziTs).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}</span>`:''}
-  </div></div>
+  const attivatiSig=S.signals.filter(s=>s.stato==='attivato');
+  const acc=calcAccantonamento();
+  const pool=poolMinusvalenze();
+
+  // ── STATISTICHE OPERATIVE ──────────────────────────────────────
+  const closedWithDays=chiusi.map(o=>({o,res:calcOrdine(o)})).filter(x=>x.res.daysOpen!==null);
+  const avgDays=closedWithDays.length?Math.round(closedWithDays.reduce((s,x)=>s+x.res.daysOpen,0)/closedWithDays.length):null;
+  const winTrades=chiusi.map(o=>calcOrdine(o)).filter(r=>(r.plFinal||0)>0);
+  const lossTrades=chiusi.map(o=>calcOrdine(o)).filter(r=>(r.plFinal||0)<0);
+  const avgGain=winTrades.length?winTrades.reduce((s,r)=>s+(r.plFinal||0),0)/winTrades.length:null;
+  const avgLoss=lossTrades.length?lossTrades.reduce((s,r)=>s+(r.plFinal||0),0)/lossTrades.length:null;
+  const rMultiples=chiusi.map(o=>calcOrdine(o)).filter(r=>r.rMultiple!==null).map(r=>parseFloat(r.rMultiple));
+  const avgR=rMultiples.length?(rMultiples.reduce((s,v)=>s+v,0)/rMultiples.length).toFixed(2):null;
+
+  // ── PROIEZIONE FISCALE ──────────────────────────────────────────
+  const now=new Date();
+  const dayOfYear=Math.floor((now-new Date(now.getFullYear(),0,0))/(1000*60*60*24));
+  const remainDays=365-dayOfYear;
+  const dailyRate=dayOfYear>0?tpl/dayOfYear:0;
+  const projYearEnd=tpl+(dailyRate*remainDays);
+  const projTax=Math.max(0,projYearEnd)*0.26;
+  const projAccanton=Math.max(0,projTax-tax); // ancora da accantonare
+
+  // ── SEGNALI VICINI ALL'ATTIVAZIONE ──────────────────────────────
+  const viciniAttivazione=S.signals.filter(s=>{
+    if(s.stato!=='ricevuto')return false;
+    const entry=nn(s.entrata_margine)||nn(s.entrata);
+    const stop=nn(s.stop_margine)||nn(s.sl1);
+    if(!entry||!stop)return false;
+    const distStop=Math.abs(movePct(s.direzione,entry,stop));
+    return distStop<20; // filtra solo segnali con stop ragionevole
+  }).map(s=>{
+    const entry=nn(s.entrata_margine)||nn(s.entrata);
+    const liveP=S_prezzi[s.ticker]||null;
+    const distPct=liveP&&entry?Math.abs((liveP-entry)/entry*100):null;
+    return{s,entry,liveP,distPct};
+  }).filter(x=>x.distPct===null||x.distPct<5) // entro 5% o senza prezzo live
+    .sort((a,b)=>(a.distPct||999)-(b.distPct||999));
+
+  return `
+  <div class="ph">
+    <div><div class="ph-title">Dashboard</div><div class="ph-sub">${S.lastSync?'Sync: '+new Date(S.lastSync).toLocaleTimeString('it-IT'):''}</div></div>
+    <div class="flex gap2 ai fw">
+      ${S.gasUrl?`<button class="btn btn-gh btn-sm" onclick="gasRead()">↻ Sync</button>`:''}
+      ${S.gasUrl?`<button class="btn btn-gh btn-sm" onclick="fetchPrezziLive()">📡 Prezzi</button>`:''}
+      ${S_prezziTs?`<span class="dim" style="font-size:11px">Prezzi: ${new Date(S_prezziTs).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}</span>`:''}
+    </div>
+  </div>
   ${S.syncErr?`<div class="alert al-danger">⚠ ${esc(S.syncErr)}</div>`:''}
+
+  <!-- ZONA 1: NUMERI CHIAVE -->
   <div class="stats-grid">
     <div class="stat"><div class="stat-label">P&L Lordo</div><div class="stat-val ${tpl>=0?'gr':'rd'}">${tpl>=0?'+':''}${fmt(tpl)}€</div><div class="stat-sub">${S.ordini.length} ordini totali</div></div>
     <div class="stat"><div class="stat-label">Tasse Stimate</div><div class="stat-val rd">-${fmt(tax)}€</div><div class="stat-sub">Dichiarativo 26%</div></div>
     <div class="stat"><div class="stat-label">P&L Netto</div><div class="stat-val ${netto>=0?'gr':'rd'}">${netto>=0?'+':''}${fmt(netto)}€</div><div class="stat-sub">Post imposte stimate</div></div>
-    <div class="stat"><div class="stat-label">Win Rate</div><div class="stat-val ${wr>=50?'gr':'rd'}">${wr}%</div><div class="stat-sub">${wins}W · ${chiusi.length-wins}L</div></div>
-    <div class="stat" style="cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'" onclick="S.tab='ordini';S.filterOrd='aperti';render()">
+    <div class="stat"><div class="stat-label">Win Rate</div><div class="stat-val ${wr>=50?'gr':'rd'}">${wr}%</div><div class="stat-sub">${wins}W · ${chiusi.length-wins}L · ${chiusi.length} chiusi</div></div>
+    <div class="stat" style="cursor:pointer" onclick="S.tab='ordini';S.filterOrd='aperti';render()">
       <div class="stat-label">Ordini Aperti ↗</div><div class="stat-val bl">${aperti.length}</div><div class="stat-sub">${aperti.filter(o=>o.stato==='parziale').length} parziali</div>
     </div>
-    <div class="stat" style="cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'" onclick="S.tab='segnali';S.filterSeg='attivato';render()">
-      <div class="stat-label">Segnali Attivati ↗</div><div class="stat-val yl">${S.signals.filter(s=>s.stato==='attivato').length}</div><div class="stat-sub">In attesa apertura</div>
+    <div class="stat" style="cursor:pointer" onclick="S.tab='segnali';S.filterSeg='attivato';render()">
+      <div class="stat-label">Segnali Attivati ↗</div><div class="stat-val yl">${attivatiSig.length}</div><div class="stat-sub">In attesa apertura</div>
     </div>
-    ${(()=>{const acc=calcAccantonamento();return `<div class="stat" style="border-color:var(--rd);"><div class="stat-label">Da Accantonare</div><div class="stat-val rd">${fmt(acc.dich)}€</div><div class="stat-sub">Tasse dichiarative · ${acc.fin?fmt(acc.fin)+'€ broker (Fineco)':''}</div></div>`;})()}
+    <div class="stat" style="border-color:var(--rd)">
+      <div class="stat-label">Da Accantonare</div><div class="stat-val rd">${fmt(acc.dich)}€</div>
+      <div class="stat-sub">Tasse dichiarative${acc.fin?` · ${fmt(acc.fin)}€ broker`:''}</div>
+    </div>
   </div>
-  <div class="gr2">
-    <div class="card"><div class="card-head"><div class="card-title">P&L per Piattaforma</div></div><div class="tbl-wrap"><table><thead><tr><th>Piattaforma</th><th>Ordini</th><th>Win%</th><th>Lordo</th><th>Netto</th></tr></thead><tbody>
-    ${PLATFORMS.map(p=>{const d=byP[p];const wr2=d.closed?(d.wins/d.closed*100).toFixed(0)+'% ('+d.closed+' chiusi)':'—';const net=d.pl-calcTax(d.pl,p);return `<tr><td><strong>${p}</strong>${p===FINECO?' <span class="dim" style="font-size:10px">(broker)</span>':''}</td><td class="dim">${d.trades}</td><td class="dim">${wr2}</td><td class="mono ${plClass(d.pl)}">${d.pl?fmtEur(d.pl):'—'}</td><td><span class="mono ${plClass(net)}">${d.pl?fmtEur(net):'—'}</span></td></tr>`;}).join('')}
-    </tbody></table></div></div>
-    <div class="card"><div class="card-head"><div class="card-title">Fiscalità Anno Corrente</div></div><div class="card-body">
-    ${(()=>{const pool=poolMinusvalenze();return `<div style="background:var(--yl-dim);border:1px solid rgba(245,197,66,.2);border-radius:8px;padding:12px;margin-bottom:14px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--yl);margin-bottom:8px">📉 Pool Minusvalenze Disponibili</div><div class="gr3" style="font-size:12px"><div>Totale pool: <span class="mono rd-text">-${fmt(pool.pool)}€</span></div><div>Già compensate: <span class="mono dim">-${fmt(pool.used)}€</span></div><div>Residue: <span class="mono yl-text">-${fmt(pool.remaining)}€</span></div></div><div style="font-size:11px;color:var(--t3);margin-top:6px">Vai al dettaglio di un ordine in profitto per applicare la compensazione.</div></div>`;})()}
-    ${PLATFORMS.map(p=>{const d=byP[p];const net=d.gains+d.losses;const baseNet=d.gainsBase+d.losses;const t2=baseNet>0?baseNet*TAX_RATE:0;const isFineco=p===FINECO;return `<div style="padding:10px 0;border-bottom:1px solid var(--b1)"><div class="flex ai jb" style="margin-bottom:6px"><div><strong>${p}</strong><span class="dim" style="font-size:10px;margin-left:6px">${isFineco?'gestito broker':'dichiarativo'}</span></div><span class="badge ${t2>0?'br':'bg'}">${t2>0?'Imposta: '+fmt(t2)+'€':'Nessuna imposta'}</span></div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;font-size:11px;color:var(--t2)"><span>Plus: <span class="gr-text">+${fmt(d.gains)}€</span></span><span>Minus: <span class="rd-text">${fmt(d.losses)}€</span></span><span>Comp.: <span class="yl-text">${d.gains>0?'-'+fmt(d.gains-d.gainsBase)+'€':'—'}</span></span><span>Base imp.: <span class="mono">${fmt(Math.max(0,baseNet))}€</span></span><span>Netto: <span class="${plClass(net-t2)}">${fmtEur(net-t2)}</span></span></div></div>`;}).join('')}
-    <div style="padding-top:10px;font-size:11px;color:var(--t3)">Fineco: il broker versa la ritenuta alla fonte — nessun adempimento dichiarativo<br>La compensazione riduce la base imponibile prima dell'applicazione del 26%</div></div></div>
-  ${calcMinusvalenzeHTML()}
-  </div>
+
+  <!-- ZONA 2: AZIONI IMMEDIATE -->
+
   ${aperti.length?`<div class="card"><div class="card-head">
     <div class="card-title">⚠ Monitoraggio Stop — Posizioni Aperte</div>
     <div style="font-size:11px;color:var(--t2)">${S_prezziTs?'Prezzi: '+new Date(S_prezziTs).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'Clicca 📡 Prezzi per aggiornare'}</div>
   </div><div class="tbl-wrap"><table>
-  <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>Dist.%</th><th>Ultimo Prezzo</th><th>P&L Corrente</th><th>Investito €</th><th>Rischio Max €</th><th>Azioni</th></tr></thead>
+  <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>Dist.%</th><th>Ultimo Prezzo</th><th>P&L Corrente</th><th>Investito €</th><th>Rischio Max €</th><th></th></tr></thead>
   <tbody>${aperti.map(o=>{
     const ep=nn(o.entry_price),sl=nn(o.stop_loss),inv=nn(o.investito_eur),ps=nn(o.position_size)||0;
     const sig=S.signals.find(s=>s.id===o.signal_id)||{};
     const stopEff=sl||(nn(sig.stop_margine)||0);
     const dist=ep&&stopEff?Math.abs(ep-stopEff)/ep*100:null;
     const risk=ep&&stopEff&&inv?inv*(Math.abs(ep-stopEff)/ep):null;
-    // Live price
     const liveP=S_prezzi[o.symbol]||null;
     const livePct=liveP&&ep?((o.position==='Long'?liveP-ep:ep-liveP)/ep*100):null;
     const livePL=livePct!==null&&inv?inv*livePct/100:null;
     const stopViolato=liveP&&stopEff?(o.position==='Long'?liveP<=stopEff:liveP>=stopEff):false;
     const nearStop=liveP&&stopEff&&!stopViolato?Math.abs(liveP-stopEff)/stopEff*100<1:false;
     const lightCls=stopViolato?'red':nearStop?'yellow':'';
-    const livePriceCell=liveP?`<span class="mono ${livePct!==null?plClass(livePct):''}">${fmt(liveP)}</span>`:'<span class="dim">—</span>';
-    const livePLCell=livePL!==null?`<span class="mono ${plClass(livePL)}">${fmtEur(livePL)}</span>`:'<span class="dim">—</span>';
-    const stopCell=stopEff?`<span class="mono rd-text">${fmt(stopEff)}</span>`:'<span class="dim">—</span>';
     return `<tr style="${stopViolato?'background:var(--rd-dim)':''}">
       <td style="padding:8px 12px">${lightCls?`<span class="sig-light ${lightCls}"></span>`:''}</td>
       <td><strong>${esc(o.symbol)}</strong></td>
       <td>${dirBadge(o.position)}</td>
       <td><span class="platform-tag">${esc(o.piattaforma)}</span></td>
       <td class="mono">${fmt(ep)}</td>
-      <td>${stopCell}</td>
+      <td class="mono rd-text">${stopEff?fmt(stopEff):'—'}</td>
       <td class="mono dim">${dist?dist.toFixed(2)+'%':'—'}</td>
-      <td>${livePriceCell}</td>
-      <td>${livePLCell}</td>
+      <td>${liveP?`<span class="mono ${livePct!==null?plClass(livePct):''}">${fmt(liveP)}</span>`:'<span class="dim">—</span>'}</td>
+      <td>${livePL!==null?`<span class="mono ${plClass(livePL)}">${fmtEur(livePL)}</span>`:'<span class="dim">—</span>'}</td>
       <td class="mono">${inv?fmt(inv)+'€':'—'}</td>
       <td class="mono rd-text">${risk?fmt(risk)+'€':'—'}</td>
-      <td><button class="btn btn-sm btn-gh" onclick="openM('dettaglioOrdine',{id:'${o.id}'})">Dettaglio</button></td>
+      <td><button class="btn btn-sm btn-gh" onclick="openM('dettaglioOrdine',{id:'${o.id}'})">→</button></td>
+    </tr>`;
+  }).join('')}</tbody></table></div></div>`:''}
+
+  ${attivatiSig.length||viciniAttivazione.length?`<div class="card"><div class="card-head"><div class="card-title">🚀 Segnali — Ingresso</div></div>
+  <div class="tbl-wrap"><table>
+  <thead><tr><th></th><th>Ticker</th><th>Dir.</th><th>Entry±M</th><th>Stop±M</th><th>%→TP</th><th>Stato</th><th>Prezzo Live</th><th>Dist. Entry</th><th></th></tr></thead>
+  <tbody>
+  ${attivatiSig.map(s=>{
+    const entry=nn(s.entrata_margine)||nn(s.entrata);
+    const liveP=S_prezzi[s.ticker]||null;
+    const distEntry=liveP&&entry?((s.direzione==='BUY'?liveP-entry:entry-liveP)/entry*100):null;
+    const condMet=distEntry!==null&&distEntry>=0;
+    const pTp=movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1));
+    return `<tr style="${condMet?'background:var(--gr-dim)':''}">
+      <td style="padding:8px 12px"><span class="sig-light green"></span></td>
+      <td><strong>${esc(s.ticker)}</strong> <span class="dim" style="font-size:10px">${esc(s.market||'')}</span></td>
+      <td>${dirBadge(s.direzione)}</td>
+      <td class="mono">${fmt(entry)}</td>
+      <td class="mono rd-text">${fmt(s.stop_margine)}</td>
+      <td class="mono gr-text">${pTp?fmtPct(pTp):'—'}</td>
+      <td><span class="badge bg">⚡ Attivato</span></td>
+      <td>${liveP?`<span class="mono">${fmt(liveP)}</span>`:'<span class="dim">—</span>'}</td>
+      <td>${distEntry!==null?`<span class="mono ${plClass(distEntry)}">${fmtPct(distEntry)}</span>`:'<span class="dim">—</span>'}</td>
+      <td><button class="btn btn-sm btn-pr" onclick="openM('openOrdineFromSig',{sigId:'${s.id}'})">Apri</button></td>
     </tr>`;
   }).join('')}
-  </tbody></table></div></div>`:''}`;
+  ${viciniAttivazione.map(({s,entry,liveP,distPct})=>{
+    const pTp=movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1));
+    return `<tr>
+      <td style="padding:8px 12px"><span class="sig-light yellow"></span></td>
+      <td><strong>${esc(s.ticker)}</strong> <span class="dim" style="font-size:10px">${esc(s.market||'')}</span></td>
+      <td>${dirBadge(s.direzione)}</td>
+      <td class="mono">${fmt(entry)}</td>
+      <td class="mono rd-text">${fmt(s.stop_margine)}</td>
+      <td class="mono gr-text">${pTp?fmtPct(pTp):'—'}</td>
+      <td><span class="badge bgr">📨 Ricevuto</span></td>
+      <td>${liveP?`<span class="mono">${fmt(liveP)}</span>`:'<span class="dim">—</span>'}</td>
+      <td>${distPct!==null?`<span class="mono yl-text">${distPct.toFixed(2)}%</span>`:'<span class="dim">—</span>'}</td>
+      <td><button class="btn btn-sm btn-gh" onclick="openM('activateSig',{id:'${s.id}'})">Attiva</button></td>
+    </tr>`;
+  }).join('')}
+  </tbody></table></div></div>`:''}
+
+  <!-- ZONA 3: PERFORMANCE -->
+  <div class="gr2">
+    <div class="card"><div class="card-head"><div class="card-title">P&L per Piattaforma</div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Piattaforma</th><th>Ordini</th><th>Win%</th><th>Lordo</th><th>Netto</th></tr></thead><tbody>
+    ${PLATFORMS.map(p=>{const d=byP[p];const wr2=d.closed?(d.wins/d.closed*100).toFixed(0)+'% ('+d.closed+' chiusi)':'—';const net=d.pl-calcTax(d.pl,p);return `<tr><td><strong>${p}</strong>${p===FINECO?' <span class="dim" style="font-size:10px">(broker)</span>':''}</td><td class="dim">${d.trades}</td><td class="dim">${wr2}</td><td class="mono ${plClass(d.pl)}">${d.pl?fmtEur(d.pl):'—'}</td><td><span class="mono ${plClass(net)}">${d.pl?fmtEur(net):'—'}</span></td></tr>`;}).join('')}
+    </tbody></table></div></div>
+
+    <div class="card"><div class="card-head"><div class="card-title">📊 Statistiche Operative</div></div>
+    <div class="card-body">
+      <div class="gr2" style="gap:10px">
+        <div style="background:var(--s2);border-radius:8px;padding:12px">
+          <div class="stat-label">Gain Medio</div>
+          <div class="mono gr-text" style="font-size:16px;font-weight:700">${avgGain!==null?'+'+fmt(avgGain)+'€':'—'}</div>
+          <div class="dim" style="font-size:11px;margin-top:2px">${winTrades.length} trade in profitto</div>
+        </div>
+        <div style="background:var(--s2);border-radius:8px;padding:12px">
+          <div class="stat-label">Loss Medio</div>
+          <div class="mono rd-text" style="font-size:16px;font-weight:700">${avgLoss!==null?fmt(avgLoss)+'€':'—'}</div>
+          <div class="dim" style="font-size:11px;margin-top:2px">${lossTrades.length} trade in perdita</div>
+        </div>
+        <div style="background:var(--s2);border-radius:8px;padding:12px">
+          <div class="stat-label">Durata Media</div>
+          <div class="mono" style="font-size:16px;font-weight:700">${avgDays!==null?avgDays+' gg':'—'}</div>
+          <div class="dim" style="font-size:11px;margin-top:2px">su ${closedWithDays.length} trade</div>
+        </div>
+        <div style="background:var(--s2);border-radius:8px;padding:12px">
+          <div class="stat-label">R-Multiple Medio</div>
+          <div class="mono ${avgR!==null?plClass(avgR):''}" style="font-size:16px;font-weight:700">${avgR!==null?'1:'+avgR:'—'}</div>
+          <div class="dim" style="font-size:11px;margin-top:2px">su ${rMultiples.length} trade</div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- ZONA 3b: FISCALITA -->
+  <div class="gr2">
+    <div class="card"><div class="card-head"><div class="card-title">Fiscalità Anno Corrente</div></div><div class="card-body">
+    ${(()=>{const pool2=poolMinusvalenze();return `<div style="background:var(--yl-dim);border:1px solid rgba(245,197,66,.2);border-radius:8px;padding:12px;margin-bottom:14px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--yl);margin-bottom:8px">📉 Pool Minusvalenze</div><div class="gr3" style="font-size:12px"><div>Totale: <span class="mono rd-text">-${fmt(pool2.pool)}€</span></div><div>Usate: <span class="mono dim">-${fmt(pool2.used)}€</span></div><div>Residue: <span class="mono yl-text">-${fmt(pool2.remaining)}€</span></div></div></div>`;})()}
+    ${PLATFORMS.map(p=>{const d=byP[p];const net=d.gains+d.losses;const baseNet=d.gainsBase+d.losses;const t2=baseNet>0?baseNet*TAX_RATE:0;const isFineco=p===FINECO;return `<div style="padding:10px 0;border-bottom:1px solid var(--b1)"><div class="flex ai jb" style="margin-bottom:6px"><div><strong>${p}</strong><span class="dim" style="font-size:10px;margin-left:6px">${isFineco?'gestito broker':'dichiarativo'}</span></div><span class="badge ${t2>0?'br':'bg'}">${t2>0?'Imposta: '+fmt(t2)+'€':'Nessuna imposta'}</span></div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;font-size:11px;color:var(--t2)"><span>Plus: <span class="gr-text">+${fmt(d.gains)}€</span></span><span>Minus: <span class="rd-text">${fmt(d.losses)}€</span></span><span>Comp.: <span class="yl-text">${d.gains>0?'-'+fmt(d.gains-d.gainsBase)+'€':'—'}</span></span><span>Base: <span class="mono">${fmt(Math.max(0,baseNet))}€</span></span><span>Netto: <span class="${plClass(net-t2)}">${fmtEur(net-t2)}</span></span></div></div>`;}).join('')}
+    <div style="padding-top:10px;font-size:11px;color:var(--t3)">Fineco: broker versa la ritenuta · Minus compensabili entro 4 anni</div>
+    </div></div>
+
+    <div class="card"><div class="card-head"><div class="card-title">📅 Proiezione Fiscale Fine Anno</div></div>
+    <div class="card-body">
+      <div class="alert al-info" style="font-size:12px">Basata sul ritmo attuale · Giorno ${dayOfYear} di 365 · ${remainDays} giorni rimanenti</div>
+      <div class="gr2" style="gap:10px">
+        <div style="background:var(--s2);border-radius:8px;padding:12px">
+          <div class="stat-label">P&L Proiettato</div>
+          <div class="mono ${plClass(projYearEnd)}" style="font-size:16px;font-weight:700">${projYearEnd>=0?'+':''}${fmt(projYearEnd)}€</div>
+          <div class="dim" style="font-size:11px;margin-top:2px">Al ritmo di ${fmt(dailyRate*30)}€/mese</div>
+        </div>
+        <div style="background:var(--s2);border-radius:8px;padding:12px">
+          <div class="stat-label">Tasse Stimate Fine Anno</div>
+          <div class="mono rd-text" style="font-size:16px;font-weight:700">-${fmt(projTax)}€</div>
+          <div class="dim" style="font-size:11px;margin-top:2px">Dichiarativo 26%</div>
+        </div>
+        <div style="background:var(--s2);border-radius:8px;padding:12px">
+          <div class="stat-label">Già Accantonato</div>
+          <div class="mono" style="font-size:16px;font-weight:700">${fmt(tax)}€</div>
+          <div class="dim" style="font-size:11px;margin-top:2px">Tasse maturate a oggi</div>
+        </div>
+        <div style="background:${projAccanton>0?'var(--rd-dim)':'var(--gr-dim)'};border-radius:8px;padding:12px;border:1px solid ${projAccanton>0?'rgba(255,61,90,.2)':'rgba(0,200,150,.2)'}">
+          <div class="stat-label">Ancora da Accantonare</div>
+          <div class="mono ${projAccanton>0?'rd-text':'gr-text'}" style="font-size:16px;font-weight:700">${projAccanton>0?fmt(projAccanton)+'€':'✓ Ok'}</div>
+          <div class="dim" style="font-size:11px;margin-top:2px">${projAccanton>0?'Suggerito da mettere da parte':'Sei in linea con le proiezioni'}</div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- ZONA 4: MINUSVALENZE -->
+  ${calcMinusvalenzeHTML()}
+  `;
 }
+
 
 function viewSegnali(){
   const filter=S.filterSeg;
