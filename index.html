@@ -162,7 +162,18 @@ const TAX_RATE=0.26;
 const FINECO='Fineco';
 const DICHIARATIVO=['TradeZero','IBKR','Degiro'];
 function getRegime(broker){return DICHIARATIVO.includes(broker)?'dichiarativo':'amministrato';}
-const STATI_SIG={ricevuto:{l:'Ricevuto',cls:'bgr',ic:'📨'},attivato:{l:'Attivato',cls:'by',ic:'⚡'},aperto:{l:'Aperto',cls:'bb',ic:'📈'},chiuso_tp:{l:'TP ✓',cls:'bg',ic:'✅'},chiuso_stop:{l:'Stop Loss',cls:'br',ic:'🛑'},chiuso_man:{l:'Chiuso',cls:'bp',ic:'🔒'},scartato:{l:'Scartato',cls:'bgr',ic:'✕'}};
+const STATI_SIG={
+  ricevuto:   {l:'Ricevuto',   cls:'bgr',ic:'📨'},
+  attivato:   {l:'Attivato',   cls:'by', ic:'⚡'},
+  aperto:     {l:'Aperto',     cls:'bb', ic:'📈'},
+  chiuso_tp:  {l:'TP ✓',      cls:'bg', ic:'✅'},
+  chiuso_stop:{l:'Stop Loss',  cls:'br', ic:'🛑'},
+  chiuso_man: {l:'Chiuso',     cls:'bp', ic:'🔒'},
+  scartato:   {l:'Scartato',   cls:'bgr',ic:'✕'},
+  invalidato: {l:'Invalidato', cls:'br', ic:'⛔'},
+  riattivato: {l:'Riattivato', cls:'by', ic:'🔄'},
+  eliminato:  {l:'Eliminato',  cls:'bgr',ic:'✗'},
+};
 const CHIUSI_SIG=new Set(['chiuso_tp','chiuso_stop','chiuso_man']);
 
 let S={
@@ -292,7 +303,7 @@ async function gasRead(){
 }
 async function gasWrite(type,op,record){if(!S.gasUrl||!S.pwd)return;syncPending++;updateSyncBadge();try{const r=await fetch(gasUrlWith(`action=write&type=${type}&op=${op}&record=${encodeURIComponent(JSON.stringify(record))}`));let d={};try{d=await r.json();}catch(e){}if(d&&d.error)throw new Error(d.error);syncLastOk=new Date();syncLastErr=null;}catch(e){syncLastErr=e.message;}finally{syncPending=Math.max(0,syncPending-1);updateSyncBadge();}}
 
-function addSignal(d){const s={id:uid(),created:new Date().toISOString(),stato:'ricevuto',...d};S.signals.unshift(s);persist();gasWrite('signal','add',s);render();}
+function addSignal(d){const s={id:uid(),created:new Date().toISOString(),stato:'ricevuto',stop_counter:0,stop_history:'[]',...d};S.signals.unshift(s);persist();gasWrite('signal','add',s);render();}
 function delSignal(id){
   S.signals=S.signals.filter(s=>s.id!==id);
   persist();gasWrite('signal','delete',{id});render();
@@ -331,7 +342,10 @@ function sigLight(stato){
     chiuso_tp:'grey',
     chiuso_stop:'red',
     chiuso_man:'grey',
-    scartato:'grey'
+    scartato:'grey',
+    invalidato:'red',
+    riattivato:'yellow',
+    eliminato:'grey',
   };
   // Pending activation (valido but not yet activated)
   const cls=map[stato]||'grey';
@@ -428,7 +442,7 @@ function viewDashboard(){
     <div class="card-title">⚠ Monitoraggio Stop — Posizioni Aperte</div>
     <div style="font-size:11px;color:var(--t2)">${S_prezziTs?'Prezzi: '+new Date(S_prezziTs).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'Clicca 📡 Prezzi per aggiornare'}</div>
   </div><div class="tbl-wrap"><table>
-  <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>Dist.%</th><th>Ultimo Prezzo</th><th>P&L Corrente</th><th>Investito €</th><th>Rischio Max €</th><th></th></tr></thead>
+  <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>TP $</th><th>Dist. Stop</th><th>Dist. TP</th><th>Ultimo Prezzo</th><th>P&L Corrente</th><th>Investito €</th><th></th></tr></thead>
   <tbody>${aperti.map(o=>{
     const ep=nn(o.entry_price),sl=nn(o.stop_loss),inv=nn(o.investito_eur),ps=nn(o.position_size)||0;
     const sig=S.signals.find(s=>s.id===o.signal_id)||{};
@@ -448,11 +462,12 @@ function viewDashboard(){
       <td><span class="platform-tag">${esc(o.piattaforma)}</span></td>
       <td class="mono">${fmt(ep)}</td>
       <td class="mono rd-text">${stopEff?fmt(stopEff):'—'}</td>
+      <td class="mono gr-text">${o.tp_livello?fmt(o.tp_livello):'—'}</td>
       <td class="mono dim">${dist?dist.toFixed(2)+'%':'—'}</td>
+      <td class="mono dim">${(()=>{const tp=nn(o.tp_livello);if(!ep||!tp||!liveP)return '—';const d=Math.abs(liveP-tp)/tp*100;return d.toFixed(2)+'%';})()}</td>
       <td>${liveP?`<span class="mono ${livePct!==null?plClass(livePct):''}">${fmt(liveP)}</span>`:'<span class="dim">—</span>'}</td>
       <td>${livePL!==null?`<span class="mono ${plClass(livePL)}">${fmtEur(livePL)}</span>`:'<span class="dim">—</span>'}</td>
       <td class="mono">${inv?fmt(inv)+'€':'—'}</td>
-      <td class="mono rd-text">${risk?fmt(risk)+'€':'—'}</td>
       <td><button class="btn btn-sm btn-gh" onclick="openM('dettaglioOrdine',{id:'${o.id}'})">→</button></td>
     </tr>`;
   }).join('')}</tbody></table></div></div>`:''}
@@ -496,6 +511,37 @@ function viewDashboard(){
     </tr>`;
   }).join('')}
   </tbody></table></div></div>`:''}
+
+  ${(()=>{
+    const riattivati=S.signals.filter(s=>s.stato==='riattivato');
+    if(!riattivati.length)return '';
+    return `<div class="card" style="border-color:var(--yl);border-width:2px">
+      <div class="card-head" style="background:var(--yl-dim)">
+        <div class="card-title" style="color:var(--yl)">🔄 SEGNALI RIATTIVATI — In attesa di conferma</div>
+        <div style="font-size:11px;color:var(--yl);opacity:.8">Precedentemente andati in stop · Stop counter: 1/2</div>
+      </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Ticker</th><th>Dir.</th><th>Entry±M</th><th>Stop±M</th><th>Stop Counter</th><th>Storico Stop</th><th>Riattivato il</th><th>Azioni</th></tr></thead>
+        <tbody>${riattivati.map(s=>{
+          const hist=JSON.parse(s.stop_history||'[]');
+          const histLabel=hist.map((h,i)=>`Stop ${i+1}: ${fmtDate(h.data)}`).join(' · ');
+          return `<tr>
+            <td><div class="flex ai gap2"><span class="sig-light yellow"></span><strong>${esc(s.ticker)}</strong></div></td>
+            <td>${dirBadge(s.direzione)}</td>
+            <td class="mono">${fmt(s.entrata_margine)}</td>
+            <td class="mono rd-text">${fmt(s.stop_margine)}</td>
+            <td><span class="badge by">${s.stop_counter||1}/2</span></td>
+            <td class="dim" style="font-size:11px">${histLabel||'—'}</td>
+            <td class="dim" style="font-size:11px">${fmtDate(s.riattivato_at)}</td>
+            <td><div class="flex gap1">
+              <button class="btn btn-sm btn-pr" onclick="openM('openOrdineFromSig',{sigId:'${s.id}'})">Apri Ordine</button>
+              <button class="btn btn-sm btn-gh" onclick="updSig('${s.id}',{stato:'invalidato',riattivato_at:null})">Invalida</button>
+            </div></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>
+    </div>`;
+  })()}
 
   <!-- ZONA 3: PERFORMANCE -->
   <div class="gr2">
@@ -584,9 +630,12 @@ function viewSegnali(){
   return `<div class="ph"><div class="ph-title">Segnali Azionari</div><button class="btn btn-pr" onclick="openM('addSig')">+ Nuovo Segnale</button></div>
   <div class="filter-tabs">${tabs2.map(t=>`<button class="btn btn-sm ${filter===t.k?'btn-pr':'btn-gh'}" onclick="S.filterSeg='${t.k}';render()">${t.l} <span style="opacity:.6">${t.n}</span></button>`).join('')}</div>
   <div class="card" style="padding:0"><div class="tbl-wrap"><table>
-  <thead><tr><th>Data</th><th>Ticker</th><th>MKT</th><th>Dir.</th><th>Entry</th><th>Entry±M</th><th>Stop</th><th>Stop±M</th><th>TP1</th><th>%→TP</th><th>%→Stop</th><th>Valido</th><th>Sorgente</th><th>Stato</th><th>Azioni</th></tr></thead>
+  <thead><tr><th>Data</th><th>Ticker</th><th>MKT</th><th>Dir.</th><th>Entry</th><th>Entry±M</th><th>Stop</th><th>Stop±M</th><th>TP1</th><th>%→TP</th><th>%→Stop</th><th>Valido</th><th>Sorgente</th><th>Stop #</th><th>Stato</th><th>Azioni</th></tr></thead>
   <tbody>${list.length===0?`<tr><td colspan="10" class="empty">Nessun segnale</td></tr>`:''}
-  ${list.map(s=>{const pTp=movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1));const pSt=movePct(s.direzione,nn(s.entrata_margine),nn(s.stop_margine));const acts=[];if(s.stato==='ricevuto')acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('activateSig',{id:'${s.id}'})">Attiva</button>`);if(s.stato==='attivato'){acts.push(`<button class="btn btn-sm btn-pr" onclick="openM('openOrdineFromSig',{sigId:'${s.id}'})">Apri Ordine</button>`);acts.push(`<button class="btn btn-sm btn-gh" onclick="updSig('${s.id}',{stato:'scartato'})">Scarta</button>`);}acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('editSig',{id:'${s.id}'})">✏</button>`);
+  ${list.map(s=>{const pTp=movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1));const pSt=movePct(s.direzione,nn(s.entrata_margine),nn(s.stop_margine));const acts=[];if(s.stato==='ricevuto')acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('activateSig',{id:'${s.id}'})">Attiva</button>`);if(s.stato==='attivato'){acts.push(`<button class="btn btn-sm btn-pr" onclick="openM('openOrdineFromSig',{sigId:'${s.id}'})">Apri Ordine</button>`);acts.push(`<button class="btn btn-sm btn-gh" onclick="updSig('${s.id}',{stato:'scartato'})">Scarta</button>`);}
+        if(s.stato==='riattivato'){acts.push(`<button class="btn btn-sm btn-pr" onclick="openM('openOrdineFromSig',{sigId:'${s.id}'})">Apri Ordine</button>`);}
+        if(s.stato==='invalidato'){acts.push(`<span class="dim" style="font-size:11px">⏳ Attesa riattivazione</span>`);}
+        if(s.stato==='eliminato'){acts.push(`<span class="dim" style="font-size:11px;text-decoration:line-through">Eliminato (${s.stop_counter||2}/2)</span>`);}acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('editSig',{id:'${s.id}'})">✏</button>`);
         acts.push(`<button class="btn btn-sm btn-gh" style="color:var(--rd)" onclick="if(confirm('Eliminare il segnale ${esc(s.ticker)}?'))delSignal('${s.id}')">✕</button>`);const validoBadge=s.valido==='Si'?`<span class="badge bg" style="font-size:10px">✓ Sì</span>`:`<span class="badge br" style="font-size:10px">✗ No</span>`;
         // Dynamic light: ricevuto near entry = yellow; stop violated = red; activated = green
         const sigLightDyn=(()=>{
@@ -599,7 +648,7 @@ function viewSegnali(){
           return'grey';
         })();
         const sorgBadge=s.sorgente==='Personale'?`<span class="badge bp" style="font-size:10px">Personal</span>`:`<span class="badge bb" style="font-size:10px">EK</span>`;
-        return `<tr><td class="dim mono">${fmtDate(s.data_segnale)}</td><td><div class="flex ai gap2"><span class="sig-light ${sigLightDyn}"></span><strong>${esc(s.ticker)}</strong></div></td><td><span class="tag">${esc(s.market||'')}</span></td><td>${dirBadge(s.direzione)}</td><td class="mono dim">${s.entrata?fmt(s.entrata):'—'}</td><td class="mono">${fmt(s.entrata_margine)}</td><td class="mono dim">${s.sl1?fmt(s.sl1):'—'}</td><td class="mono rd-text">${fmt(s.stop_margine)}</td><td class="mono gr-text">${s.tp1?fmt(s.tp1):s.tp2?fmt(s.tp2):'—'}</td><td class="mono gr-text">${pTp?fmtPct(pTp):'—'}</td><td class="mono rd-text">${pSt?fmtPct(pSt):'—'}</td><td>${validoBadge}</td><td>${sorgBadge}</td><td>${badgeSig(s.stato)}</td><td><div class="flex gap1">${acts.join('')}</div></td></tr>`;}).join('')}
+        return `<tr><td class="dim mono">${fmtDate(s.data_segnale)}</td><td><div class="flex ai gap2"><span class="sig-light ${sigLightDyn}"></span><strong>${esc(s.ticker)}</strong></div></td><td><span class="tag">${esc(s.market||'')}</span></td><td>${dirBadge(s.direzione)}</td><td class="mono dim">${s.entrata?fmt(s.entrata):'—'}</td><td class="mono">${fmt(s.entrata_margine)}</td><td class="mono dim">${s.sl1?fmt(s.sl1):'—'}</td><td class="mono rd-text">${fmt(s.stop_margine)}</td><td class="mono gr-text">${s.tp1?fmt(s.tp1):s.tp2?fmt(s.tp2):'—'}</td><td class="mono gr-text">${pTp?fmtPct(pTp):'—'}</td><td class="mono rd-text">${pSt?fmtPct(pSt):'—'}</td><td>${validoBadge}</td><td>${sorgBadge}</td><td>${s.stop_counter>0?`<span class="badge ${s.stop_counter>=2?'br':'by'}">${s.stop_counter}/2</span>`:'<span class="dim">—</span>'}</td><td style="${s.stato==='eliminato'?'text-decoration:line-through;opacity:.5':''}">${badgeSig(s.stato)}</td><td><div class="flex gap1">${acts.join('')}</div></td></tr>`;}).join('')}
   </tbody></table></div></div>`;
 }
 
@@ -615,7 +664,7 @@ function viewOrdini(){
   return `<div class="ph"><div class="ph-title">Ordini</div><button class="btn btn-pr" onclick="openM('addOrdine',{})">+ Nuovo Ordine</button></div>
   <div class="filter-tabs">${tabs.map(t=>`<button class="btn btn-sm ${filter===t.k?'btn-pr':'btn-gh'}" onclick="S.filterOrd='${t.k}';render()">${t.l} <span style="opacity:.6">${t.n}</span></button>`).join('')}</div>
   <div class="card" style="padding:0"><div class="tbl-wrap"><table>
-  <thead><tr><th>Data</th><th>Symbol</th><th>Market</th><th>Pos.</th><th>Strategia</th><th>Piattaforma</th><th>Entry $</th><th>Size</th><th>Investito €</th><th>Giorni</th><th>P&L €</th><th>P&L%</th><th>Stato</th><th>Azioni</th></tr></thead>
+  <thead><tr><th>Data</th><th>Symbol</th><th>Market</th><th>Pos.</th><th>Strategia</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>TP $</th><th>Size</th><th>Investito €</th><th>Giorni</th><th>P&L €</th><th>P&L%</th><th>Stato</th><th>Azioni</th></tr></thead>
   <tbody>${filteredOrdini.length===0?`<tr><td colspan="13" class="empty">Nessun ordine</td></tr>`:''}
   ${filteredOrdini.map((o)=>{
     const res=calcOrdine(o);
@@ -632,6 +681,8 @@ function viewOrdini(){
       <td>${stratBadge(o.strategy)}</td>
       <td><span class="platform-tag">${esc(o.piattaforma)}</span></td>
       <td class="mono">${fmt(o.entry_price)}</td>
+      <td class="mono rd-text" style="font-size:11px">${o.stop_loss?fmt(o.stop_loss):'—'}</td>
+      <td class="mono gr-text" style="font-size:11px">${o.tp_livello?fmt(o.tp_livello):'—'}</td>
       <td class="dim">${o.position_size||'—'} ${res.qtyRem>0?`<span style="font-size:10px;color:var(--yl)">(${res.qtyRem} rim.)</span>`:''}</td>
       <td class="mono">${o.investito_eur?fmt(o.investito_eur)+'€':'—'}</td>
       <td>${daysLabel}</td>
@@ -693,7 +744,7 @@ function renderModal(){
     <div class="form-group"><label>Symbol</label><input type="text" id="o_sym" value="${esc(sig.ticker||'')}" oninput="this.value=this.value.toUpperCase()" placeholder="es. MSFT, AAPL, BTC-USD"></div>
     <div class="section-title">Apertura</div>
     <div class="gr3"><div class="form-group"><label>Data & Ora Entry</label><input type="datetime-local" id="o_edt" value="${nowDT()}"></div><div class="form-group"><label>Entry Price ($)</label><input type="number" id="o_ep" step="0.001" value="${sig.entrata_margine||sig.entrata||''}" oninput="previewOrdine()"></div><div class="form-group"><label>N. Azioni / Unità</label><input type="number" id="o_ps" step="1" placeholder="es. 100" oninput="previewOrdine()"></div></div>
-    <div class="gr2"><div class="form-group"><label>Investito (€)</label><input type="number" id="o_inv" step="10" placeholder="es. 2000" oninput="previewOrdine()"><div class="input-hint">Controvalore in euro investito</div></div><div class="form-group"><label>Stop Loss ($)</label><input type="number" id="o_sl" step="0.001" value="${sig.stop_margine||sig.sl1||''}"></div></div>
+    <div class="gr3"><div class="form-group"><label>Investito (€)</label><input type="number" id="o_inv" step="10" placeholder="es. 2000" oninput="previewOrdine()"><div class="input-hint">Controvalore in euro investito</div></div><div class="form-group"><label>Stop Loss ($)</label><input type="number" id="o_sl" step="0.001" value="${sig.stop_margine||sig.sl1||''}"></div><div class="form-group"><label>Take Profit ($)</label><input type="number" id="o_tp_livello" step="0.001" value="${sig.tp1||''}"></div></div>
     <div id="ordinePreview"></div>
     <div class="form-group"><label>Note</label><textarea id="o_note" rows="2" placeholder="Note operative..."></textarea></div>
     </div><div class="modal-foot"><button class="btn btn-gh" onclick="closeM()">Annulla</button><button class="btn btn-gr" onclick="submitAddOrdine('${sigId||''}')">✅ Crea Ordine</button></div></div></div>`;
@@ -703,7 +754,17 @@ function renderModal(){
     const o=S.ordini.find(x=>x.id===data.id)||{};const res=calcOrdine(o);
     return `<div class="ov" onclick="if(event.target===this)closeM()"><div class="modal"><div class="modal-head"><div class="modal-title">Aggiungi Uscita — ${esc(o.symbol)}</div><button class="modal-close" onclick="closeM()">✕</button></div><div class="modal-body">
     <div class="alert al-info">Entry: <strong>${fmt(o.entry_price)}$</strong> · Qty residua: <strong>${res.qtyRem}</strong> · <strong>${esc(o.piattaforma)}</strong></div>
-    <div class="gr2"><div class="form-group"><label>Data & Ora Uscita</label><input type="datetime-local" id="u_dt" value="${nowDT()}"></div><div class="form-group"><label>Exit Price ($)</label><input type="number" id="u_ep" step="0.001" placeholder="Prezzo di uscita" oninput="previewUscita('${o.id}')"></div></div>
+    <div class="gr3">
+      <div class="form-group"><label>Motivo Chiusura</label>
+        <select id="u_motivo">
+          <option value="chiuso_tp">✅ Take Profit</option>
+          <option value="chiuso_stop">🛑 Stop Loss</option>
+          <option value="chiuso_man">🔒 Chiusura Manuale</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Data & Ora Uscita</label><input type="datetime-local" id="u_dt" value="${nowDT()}"></div>
+      <div class="form-group"><label>Exit Price ($)</label><input type="number" id="u_ep" step="0.001" placeholder="Prezzo di uscita" oninput="previewUscita('${o.id}')"></div>
+    </div>
     <div class="gr2"><div class="form-group"><label>Quantità Uscita</label><input type="number" id="u_qty" step="1" value="${res.qtyRem}" max="${res.qtyRem}" oninput="previewUscita('${o.id}')"><div class="input-hint">Max: ${res.qtyRem} unità residue</div></div><div class="form-group"><label>Commissioni (€)</label><input type="number" id="u_comm" step="0.01" value="0" oninput="previewUscita('${o.id}')"></div></div>
     <div id="uscitaPreview"></div>
     <div class="override-wrap"><div class="override-label">⚡ P&L Reale dalla Piattaforma (opzionale)</div>
@@ -731,6 +792,7 @@ function renderModal(){
     </div>
     <div class="gr4" style="margin-top:10px">
       <div><div class="stat-label">Stop Loss</div><div class="mono rd-text">${o.stop_loss?fmt(o.stop_loss)+' $':'—'}</div></div>
+      <div><div class="stat-label">Take Profit</div><div class="mono gr-text">${o.tp_livello?fmt(o.tp_livello)+' $':'—'}</div></div>
       <div><div class="stat-label">Buy Amount</div><div class="mono">${res.buyAmount?fmtUSD(res.buyAmount):'—'}</div></div>
       <div><div class="stat-label">Qty Residua</div><div class="${res.qtyRem>0?'yl-text':'dim'}">${res.qtyRem} / ${o.position_size||'?'}</div></div>
       <div><div class="stat-label">Stato</div>${statoBadge(res.stato)}</div>
@@ -876,11 +938,31 @@ function submitAddSig(){const d=collectSigForm();if(!d.ticker){alert('Ticker obb
 function submitEditSig(id){const d=collectSigForm();const stato=document.getElementById('f_stato')?.value;updSig(id,{...d,...(stato?{stato}:{})});closeM();}
 
 function previewOrdine(){const ep=nn(document.getElementById('o_ep')?.value);const ps=nn(document.getElementById('o_ps')?.value);const inv=nn(document.getElementById('o_inv')?.value);const el=document.getElementById('ordinePreview');if(!el)return;if(!ep||!ps){el.innerHTML='';return;}const buyAmt=ep*ps;el.innerHTML=`<div style="background:var(--s2);border-radius:8px;padding:12px;margin-bottom:12px"><div class="gr3"><div><div class="stat-label">Buy Amount</div><div class="mono">${fmtUSD(buyAmt)}</div></div><div><div class="stat-label">Investito</div><div class="mono">${inv?fmt(inv)+'€':'—'}</div></div><div><div class="stat-label">€/Azione</div><div class="mono dim">${inv&&ps?fmt(inv/ps)+'€':'—'}</div></div></div></div>`;}
-function submitAddOrdine(sigId){const ep=nn(document.getElementById('o_ep')?.value);const ps=nn(document.getElementById('o_ps')?.value);if(!ep||!ps){alert('Entry price e N. Azioni sono obbligatori');return;}const inv=nn(document.getElementById('o_inv')?.value);if(!inv){alert('Investito in euro è obbligatorio');return;}const sym=document.getElementById('o_sym')?.value?.trim().toUpperCase();if(!sym){alert('Symbol obbligatorio');return;}addOrdine({signal_id:sigId||null,piattaforma:document.getElementById('o_pf').value,market:document.getElementById('o_mkt').value,strategy:document.getElementById('o_str').value,symbol:sym,position:document.getElementById('o_pos').value,entry_datetime:document.getElementById('o_edt').value,entry_price:ep,position_size:ps,investito_eur:inv,stop_loss:nn(document.getElementById('o_sl')?.value),note:document.getElementById('o_note').value});if(sigId)updSig(sigId,{stato:'aperto'});closeM();}
+function submitAddOrdine(sigId){const ep=nn(document.getElementById('o_ep')?.value);const ps=nn(document.getElementById('o_ps')?.value);if(!ep||!ps){alert('Entry price e N. Azioni sono obbligatori');return;}const inv=nn(document.getElementById('o_inv')?.value);if(!inv){alert('Investito in euro è obbligatorio');return;}const sym=document.getElementById('o_sym')?.value?.trim().toUpperCase();if(!sym){alert('Symbol obbligatorio');return;}addOrdine({signal_id:sigId||null,piattaforma:document.getElementById('o_pf').value,market:document.getElementById('o_mkt').value,strategy:document.getElementById('o_str').value,symbol:sym,position:document.getElementById('o_pos').value,entry_datetime:document.getElementById('o_edt').value,entry_price:ep,position_size:ps,investito_eur:inv,stop_loss:nn(document.getElementById('o_sl')?.value),tp_livello:nn(document.getElementById('o_tp_livello')?.value),note:document.getElementById('o_note').value});if(sigId)updSig(sigId,{stato:'aperto'});closeM();}
 function submitEditOrdine(id){updOrdine(id,{piattaforma:document.getElementById('eo_pf').value,market:document.getElementById('eo_mkt').value,strategy:document.getElementById('eo_str').value,symbol:document.getElementById('eo_sym').value.trim().toUpperCase(),position:document.getElementById('eo_pos').value,entry_datetime:document.getElementById('eo_edt').value,entry_price:nn(document.getElementById('eo_ep').value),position_size:nn(document.getElementById('eo_ps').value),investito_eur:nn(document.getElementById('eo_inv').value),stop_loss:nn(document.getElementById('eo_sl').value),note:document.getElementById('eo_note').value});closeM();}
 
 function previewUscita(ordineId){const o=S.ordini.find(x=>x.id===ordineId);if(!o)return;const ep=nn(document.getElementById('u_ep')?.value);const qty=nn(document.getElementById('u_qty')?.value);const comm=nn(document.getElementById('u_comm')?.value)||0;const el=document.getElementById('uscitaPreview');if(!el)return;if(!ep||!qty){el.innerHTML='';return;}const entryP=nn(o.entry_price)||0,invEur=nn(o.investito_eur)||0,psOrd=nn(o.position_size)||1;const sellAmt=ep*qty,buyExited=entryP*qty;const plUSD=o.position==='Long'?sellAmt-buyExited:buyExited-sellAmt;const plEur=invEur&&psOrd?invEur*(qty/psOrd)*(buyExited?plUSD/buyExited:0)-comm:null;el.innerHTML=`<div class="alert ${plEur!==null&&plEur>=0?'al-success':'al-danger'}">Sell Amount: <strong>${fmtUSD(sellAmt)}</strong> · P&L calcolato: <strong>${plEur!==null?fmtEur(plEur):'—'}</strong></div>`;}
-function submitAddUscita(ordineId){const ep=nn(document.getElementById('u_ep')?.value);const qty=nn(document.getElementById('u_qty')?.value);if(!ep||!qty){alert('Exit price e Quantità sono obbligatori');return;}addUscita(ordineId,{exit_datetime:document.getElementById('u_dt').value,exit_price:ep,quantity:qty,commission_eur:nn(document.getElementById('u_comm')?.value)||0,pl_override:nn(document.getElementById('u_plreal')?.value),note:document.getElementById('u_note')?.value||''});closeM();}
+function submitAddUscita(ordineId){
+  const ep=nn(document.getElementById('u_ep')?.value);
+  const qty=nn(document.getElementById('u_qty')?.value);
+  if(!ep||!qty){alert('Exit price e Quantità sono obbligatori');return;}
+  const motivo=document.getElementById('u_motivo')?.value||'chiuso_man';
+  addUscita(ordineId,{exit_datetime:document.getElementById('u_dt').value,exit_price:ep,quantity:qty,commission_eur:nn(document.getElementById('u_comm')?.value)||0,pl_override:nn(document.getElementById('u_plreal')?.value),note:document.getElementById('u_note')?.value||'',motivo});
+  // Aggiorna il segnale collegato
+  const o=S.ordini.find(x=>x.id===ordineId);
+  if(o&&o.signal_id){
+    const res=calcOrdine({...o});
+    if(res.stato==='chiuso'){
+      if(motivo==='chiuso_stop'){
+        updSig(o.signal_id,{_last_ordine_id:ordineId});
+        handleStopLoss(o.signal_id);
+      } else {
+        updSig(o.signal_id,{stato:motivo==='chiuso_tp'?'chiuso_tp':'chiuso_man'});
+      }
+    }
+  }
+  closeM();
+}
 function submitOverridePL(ordineId,remove=false){if(remove){updOrdine(ordineId,{pl_override:null});closeM();return;}const val=nn(document.getElementById('ovr_pl')?.value);updOrdine(ordineId,{pl_override:val});closeM();}
 
 function changePwd(){const p1=document.getElementById('newPwd1')?.value||'';const p2=document.getElementById('newPwd2')?.value||'';const el=document.getElementById('pwdErr');if(p1.length<6){if(el)el.innerHTML=`<div class="alert al-danger">Minimo 6 caratteri.</div>`;return;}if(p1!==p2){if(el)el.innerHTML=`<div class="alert al-danger">Non corrispondono.</div>`;return;}S.pwd=p1;localStorage.setItem('ek_pwd',p1);if(el)el.innerHTML=`<div class="alert al-success">✅ Aggiornata. Ricorda di aggiornare anche in GAS.</div>`;}
@@ -1193,6 +1275,7 @@ async function fetchPrezziLive(){
     S_prezziTs=new Date().toISOString();
     localStorage.setItem('gmfr_prezzi',JSON.stringify(S_prezzi));
     localStorage.setItem('gmfr_prezzi_ts',S_prezziTs);
+    checkRiattivazioniLive();
     render();
   }catch(e){}
 }
@@ -1219,6 +1302,57 @@ function syncStatusHTML(){
 function updateSyncBadge(){
   const el=document.getElementById('syncIndicator');
   if(el) el.innerHTML=syncStatusHTML();
+}
+
+
+// ── STOP COUNTER LOGIC ────────────────────────────────────────
+function handleStopLoss(sigId){
+  const i=S.signals.findIndex(s=>s.id===sigId); if(i<0)return;
+  const sig=S.signals[i];
+  const counter=(sig.stop_counter||0)+1;
+  const hist=JSON.parse(sig.stop_history||'[]');
+  hist.push({data:new Date().toISOString(),ordine_id:sig._last_ordine_id||null});
+  const newHist=JSON.stringify(hist);
+  if(counter>=2){
+    // Eliminato
+    updSig(sigId,{stato:'eliminato',stop_counter:counter,stop_history:newHist});
+  } else {
+    // Invalidato (counter 1)
+    updSig(sigId,{stato:'invalidato',stop_counter:counter,stop_history:newHist});
+  }
+}
+
+function checkRiattivazione(sigId, prezzoCorrente){
+  const sig=S.signals.find(s=>s.id===sigId); if(!sig)return;
+  if(sig.stato!=='invalidato')return;
+  const entry=nn(sig.entrata_margine)||nn(sig.entrata);
+  if(!entry||!prezzoCorrente)return;
+  const condMet=sig.direzione==='BUY'?prezzoCorrente>=entry:prezzoCorrente<=entry;
+  if(condMet){
+    updSig(sigId,{stato:'riattivato',riattivato_at:new Date().toISOString()});
+  }
+}
+
+function checkInvalidazioneRiattivato(sigId, prezzoCorrente){
+  const sig=S.signals.find(s=>s.id===sigId); if(!sig)return;
+  if(sig.stato!=='riattivato')return;
+  const entry=nn(sig.entrata_margine)||nn(sig.entrata);
+  if(!entry||!prezzoCorrente)return;
+  // Se il prezzo è tornato sotto l'entry (per BUY) → torna invalidato
+  const condLost=sig.direzione==='BUY'?prezzoCorrente<entry:prezzoCorrente>entry;
+  if(condLost){
+    updSig(sigId,{stato:'invalidato',riattivato_at:null});
+  }
+}
+
+// Chiamata dopo fetchPrezziLive — controlla riattivazioni automatiche
+function checkRiattivazioniLive(){
+  S.signals.forEach(s=>{
+    const prezzo=S_prezzi[s.ticker]||null;
+    if(!prezzo)return;
+    if(s.stato==='invalidato') checkRiattivazione(s.id,prezzo);
+    if(s.stato==='riattivato') checkInvalidazioneRiattivato(s.id,prezzo);
+  });
 }
 
 const TABS=[{id:'dashboard',ic:'▦',l:'Dashboard'},{id:'segnali',ic:'◎',l:'Segnali Azionari'},{id:'ordini',ic:'◈',l:'Ordini'},{id:'setup',ic:'⚙',l:'Setup'}];
