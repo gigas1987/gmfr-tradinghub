@@ -973,7 +973,13 @@ function updateSyncBadge(){
 const TABS=[{id:'dashboard',ic:'▦',l:'Dashboard'},{id:'segnali',ic:'◎',l:'Segnali Azionari'},{id:'ordini',ic:'◈',l:'Ordini'},{id:'setup',ic:'⚙',l:'Setup'}];
 const VIEWS={dashboard:viewDashboard,segnali:viewSegnali,ordini:viewOrdini,setup:viewSetup};
 
-function renderApp(){return `<div class="app"><div class="sidebar"><div class="logo"><span class="logo-dot"></span><span>GMFR | Trading Hub</span></div><nav class="nav">${TABS.map(t=>`<div class="nav-item ${S.tab===t.id?'active':''}" onclick="S.tab='${t.id}';render()"><span class="nav-icon">${t.ic}</span><span>${t.l}</span>${navBadge(t.id)}</div>`).join('')}</nav><div class="sidebar-footer"><div id="syncIndicator" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:hidden">${syncStatusHTML()}</div><button class="icon-btn" onclick="toggleTheme()" title="${S.theme==='dark'?'Tema chiaro':'Tema scuro'}">${S.theme==='dark'?'☀':'🌙'}</button><button class="icon-btn" onclick="logout()" title="Esci">⏻</button></div></div><div class="main"><div class="main-inner">${S.loading?`<div class="alert al-info" style="margin-bottom:16px">⏳ Sincronizzazione...</div>`:''} ${(VIEWS[S.tab]||viewDashboard)()}</div></div></div>${renderModal()}`;}
+function renderApp(){return `<div class="app"><div class="sidebar"><div class="logo" style="padding:16px 18px 12px;flex-direction:column;align-items:flex-start;gap:2px">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+    <span class="logo-dot"></span>
+    <span style="font-size:17px;font-weight:800;letter-spacing:.04em;line-height:1">GMFR</span>
+  </div>
+  <span style="font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--t2);padding-left:16px">Trading Hub</span>
+</div><nav class="nav">${TABS.map(t=>`<div class="nav-item ${S.tab===t.id?'active':''}" onclick="S.tab='${t.id}';render()"><span class="nav-icon">${t.ic}</span><span>${t.l}</span>${navBadge(t.id)}</div>`).join('')}</nav><div class="sidebar-footer"><div id="syncIndicator" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:hidden">${syncStatusHTML()}</div><button class="icon-btn" onclick="toggleTheme()" title="${S.theme==='dark'?'Tema chiaro':'Tema scuro'}">${S.theme==='dark'?'☀':'🌙'}</button><button class="icon-btn" onclick="logout()" title="Esci">⏻</button></div></div><div class="main"><div class="main-inner">${S.loading?`<div class="alert al-info" style="margin-bottom:16px">⏳ Sincronizzazione...</div>`:''} ${(VIEWS[S.tab]||viewDashboard)()}</div></div></div>${renderModal()}`;}
 
 function render(){if(!S.pwd)document.getElementById('app').innerHTML=viewFirstSetup();else if(!S.unlocked){document.getElementById('app').innerHTML=viewLogin();setTimeout(()=>document.getElementById('loginPwd')?.focus(),50);}else document.getElementById('app').innerHTML=renderApp();}
 
