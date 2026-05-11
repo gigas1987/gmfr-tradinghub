@@ -541,7 +541,10 @@ function viewDashboard(){
 
     <div class="card"><div class="card-head"><div class="card-title">📅 Proiezione Fiscale Fine Anno</div></div>
     <div class="card-body">
-      <div class="alert al-info" style="font-size:12px">Basata sul ritmo attuale · Giorno ${dayOfYear} di 365 · ${remainDays} giorni rimanenti</div>
+      <div class="alert al-info" style="font-size:12px">
+        Proiezione basata sul ritmo attuale · Giorno ${dayOfYear} di 365 · ${remainDays} giorni rimanenti<br>
+        <span style="opacity:.8">I valori sono stime — se il ritmo cambia, la proiezione si aggiorna automaticamente.</span>
+      </div>
       <div class="gr2" style="gap:10px">
         <div style="background:var(--s2);border-radius:8px;padding:12px">
           <div class="stat-label">P&L Proiettato</div>
@@ -561,7 +564,7 @@ function viewDashboard(){
         <div style="background:${projAccanton>0?'var(--rd-dim)':'var(--gr-dim)'};border-radius:8px;padding:12px;border:1px solid ${projAccanton>0?'rgba(255,61,90,.2)':'rgba(0,200,150,.2)'}">
           <div class="stat-label">Ancora da Accantonare</div>
           <div class="mono ${projAccanton>0?'rd-text':'gr-text'}" style="font-size:16px;font-weight:700">${projAccanton>0?fmt(projAccanton)+'€':'✓ Ok'}</div>
-          <div class="dim" style="font-size:11px;margin-top:2px">${projAccanton>0?'Suggerito da mettere da parte':'Sei in linea con le proiezioni'}</div>
+          <div class="dim" style="font-size:11px;margin-top:2px">${projAccanton>0?'Proiezione: da accantonare entro fine anno':'Sei in linea con le proiezioni'}</div>
         </div>
       </div>
     </div></div>
