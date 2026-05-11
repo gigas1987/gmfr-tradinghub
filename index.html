@@ -16,7 +16,7 @@
   --gr:#00c896;--rd:#ff3d5a;--yl:#f5c542;--bl:#4d9eff;--pu:#a78bfa;--or:#ff8c42;
   --gr-dim:rgba(0,200,150,.12);--rd-dim:rgba(255,61,90,.12);
   --yl-dim:rgba(245,197,66,.12);--bl-dim:rgba(77,158,255,.12);--pu-dim:rgba(167,139,250,.12);
-  --font-ui:'Syne',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --font-ui:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',Helvetica,Arial,sans-serif;--font-mono:'JetBrains Mono',monospace;
 }
 [data-theme="light"]{
   --bg:#f0f3fa;--s1:#fff;--s2:#f5f7fc;--s3:#eaeef8;
@@ -54,15 +54,15 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font-ui);font-size:1
 .login-btn:hover{filter:brightness(1.1)}
 .login-theme-btn{position:absolute;top:16px;right:16px}
 .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:10px}
-.ph-title{font-size:20px;font-weight:800}
+.ph-title{font-size:18px;font-weight:700;letter-spacing:.01em;font-family:var(--font-ui)}
 .ph-sub{font-size:12px;color:var(--t2);margin-top:2px}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
-.stat{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:16px 18px}
+.stat{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:16px 18px;transition:box-shadow .2s}
 .stat-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--t3);margin-bottom:8px}
 .stat-val{font-size:22px;font-weight:800;font-family:var(--font-mono)}
 .stat-sub{font-size:11px;color:var(--t2);margin-top:4px}
 .stat-val.gr{color:var(--gr)}.stat-val.rd{color:var(--rd)}.stat-val.bl{color:var(--bl)}.stat-val.yl{color:var(--yl)}
-.card{background:var(--s1);border:1px solid var(--b1);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:10px;margin-bottom:16px;overflow:hidden;box-shadow:0 1px 3px var(--shadow)}
 .card-head{padding:13px 18px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between}
 .card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t2)}
 .card-body{padding:18px}
@@ -134,6 +134,14 @@ code{background:var(--s3);padding:2px 6px;border-radius:4px;font-family:var(--fo
 .override-wrap{background:var(--yl-dim);border:1px solid rgba(245,197,66,.2);border-radius:8px;padding:12px;margin-top:12px}
 .override-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--yl);margin-bottom:8px}
 .filter-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+@keyframes pulse-gr{0%,100%{box-shadow:0 0 0 0 rgba(0,200,150,.6)}70%{box-shadow:0 0 0 6px rgba(0,200,150,0)}}
+@keyframes pulse-yl{0%,100%{box-shadow:0 0 0 0 rgba(245,197,66,.6)}70%{box-shadow:0 0 0 6px rgba(245,197,66,0)}}
+@keyframes pulse-rd{0%,100%{box-shadow:0 0 0 0 rgba(255,61,90,.6)}70%{box-shadow:0 0 0 6px rgba(255,61,90,0)}}
+.sig-light{width:9px;height:9px;border-radius:50%;flex-shrink:0;display:inline-block}
+.sig-light.green{background:var(--gr);animation:pulse-gr 1.5s infinite}
+.sig-light.yellow{background:var(--yl);animation:pulse-yl 2s infinite}
+.sig-light.red{background:var(--rd);animation:pulse-rd 1.8s infinite}
+.sig-light.grey{background:var(--t3)}
 @keyframes syncpulse{0%,100%{opacity:1}50%{opacity:.35}}
 .sync-pulse{animation:syncpulse 1.2s ease-in-out infinite;display:inline-block;font-size:13px}
 .sync-dot{font-size:13px}
@@ -313,6 +321,20 @@ function poolMinusvalenze(){const now=new Date();const curY=now.getFullYear();le
 function openM(type,data={}){S.modal={type,data};render();}
 function closeM(){S.modal=null;render();}
 
+function sigLight(stato){
+  const map={
+    ricevuto:'grey',
+    attivato:'green',
+    aperto:'green',
+    chiuso_tp:'grey',
+    chiuso_stop:'red',
+    chiuso_man:'grey',
+    scartato:'grey'
+  };
+  // Pending activation (valido but not yet activated)
+  const cls=map[stato]||'grey';
+  return `<span class="sig-light ${cls}"></span>`;
+}
 function badgeSig(stato){const s=STATI_SIG[stato]||STATI_SIG.ricevuto;return `<span class="badge ${s.cls}">${s.ic} ${s.l}</span>`;}
 function dirBadge(dir){return (dir==='Long'||dir==='BUY')?`<span class="badge bg">▲ ${dir}</span>`:`<span class="badge br">▼ ${dir}</span>`;}
 function statoBadge(stato){const m={aperto:'bb',parziale:'by',chiuso:'bgr'};const l={aperto:'Aperto',parziale:'Parziale',chiuso:'Chiuso'};return `<span class="badge ${m[stato]||'bgr'}">${l[stato]||stato}</span>`;}
@@ -372,8 +394,18 @@ function viewSegnali(){
   <tbody>${list.length===0?`<tr><td colspan="10" class="empty">Nessun segnale</td></tr>`:''}
   ${list.map(s=>{const pTp=movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1));const pSt=movePct(s.direzione,nn(s.entrata_margine),nn(s.stop_margine));const acts=[];if(s.stato==='ricevuto')acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('activateSig',{id:'${s.id}'})">Attiva</button>`);if(s.stato==='attivato'){acts.push(`<button class="btn btn-sm btn-pr" onclick="openM('openOrdineFromSig',{sigId:'${s.id}'})">Apri Ordine</button>`);acts.push(`<button class="btn btn-sm btn-gh" onclick="updSig('${s.id}',{stato:'scartato'})">Scarta</button>`);}acts.push(`<button class="btn btn-sm btn-gh" onclick="openM('editSig',{id:'${s.id}'})">✏</button>`);
         acts.push(`<button class="btn btn-sm btn-gh" style="color:var(--rd)" onclick="if(confirm('Eliminare il segnale ${esc(s.ticker)}?'))delSignal('${s.id}')">✕</button>`);const validoBadge=s.valido==='Si'?`<span class="badge bg" style="font-size:10px">✓ Sì</span>`:`<span class="badge br" style="font-size:10px">✗ No</span>`;
+        // Dynamic light: ricevuto near entry = yellow; stop violated = red; activated = green
+        const sigLightDyn=(()=>{
+          if(s.stato==='chiuso_stop')return'red';
+          if(s.stato==='attivato'||s.stato==='aperto')return'green';
+          if(s.stato==='scartato'||s.stato==='chiuso_tp'||s.stato==='chiuso_man')return'grey';
+          // ricevuto: check if near entry
+          const pSt2=movePct(s.direzione,nn(s.entrata_margine),nn(s.stop_margine));
+          if(pSt2!==null&&Math.abs(pSt2)<5)return'yellow';
+          return'grey';
+        })();
         const sorgBadge=s.sorgente==='Personale'?`<span class="badge bp" style="font-size:10px">Personal</span>`:`<span class="badge bb" style="font-size:10px">EK</span>`;
-        return `<tr><td class="dim mono">${fmtDate(s.data_segnale)}</td><td><strong>${esc(s.ticker)}</strong></td><td><span class="tag">${esc(s.market||'')}</span></td><td>${dirBadge(s.direzione)}</td><td class="mono">${fmt(s.entrata_margine)}</td><td class="mono rd-text">${fmt(s.stop_margine)}</td><td class="mono gr-text">${s.tp1?fmt(s.tp1):s.tp2?fmt(s.tp2):'—'}</td><td class="mono gr-text">${pTp?fmtPct(pTp):'—'}</td><td class="mono rd-text">${pSt?fmtPct(pSt):'—'}</td><td>${validoBadge}</td><td>${sorgBadge}</td><td>${badgeSig(s.stato)}</td><td><div class="flex gap1">${acts.join('')}</div></td></tr>`;}).join('')}
+        return `<tr><td class="dim mono">${fmtDate(s.data_segnale)}</td><td><div class="flex ai gap2"><span class="sig-light ${sigLightDyn}"></span><strong>${esc(s.ticker)}</strong></div></td><td><span class="tag">${esc(s.market||'')}</span></td><td>${dirBadge(s.direzione)}</td><td class="mono">${fmt(s.entrata_margine)}</td><td class="mono rd-text">${fmt(s.stop_margine)}</td><td class="mono gr-text">${s.tp1?fmt(s.tp1):s.tp2?fmt(s.tp2):'—'}</td><td class="mono gr-text">${pTp?fmtPct(pTp):'—'}</td><td class="mono rd-text">${pSt?fmtPct(pSt):'—'}</td><td>${validoBadge}</td><td>${sorgBadge}</td><td>${badgeSig(s.stato)}</td><td><div class="flex gap1">${acts.join('')}</div></td></tr>`;}).join('')}
   </tbody></table></div></div>`;
 }
 
@@ -976,9 +1008,9 @@ const VIEWS={dashboard:viewDashboard,segnali:viewSegnali,ordini:viewOrdini,setup
 function renderApp(){return `<div class="app"><div class="sidebar"><div class="logo" style="padding:16px 18px 12px;flex-direction:column;align-items:flex-start;gap:2px">
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
     <span class="logo-dot"></span>
-    <span style="font-size:17px;font-weight:800;letter-spacing:.04em;line-height:1">GMFR</span>
+    <span style="font-size:17px;font-weight:800;letter-spacing:.04em;line-height:1;font-family:'Syne',sans-serif">GMFR</span>
   </div>
-  <span style="font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--t2);padding-left:16px">Trading Hub</span>
+  <span style="font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--t2);padding-left:16px;font-family:'Syne',sans-serif">Trading Hub</span>
 </div><nav class="nav">${TABS.map(t=>`<div class="nav-item ${S.tab===t.id?'active':''}" onclick="S.tab='${t.id}';render()"><span class="nav-icon">${t.ic}</span><span>${t.l}</span>${navBadge(t.id)}</div>`).join('')}</nav><div class="sidebar-footer"><div id="syncIndicator" style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:hidden">${syncStatusHTML()}</div><button class="icon-btn" onclick="toggleTheme()" title="${S.theme==='dark'?'Tema chiaro':'Tema scuro'}">${S.theme==='dark'?'☀':'🌙'}</button><button class="icon-btn" onclick="logout()" title="Esci">⏻</button></div></div><div class="main"><div class="main-inner">${S.loading?`<div class="alert al-info" style="margin-bottom:16px">⏳ Sincronizzazione...</div>`:''} ${(VIEWS[S.tab]||viewDashboard)()}</div></div></div>${renderModal()}`;}
 
 function render(){if(!S.pwd)document.getElementById('app').innerHTML=viewFirstSetup();else if(!S.unlocked){document.getElementById('app').innerHTML=viewLogin();setTimeout(()=>document.getElementById('loginPwd')?.focus(),50);}else document.getElementById('app').innerHTML=renderApp();}
