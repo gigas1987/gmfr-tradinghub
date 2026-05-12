@@ -683,7 +683,7 @@ function viewDashboard(){
   ${viciniAttivazione.map(({s,entry,liveP,distPct})=>{
     const pTp=movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1));
     const condMet=distPct!==null&&distPct>=0;
-    const nearEntry=distPct!==null&&Math.abs(distPct)<2;
+    const nearEntry=distPct!==null&&distPct>=-7&&distPct<0;
     const lightCls=condMet?'green':nearEntry?'yellow':'grey';
     return `<tr style="${condMet?'background:var(--gr-dim)':''}">
       <td style="padding:8px 12px"><span class="sig-light ${lightCls}"></span></td>
