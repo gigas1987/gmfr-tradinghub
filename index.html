@@ -836,7 +836,12 @@ function viewSetup(){return `<div class="setup-wrap"><div class="ph"><div class=
   <div id="pwdErr"></div><button class="btn btn-pr" onclick="changePwd()">Aggiorna Password</button></div></div>
   <div class="card"><div class="card-head"><div class="card-title">Google Apps Script</div></div><div class="card-body">
   <div class="form-group"><label>Web App URL</label><input type="url" id="gasInput" value="${esc(S.gasUrl)}" placeholder="https://script.google.com/macros/s/..."></div>
-  <div class="flex gap2"><button class="btn btn-pr" onclick="saveGas()">Salva & Connetti</button><button class="btn btn-gh" onclick="testGas()">Test</button>${S.gasUrl?`<button class="btn btn-gh" onclick="gasRead()">↻ Sync</button>`:''}</div>
+  <div class="flex gap2 fw">
+    <button class="btn btn-pr" onclick="saveGas()">Salva & Connetti</button>
+    <button class="btn btn-gh" onclick="testGas()">Test</button>
+    ${S.gasUrl?`<button class="btn btn-gh" onclick="gasRead()">↻ Sync</button>`:''}
+    ${S.gasUrl?`<button class="btn btn-gh" onclick="testPrezzi()">🔍 Test Prezzi</button>`:''}
+  </div>
   <div id="gasStatus" style="margin-top:10px"></div></div></div></div>`;}
 
 function renderModal(){
@@ -1111,6 +1116,39 @@ function submitOverridePL(ordineId,remove=false){if(remove){updOrdine(ordineId,{
 
 function changePwd(){const p1=document.getElementById('newPwd1')?.value||'';const p2=document.getElementById('newPwd2')?.value||'';const el=document.getElementById('pwdErr');if(p1.length<6){if(el)el.innerHTML=`<div class="alert al-danger">Minimo 6 caratteri.</div>`;return;}if(p1!==p2){if(el)el.innerHTML=`<div class="alert al-danger">Non corrispondono.</div>`;return;}S.pwd=p1;localStorage.setItem('ek_pwd',p1);if(el)el.innerHTML=`<div class="alert al-success">✅ Aggiornata. Ricorda di aggiornare anche in GAS.</div>`;}
 function saveGas(){const url=document.getElementById('gasInput')?.value?.trim();if(!url){alert('Inserisci un URL');return;}S.gasUrl=url;localStorage.setItem('ek_gas',url);gasRead();}
+async function testPrezzi(){
+  const el=document.getElementById('gasStatus');
+  if(!S.gasUrl){if(el)el.innerHTML=`<div class="alert al-warn">Configura prima l'URL GAS</div>`;return;}
+  if(el)el.innerHTML=`<div class="alert al-info">Testing endpoint prezzi...</div>`;
+  const ticker='AAPL'; // ticker di test
+  try{
+    const url=S.gasUrl+'?token='+encodeURIComponent(S.pwd)+'&action=prezzi&tickers='+encodeURIComponent(ticker);
+    console.log('Testing URL:', url);
+    const r=await fetch(url);
+    const text=await r.text();
+    console.log('Raw response:', text);
+    let parsed;
+    try{parsed=JSON.parse(text);}catch(e){
+      if(el)el.innerHTML=`<div class="alert al-danger">❌ Risposta non JSON: ${esc(text.slice(0,200))}</div>`;
+      return;
+    }
+    if(parsed.error){
+      if(el)el.innerHTML=`<div class="alert al-danger">❌ Errore GAS: ${esc(parsed.error)}</div>`;
+      return;
+    }
+    if(parsed.prezzi&&parsed.prezzi[ticker]){
+      if(el)el.innerHTML=`<div class="alert al-success">✅ Prezzi funzionano — AAPL: $${fmt(parsed.prezzi[ticker])} · ts: ${parsed.ts||'—'}</div>`;
+    } else if(parsed.prezzi){
+      if(el)el.innerHTML=`<div class="alert al-warn">⚠ Endpoint OK ma AAPL non trovato. Risposta: ${esc(JSON.stringify(parsed))}</div>`;
+    } else {
+      if(el)el.innerHTML=`<div class="alert al-warn">⚠ Risposta inattesa: ${esc(JSON.stringify(parsed).slice(0,300))}</div>`;
+    }
+  }catch(e){
+    if(el)el.innerHTML=`<div class="alert al-danger">❌ Fetch error: ${esc(e.message)}</div>`;
+    console.error('testPrezzi error:', e);
+  }
+}
+
 async function testGas(){const url=document.getElementById('gasInput')?.value?.trim();const el=document.getElementById('gasStatus');if(!url){if(el)el.innerHTML=`<div class="alert al-warn">Inserisci un URL</div>`;return;}if(el)el.innerHTML=`<div class="alert al-info">Connessione...</div>`;try{const r=await fetch(url+'?action=ping&token='+encodeURIComponent(S.pwd));const d=await r.json();if(d.error)throw new Error(d.error);if(el)el.innerHTML=`<div class="alert al-success">✅ Connessione OK</div>`;}catch(e){if(el)el.innerHTML=`<div class="alert al-danger">❌ ${esc(e.message)}</div>`;}}
 
 
@@ -1404,10 +1442,11 @@ let S_prezziTs = localStorage.getItem('gmfr_prezzi_ts') || null;
 
 async function fetchPrezziLive(){
   if(!S.gasUrl||!S.pwd)return;
-  // Collect all tickers to monitor: open orders + activated signals
+  // Collect all tickers: open orders + all active/received signals
   const tickers=new Set();
   S.ordini.filter(o=>o.stato==='aperto'||o.stato==='parziale').forEach(o=>{if(o.symbol)tickers.add(o.symbol);});
-  S.signals.filter(s=>s.stato==='attivato').forEach(s=>{if(s.ticker)tickers.add(s.ticker);});
+  S.signals.filter(s=>!['chiuso_tp','chiuso_stop','chiuso_man','scartato','eliminato'].includes(s.stato))
+    .forEach(s=>{if(s.ticker)tickers.add(s.ticker);});
   if(tickers.size===0)return;
   try{
     const tickerList=encodeURIComponent([...tickers].join(','));
