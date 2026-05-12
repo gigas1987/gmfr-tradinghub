@@ -325,12 +325,12 @@ const fmtDT=d=>d?new Date(d).toLocaleString('it-IT',{day:'2-digit',month:'2-digi
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function persist(){localStorage.setItem('ek_segnali',JSON.stringify(S.signals));localStorage.setItem('ek_trades',JSON.stringify(S.trades));localStorage.setItem('ek_ordini',JSON.stringify(S.ordini));}
 
-function tryLogin(){const v=document.getElementById('loginPwd')?.value||'';if(v===S.pwd){sessionStorage.setItem('ek_auth','1');S.unlocked=true;S.loginErr=false;render();if(S.gasUrl)gasRead();}else{S.loginErr=true;render();setTimeout(()=>document.getElementById('loginPwd')?.focus(),50);}}
+function tryLogin(){const v=(document.getElementById('loginPwd')||{}).value||'';if(v===S.pwd){sessionStorage.setItem('ek_auth','1');S.unlocked=true;S.loginErr=false;render();if(S.gasUrl)gasRead();}else{S.loginErr=true;render();setTimeout(()=>(function(){var _e=document.getElementById('loginPwd');if(_e)_e.focus();})(),50);}}
 function logout(){sessionStorage.removeItem('ek_auth');S.unlocked=false;render();}
 function togglePwdVisibility(id){const el=document.getElementById(id);if(el)el.type=el.type==='password'?'text':'password';}
 function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';localStorage.setItem('ek_theme',S.theme);document.documentElement.setAttribute('data-theme',S.theme);render();}
 function savePassword(p){S.pwd=p;localStorage.setItem('ek_pwd',p);sessionStorage.setItem('ek_auth','1');S.unlocked=true;render();}
-function submitFirstSetup(){const p1=document.getElementById('setupPwd1')?.value||'';const p2=document.getElementById('setupPwd2')?.value||'';const el=document.getElementById('setupErr');if(p1.length<6){if(el)el.innerHTML=`<div class="login-error">Minimo 6 caratteri.</div>`;return;}if(p1!==p2){if(el)el.innerHTML=`<div class="login-error">Non corrispondono.</div>`;return;}savePassword(p1);}
+function submitFirstSetup(){const p1=(document.getElementById('setupPwd1')||{}).value||'';const p2=(document.getElementById('setupPwd2')||{}).value||'';const el=document.getElementById('setupErr');if(p1.length<6){if(el)el.innerHTML=`<div class="login-error">Minimo 6 caratteri.</div>`;return;}if(p1!==p2){if(el)el.innerHTML=`<div class="login-error">Non corrispondono.</div>`;return;}savePassword(p1);}
 
 function movePct(dir,entry,target){if(!entry||!target)return null;return dir==='BUY'?(target-entry)/entry*100:(entry-target)/entry*100;}
 function calcTax(pl,platform){if(!pl||pl<=0)return 0;return pl*TAX_RATE;}
@@ -516,20 +516,21 @@ function viewDashboard(){
   const projAccanton=Math.max(0,projTax-tax); // ancora da accantonare
 
   // ── SEGNALI VICINI ALL'ATTIVAZIONE ──────────────────────────────
-  const viciniAttivazione=S.signals.filter(s=>{
-    if(s.stato!=='ricevuto')return false;
-    const entry=nn(s.entrata_margine)||nn(s.entrata);
-    const stop=nn(s.stop_margine)||nn(s.sl1);
-    if(!entry||!stop)return false;
-    const distStop=Math.abs(movePct(s.direzione,entry,stop));
-    return distStop<20; // filtra solo segnali con stop ragionevole
-  }).map(s=>{
+  // ── SEGNALI RICEVUTI — tutti visibili in dashboard ──────────────────────────
+  const viciniAttivazione=S.signals.filter(s=>s.stato==='ricevuto').map(s=>{
     const entry=nn(s.entrata_margine)||nn(s.entrata);
     const liveP=S_prezzi[s.ticker]||null;
-    const distPct=liveP&&entry?Math.abs((liveP-entry)/entry*100):null;
+    const distPct=liveP&&entry?((s.direzione==='BUY'?liveP-entry:entry-liveP)/entry*100):null;
     return{s,entry,liveP,distPct};
-  }).filter(x=>x.distPct===null||x.distPct<5) // entro 5% o senza prezzo live
-    .sort((a,b)=>(a.distPct||999)-(b.distPct||999));
+  }).filter(x=>{
+    // Mostra: condizione già soddisfatta (distPct>=0) O entro 7% O senza prezzo live
+    if(x.distPct===null)return true; // nessun prezzo: mostra sempre
+    return x.distPct>=-7; // entro 7% sotto entry o già sopra
+  }).sort((a,b)=>{
+    const da=a.distPct!==null?Math.abs(a.distPct):999;
+    const db=b.distPct!==null?Math.abs(b.distPct):999;
+    return da-db;
+  });
 
   return `
   <div class="ph">
@@ -621,16 +622,19 @@ function viewDashboard(){
   }).join('')}
   ${viciniAttivazione.map(({s,entry,liveP,distPct})=>{
     const pTp=movePct(s.direzione,nn(s.entrata_margine),nn(s.tp1));
-    return `<tr>
-      <td style="padding:8px 12px"><span class="sig-light yellow"></span></td>
+    const condMet=distPct!==null&&distPct>=0;
+    const nearEntry=distPct!==null&&Math.abs(distPct)<2;
+    const lightCls=condMet?'green':nearEntry?'yellow':'grey';
+    return `<tr style="${condMet?'background:var(--gr-dim)':''}">
+      <td style="padding:8px 12px"><span class="sig-light ${lightCls}"></span></td>
       <td><strong>${esc(s.ticker)}</strong> <span class="dim" style="font-size:10px">${esc(s.market||'')}</span></td>
       <td>${dirBadge(s.direzione)}</td>
       <td class="mono">${fmt(entry)}</td>
       <td class="mono rd-text">${fmt(s.stop_margine)}</td>
       <td class="mono gr-text">${pTp?fmtPct(pTp):'—'}</td>
       <td><span class="badge bgr">📨 Ricevuto</span></td>
-      <td>${liveP?`<span class="mono">${fmt(liveP)}</span>`:'<span class="dim">—</span>'}</td>
-      <td>${distPct!==null?`<span class="mono yl-text">${distPct.toFixed(2)}%</span>`:'<span class="dim">—</span>'}</td>
+      <td>${liveP?`<span class="mono ${condMet?'gr-text':''}">${fmt(liveP)}</span>`:'<span class="dim">—</span>'}</td>
+      <td>${distPct!==null?`<span class="mono ${condMet?'gr-text':nearEntry?'yl-text':'dim'}">${distPct>=0?'+':''}${distPct.toFixed(2)}%</span>`:'<span class="dim">—</span>'}</td>
       <td><button class="btn btn-sm btn-gh" onclick="openM('activateSig',{id:'${s.id}'})">Attiva</button></td>
     </tr>`;
   }).join('')}
@@ -763,16 +767,23 @@ function viewSegnali(){
         acts.push(`<button class="btn btn-sm btn-gh" style="color:var(--rd)" onclick="if(confirm('Eliminare il segnale ${esc(s.ticker)}?'))delSignal('${s.id}')">✕</button>`);const validoBadge=s.valido==='Si'?`<span class="badge bg" style="font-size:10px">✓ Sì</span>`:`<span class="badge br" style="font-size:10px">✗ No</span>`;
         // Dynamic light: ricevuto near entry = yellow; stop violated = red; activated = green
         const sigLightDyn=(()=>{
-          if(s.stato==='chiuso_stop')return'red';
+          if(s.stato==='eliminato')return'red'; // eliminato = rosso (2 stop)
+          if(s.stato==='chiuso_stop'||s.stato==='invalidato')return'red';
           if(s.stato==='attivato'||s.stato==='aperto')return'green';
+          if(s.stato==='riattivato')return'yellow';
           if(s.stato==='scartato'||s.stato==='chiuso_tp'||s.stato==='chiuso_man')return'grey';
-          // ricevuto: check if near entry
-          const pSt2=movePct(s.direzione,nn(s.entrata_margine),nn(s.stop_margine));
-          if(pSt2!==null&&Math.abs(pSt2)<5)return'yellow';
+          // ricevuto: verde se sopra entry, giallo se entro 7%, grigio se lontano
+          const lp=S_prezzi[s.ticker]||null;
+          const em=nn(s.entrata_margine)||nn(s.entrata);
+          if(lp&&em){
+            const dist=(s.direzione==='BUY'?lp-em:em-lp)/em*100;
+            if(dist>=0)return'green';       // già sopra entry
+            if(dist>=-7)return'yellow';     // entro 7% sotto entry
+          }
           return'grey';
         })();
         const sorgBadge=s.sorgente==='Personale'?`<span class="badge bp" style="font-size:10px">Personal</span>`:`<span class="badge bb" style="font-size:10px">EK</span>`;
-        return `<tr><td class="dim mono">${fmtDate(s.data_segnale)}</td><td><div class="flex ai gap2"><span class="sig-light ${sigLightDyn}"></span><strong>${esc(s.ticker)}</strong></div></td><td><span class="tag">${esc(s.market||'')}</span></td><td>${dirBadge(s.direzione)}</td><td class="mono dim">${s.entrata?fmt(s.entrata):'—'}</td><td class="mono">${fmt(s.entrata_margine)}</td><td class="mono dim">${s.sl1?fmt(s.sl1):'—'}</td><td class="mono rd-text">${fmt(s.stop_margine)}</td><td class="mono gr-text">${s.tp1?fmt(s.tp1):s.tp2?fmt(s.tp2):'—'}</td><td class="mono gr-text">${pTp?fmtPct(pTp):'—'}</td><td class="mono rd-text">${pSt?fmtPct(pSt):'—'}</td>${(()=>{
+        return `<tr style="${s.stato==='eliminato'?'opacity:.4;text-decoration:line-through':''}""><td class="dim mono">${fmtDate(s.data_segnale)}</td><td><div class="flex ai gap2"><span class="sig-light ${sigLightDyn}"></span><strong>${esc(s.ticker)}</strong></div></td><td><span class="tag">${esc(s.market||'')}</span></td><td>${dirBadge(s.direzione)}</td><td class="mono dim">${s.entrata?fmt(s.entrata):'—'}</td><td class="mono">${fmt(s.entrata_margine)}</td><td class="mono dim">${s.sl1?fmt(s.sl1):'—'}</td><td class="mono rd-text">${fmt(s.stop_margine)}</td><td class="mono gr-text">${s.tp1?fmt(s.tp1):s.tp2?fmt(s.tp2):'—'}</td><td class="mono gr-text">${pTp?fmtPct(pTp):'—'}</td><td class="mono rd-text">${pSt?fmtPct(pSt):'—'}</td>${(()=>{
           const lp=S_prezzi[s.ticker]||null;
           const em=nn(s.entrata_margine)||nn(s.entrata);
           const de=lp&&em?((s.direzione==='BUY'?lp-em:em-lp)/em*100):null;
@@ -1073,30 +1084,30 @@ function renderModal(){
   return '';
 }
 
-function collectSigForm(){const dir=document.getElementById('f_dir').value;const ent=nn(document.getElementById('f_ent').value)||0;const sl1=nn(document.getElementById('f_sl1').value)||0;const mrg=nn(document.getElementById('f_mrg').value)||0;let em=nn(document.getElementById('f_em').value);let sm=nn(document.getElementById('f_sm').value);if(!em&&ent&&mrg)em=dir==='BUY'?ent+mrg:ent-mrg;if(!sm&&sl1&&mrg)sm=dir==='BUY'?sl1-mrg:sl1+mrg;return{data_segnale:document.getElementById('f_data').value,market:document.getElementById('f_mkt').value,ticker:document.getElementById('f_ticker').value.trim().toUpperCase(),direzione:dir,entrata:ent,tp1:nn(document.getElementById('f_tp1').value),tp2:nn(document.getElementById('f_tp2').value),sl1:sl1,sl2:nn(document.getElementById('f_sl2').value),margine:mrg||null,entrata_margine:em,stop_margine:sm,link_telegram:document.getElementById('f_link').value,a_mercato:document.getElementById('f_amk').value,valido:document.getElementById('f_val').value,note_ek:document.getElementById('f_note').value,sorgente:document.getElementById('f_sorg')?.value||'EK Investing'};}
-function autoMargini(){const dir=document.getElementById('f_dir')?.value;const ent=nn(document.getElementById('f_ent')?.value)||0;const sl1=nn(document.getElementById('f_sl1')?.value)||0;const mrg=nn(document.getElementById('f_mrg')?.value)||0;if(!mrg||!ent)return;const emEl=document.getElementById('f_em'),smEl=document.getElementById('f_sm');if(emEl)emEl.value=(dir==='BUY'?ent+mrg:ent-mrg).toFixed(4);if(smEl)smEl.value=(dir==='BUY'?sl1-mrg:sl1+mrg).toFixed(4);}
+function collectSigForm(){const dir=document.getElementById('f_dir').value;const ent=nn(document.getElementById('f_ent').value)||0;const sl1=nn(document.getElementById('f_sl1').value)||0;const mrg=nn(document.getElementById('f_mrg').value)||0;let em=nn(document.getElementById('f_em').value);let sm=nn(document.getElementById('f_sm').value);if(!em&&ent&&mrg)em=dir==='BUY'?ent+mrg:ent-mrg;if(!sm&&sl1&&mrg)sm=dir==='BUY'?sl1-mrg:sl1+mrg;return{data_segnale:document.getElementById('f_data').value,market:document.getElementById('f_mkt').value,ticker:document.getElementById('f_ticker').value.trim().toUpperCase(),direzione:dir,entrata:ent,tp1:nn(document.getElementById('f_tp1').value),tp2:nn(document.getElementById('f_tp2').value),sl1:sl1,sl2:nn(document.getElementById('f_sl2').value),margine:mrg||null,entrata_margine:em,stop_margine:sm,link_telegram:document.getElementById('f_link').value,a_mercato:document.getElementById('f_amk').value,valido:document.getElementById('f_val').value,note_ek:document.getElementById('f_note').value,sorgente:(document.getElementById('f_sorg')||{}).value||'EK Investing'};}
+function autoMargini(){const dir=(document.getElementById('f_dir')||{}).value;const ent=nn((document.getElementById('f_ent')||{}).value)||0;const sl1=nn((document.getElementById('f_sl1')||{}).value)||0;const mrg=nn((document.getElementById('f_mrg')||{}).value)||0;if(!mrg||!ent)return;const emEl=document.getElementById('f_em'),smEl=document.getElementById('f_sm');if(emEl)emEl.value=(dir==='BUY'?ent+mrg:ent-mrg).toFixed(4);if(smEl)smEl.value=(dir==='BUY'?sl1-mrg:sl1+mrg).toFixed(4);}
 function submitAddSig(){const d=collectSigForm();if(!d.ticker){alert('Ticker obbligatorio');return;}addSignal(d);closeM();}
-function submitEditSig(id){const d=collectSigForm();const stato=document.getElementById('f_stato')?.value;updSig(id,{...d,...(stato?{stato}:{})});closeM();}
+function submitEditSig(id){const d=collectSigForm();const stato=(document.getElementById('f_stato')||{}).value;updSig(id,{...d,...(stato?{stato}:{})});closeM();}
 
-function previewOrdine(){const ep=nn(document.getElementById('o_ep')?.value);const ps=nn(document.getElementById('o_ps')?.value);const inv=nn(document.getElementById('o_inv')?.value);const el=document.getElementById('ordinePreview');if(!el)return;if(!ep||!ps){el.innerHTML='';return;}const buyAmt=ep*ps;const sigId2=S.modal?.data?.sigId||S.modal?.data?.id;
+function previewOrdine(){const ep=nn((document.getElementById('o_ep')||{}).value);const ps=nn((document.getElementById('o_ps')||{}).value);const inv=nn((document.getElementById('o_inv')||{}).value);const el=document.getElementById('ordinePreview');if(!el)return;if(!ep||!ps){el.innerHTML='';return;}const buyAmt=ep*ps;const sigId2=(S.modal&&S.modal.data&&S.modal.data.sigId)||(S.modal&&S.modal.data&&S.modal.data.id)||null;
   const sig2=S.signals.find(x=>x.id===sigId2)||{};
-  const tpPreview=nn(document.getElementById('o_tp_livello')?.value)||nn(sig2.tp1)||null;
-  const slPreview=nn(document.getElementById('o_sl')?.value)||null;
-  const o_pos2=document.getElementById('o_pos')?.value||'Long';
+  const tpPreview=nn((document.getElementById('o_tp_livello')||{}).value)||nn(sig2.tp1)||null;
+  const slPreview=nn((document.getElementById('o_sl')||{}).value)||null;
+  const o_pos2=(document.getElementById('o_pos')||{}).value||'Long';
   const gainEurPreview=tpPreview&&ep&&inv?inv*((o_pos2==='Long'?(tpPreview-ep)/ep:(ep-tpPreview)/ep)):null;
   const lossEurPreview=slPreview&&ep&&inv?inv*Math.abs((ep-slPreview)/ep):null;
   const rrPreview=gainEurPreview&&lossEurPreview?(gainEurPreview/lossEurPreview).toFixed(2):null;
   el.innerHTML=`<div style="background:var(--s2);border-radius:8px;padding:12px;margin-bottom:12px"><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px"><div><div class="stat-label">Buy Amount</div><div class="mono">${fmtUSD(buyAmt)}</div></div><div><div class="stat-label">Investito</div><div class="mono">${inv?fmt(inv)+'€':'—'}</div></div><div><div class="stat-label">€/Azione</div><div class="mono dim">${inv&&ps?fmt(inv/ps)+'€':'—'}</div></div><div><div class="stat-label">Gain su TP</div><div class="mono gr-text">${gainEurPreview?'+'+fmt(gainEurPreview)+'€':'—'}</div></div><div><div class="stat-label">R/R</div><div class="mono ${rrPreview&&parseFloat(rrPreview)>=2?'gr-text':'yl-text'}">${rrPreview?'1:'+rrPreview:'—'}</div></div></div></div>`;}
-function submitAddOrdine(sigId){const ep=nn(document.getElementById('o_ep')?.value);const ps=nn(document.getElementById('o_ps')?.value);if(!ep||!ps){alert('Entry price e N. Azioni sono obbligatori');return;}const inv=nn(document.getElementById('o_inv')?.value);if(!inv){alert('Investito in euro è obbligatorio');return;}const sym=document.getElementById('o_sym')?.value?.trim().toUpperCase();if(!sym){alert('Symbol obbligatorio');return;}addOrdine({signal_id:sigId||null,piattaforma:document.getElementById('o_pf').value,market:document.getElementById('o_mkt').value,strategy:document.getElementById('o_str').value,symbol:sym,position:document.getElementById('o_pos').value,entry_datetime:document.getElementById('o_edt').value,entry_price:ep,position_size:ps,investito_eur:inv,stop_loss:nn(document.getElementById('o_sl')?.value),tp_livello:nn(document.getElementById('o_tp_livello')?.value),note:document.getElementById('o_note').value});if(sigId)updSig(sigId,{stato:'aperto'});closeM();}
+function submitAddOrdine(sigId){const ep=nn((document.getElementById('o_ep')||{}).value);const ps=nn((document.getElementById('o_ps')||{}).value);if(!ep||!ps){alert('Entry price e N. Azioni sono obbligatori');return;}const inv=nn((document.getElementById('o_inv')||{}).value);if(!inv){alert('Investito in euro è obbligatorio');return;}const sym=((document.getElementById('o_sym')||{}).value||'').trim().toUpperCase();if(!sym){alert('Symbol obbligatorio');return;}addOrdine({signal_id:sigId||null,piattaforma:document.getElementById('o_pf').value,market:document.getElementById('o_mkt').value,strategy:document.getElementById('o_str').value,symbol:sym,position:document.getElementById('o_pos').value,entry_datetime:document.getElementById('o_edt').value,entry_price:ep,position_size:ps,investito_eur:inv,stop_loss:nn((document.getElementById('o_sl')||{}).value),tp_livello:nn((document.getElementById('o_tp_livello')||{}).value),note:document.getElementById('o_note').value});if(sigId)updSig(sigId,{stato:'aperto'});closeM();}
 function submitEditOrdine(id){updOrdine(id,{piattaforma:document.getElementById('eo_pf').value,market:document.getElementById('eo_mkt').value,strategy:document.getElementById('eo_str').value,symbol:document.getElementById('eo_sym').value.trim().toUpperCase(),position:document.getElementById('eo_pos').value,entry_datetime:document.getElementById('eo_edt').value,entry_price:nn(document.getElementById('eo_ep').value),position_size:nn(document.getElementById('eo_ps').value),investito_eur:nn(document.getElementById('eo_inv').value),stop_loss:nn(document.getElementById('eo_sl').value),tp_livello:nn(document.getElementById('eo_tp').value),note:document.getElementById('eo_note').value});closeM();}
 
-function previewUscita(ordineId){const o=S.ordini.find(x=>x.id===ordineId);if(!o)return;const ep=nn(document.getElementById('u_ep')?.value);const qty=nn(document.getElementById('u_qty')?.value);const comm=nn(document.getElementById('u_comm')?.value)||0;const el=document.getElementById('uscitaPreview');if(!el)return;if(!ep||!qty){el.innerHTML='';return;}const entryP=nn(o.entry_price)||0,invEur=nn(o.investito_eur)||0,psOrd=nn(o.position_size)||1;const sellAmt=ep*qty,buyExited=entryP*qty;const plUSD=o.position==='Long'?sellAmt-buyExited:buyExited-sellAmt;const plEur=invEur&&psOrd?invEur*(qty/psOrd)*(buyExited?plUSD/buyExited:0)-comm:null;el.innerHTML=`<div class="alert ${plEur!==null&&plEur>=0?'al-success':'al-danger'}">Sell Amount: <strong>${fmtUSD(sellAmt)}</strong> · P&L calcolato: <strong>${plEur!==null?fmtEur(plEur):'—'}</strong></div>`;}
+function previewUscita(ordineId){const o=S.ordini.find(x=>x.id===ordineId);if(!o)return;const ep=nn((document.getElementById('u_ep')||{}).value);const qty=nn((document.getElementById('u_qty')||{}).value);const comm=nn((document.getElementById('u_comm')||{}).value)||0;const el=document.getElementById('uscitaPreview');if(!el)return;if(!ep||!qty){el.innerHTML='';return;}const entryP=nn(o.entry_price)||0,invEur=nn(o.investito_eur)||0,psOrd=nn(o.position_size)||1;const sellAmt=ep*qty,buyExited=entryP*qty;const plUSD=o.position==='Long'?sellAmt-buyExited:buyExited-sellAmt;const plEur=invEur&&psOrd?invEur*(qty/psOrd)*(buyExited?plUSD/buyExited:0)-comm:null;el.innerHTML=`<div class="alert ${plEur!==null&&plEur>=0?'al-success':'al-danger'}">Sell Amount: <strong>${fmtUSD(sellAmt)}</strong> · P&L calcolato: <strong>${plEur!==null?fmtEur(plEur):'—'}</strong></div>`;}
 function submitAddUscita(ordineId){
-  const ep=nn(document.getElementById('u_ep')?.value);
-  const qty=nn(document.getElementById('u_qty')?.value);
+  const ep=nn((document.getElementById('u_ep')||{}).value);
+  const qty=nn((document.getElementById('u_qty')||{}).value);
   if(!ep||!qty){alert('Exit price e Quantità sono obbligatori');return;}
-  const motivo=document.getElementById('u_motivo')?.value||'chiuso_man';
-  addUscita(ordineId,{exit_datetime:document.getElementById('u_dt').value,exit_price:ep,quantity:qty,commission_eur:nn(document.getElementById('u_comm')?.value)||0,pl_override:nn(document.getElementById('u_plreal')?.value),note:document.getElementById('u_note')?.value||'',motivo});
+  const motivo=(document.getElementById('u_motivo')||{}).value||'chiuso_man';
+  addUscita(ordineId,{exit_datetime:document.getElementById('u_dt').value,exit_price:ep,quantity:qty,commission_eur:nn((document.getElementById('u_comm')||{}).value)||0,pl_override:nn((document.getElementById('u_plreal')||{}).value),note:(document.getElementById('u_note')||{}).value||'',motivo});
   // Aggiorna il segnale collegato
   const o=S.ordini.find(x=>x.id===ordineId);
   if(o&&o.signal_id){
@@ -1112,10 +1123,10 @@ function submitAddUscita(ordineId){
   }
   closeM();
 }
-function submitOverridePL(ordineId,remove=false){if(remove){updOrdine(ordineId,{pl_override:null});closeM();return;}const val=nn(document.getElementById('ovr_pl')?.value);updOrdine(ordineId,{pl_override:val});closeM();}
+function submitOverridePL(ordineId,remove=false){if(remove){updOrdine(ordineId,{pl_override:null});closeM();return;}const val=nn((document.getElementById('ovr_pl')||{}).value);updOrdine(ordineId,{pl_override:val});closeM();}
 
-function changePwd(){const p1=document.getElementById('newPwd1')?.value||'';const p2=document.getElementById('newPwd2')?.value||'';const el=document.getElementById('pwdErr');if(p1.length<6){if(el)el.innerHTML=`<div class="alert al-danger">Minimo 6 caratteri.</div>`;return;}if(p1!==p2){if(el)el.innerHTML=`<div class="alert al-danger">Non corrispondono.</div>`;return;}S.pwd=p1;localStorage.setItem('ek_pwd',p1);if(el)el.innerHTML=`<div class="alert al-success">✅ Aggiornata. Ricorda di aggiornare anche in GAS.</div>`;}
-function saveGas(){const url=document.getElementById('gasInput')?.value?.trim();if(!url){alert('Inserisci un URL');return;}S.gasUrl=url;localStorage.setItem('ek_gas',url);gasRead();}
+function changePwd(){const p1=(document.getElementById('newPwd1')||{}).value||'';const p2=(document.getElementById('newPwd2')||{}).value||'';const el=document.getElementById('pwdErr');if(p1.length<6){if(el)el.innerHTML=`<div class="alert al-danger">Minimo 6 caratteri.</div>`;return;}if(p1!==p2){if(el)el.innerHTML=`<div class="alert al-danger">Non corrispondono.</div>`;return;}S.pwd=p1;localStorage.setItem('ek_pwd',p1);if(el)el.innerHTML=`<div class="alert al-success">✅ Aggiornata. Ricorda di aggiornare anche in GAS.</div>`;}
+function saveGas(){const url=((document.getElementById('gasInput')||{}).value||'').trim();if(!url){alert('Inserisci un URL');return;}S.gasUrl=url;localStorage.setItem('ek_gas',url);gasRead();}
 async function testPrezzi(){
   const el=document.getElementById('gasStatus');
   if(!S.gasUrl){if(el)el.innerHTML=`<div class="alert al-warn">Configura prima l'URL GAS</div>`;return;}
@@ -1149,7 +1160,7 @@ async function testPrezzi(){
   }
 }
 
-async function testGas(){const url=document.getElementById('gasInput')?.value?.trim();const el=document.getElementById('gasStatus');if(!url){if(el)el.innerHTML=`<div class="alert al-warn">Inserisci un URL</div>`;return;}if(el)el.innerHTML=`<div class="alert al-info">Connessione...</div>`;try{const r=await fetch(url+'?action=ping&token='+encodeURIComponent(S.pwd));const d=await r.json();if(d.error)throw new Error(d.error);if(el)el.innerHTML=`<div class="alert al-success">✅ Connessione OK</div>`;}catch(e){if(el)el.innerHTML=`<div class="alert al-danger">❌ ${esc(e.message)}</div>`;}}
+async function testGas(){const url=((document.getElementById('gasInput')||{}).value||'').trim();const el=document.getElementById('gasStatus');if(!url){if(el)el.innerHTML=`<div class="alert al-warn">Inserisci un URL</div>`;return;}if(el)el.innerHTML=`<div class="alert al-info">Connessione...</div>`;try{const r=await fetch(url+'?action=ping&token='+encodeURIComponent(S.pwd));const d=await r.json();if(d.error)throw new Error(d.error);if(el)el.innerHTML=`<div class="alert al-success">✅ Connessione OK</div>`;}catch(e){if(el)el.innerHTML=`<div class="alert al-danger">❌ ${esc(e.message)}</div>`;}}
 
 
 function calcMinusvalenzeHTML(){
@@ -1224,7 +1235,7 @@ function calcMinusvalenzeHTML(){
 
 function previewMinusComp(ordineId){
   const o=S.ordini.find(x=>x.id===ordineId); if(!o) return;
-  const val=nn(document.getElementById('minus_comp_input')?.value)||0;
+  const val=nn((document.getElementById('minus_comp_input')||{}).value)||0;
   const res=calcOrdine(o);
   if(!res.plFinal) return;
   const el=document.getElementById('minusCompPreview'); if(!el) return;
@@ -1236,7 +1247,7 @@ function previewMinusComp(ordineId){
 
 function submitMinusComp(ordineId, remove=false){
   if(remove){ updOrdine(ordineId,{minus_compensata:null}); closeM(); return; }
-  const val=nn(document.getElementById('minus_comp_input')?.value);
+  const val=nn((document.getElementById('minus_comp_input')||{}).value);
   if(val===null||val<0){ alert('Inserisci un importo valido (≥ 0)'); return; }
   const pool=poolMinusvalenze();
   const o=S.ordini.find(x=>x.id===ordineId)||{};
@@ -1445,8 +1456,7 @@ async function fetchPrezziLive(){
   // Collect all tickers: open orders + all active/received signals
   const tickers=new Set();
   S.ordini.filter(o=>o.stato==='aperto'||o.stato==='parziale').forEach(o=>{if(o.symbol)tickers.add(o.symbol);});
-  S.signals.filter(s=>!['chiuso_tp','chiuso_stop','chiuso_man','scartato','eliminato'].includes(s.stato))
-    .forEach(s=>{if(s.ticker)tickers.add(s.ticker);});
+  S.signals.filter(s=>!['chiuso_tp','chiuso_stop','chiuso_man','scartato','eliminato'].includes(s.stato)).forEach(s=>{if(s.ticker)tickers.add(s.ticker);});
   if(tickers.size===0)return;
   try{
     const tickerList=encodeURIComponent([...tickers].join(','));
@@ -1569,18 +1579,18 @@ function renderApp(){return `<div class="app">
       <button class="mobile-nav-item" onclick="logout()" style="max-width:50px"><span class="nav-icon">⏻</span><span>Esci</span></button>
     </nav>
   </div>${renderModal()}`;}
-function render(){if(!S.pwd)document.getElementById('app').innerHTML=viewFirstSetup();else if(!S.unlocked){document.getElementById('app').innerHTML=viewLogin();setTimeout(()=>document.getElementById('loginPwd')?.focus(),50);}else document.getElementById('app').innerHTML=renderApp();}
+function render(){if(!S.pwd)document.getElementById('app').innerHTML=viewFirstSetup();else if(!S.unlocked){document.getElementById('app').innerHTML=viewLogin();setTimeout(()=>(function(){var _e=document.getElementById('loginPwd');if(_e)_e.focus();})(),50);}else document.getElementById('app').innerHTML=renderApp();}
 
 function submitEditUscita(ordineId,uscitaId){
-  const ep=nn(document.getElementById('eu_ep')?.value);
-  const qty=nn(document.getElementById('eu_qty')?.value);
+  const ep=nn((document.getElementById('eu_ep')||{}).value);
+  const qty=nn((document.getElementById('eu_qty')||{}).value);
   if(!ep||!qty){alert('Exit price e Quantità sono obbligatori');return;}
   updUscita(ordineId,uscitaId,{
     exit_datetime:document.getElementById('eu_dt').value,
     exit_price:ep, quantity:qty,
-    commission_eur:nn(document.getElementById('eu_comm')?.value)||0,
-    pl_override:nn(document.getElementById('eu_plreal')?.value),
-    note:document.getElementById('eu_note')?.value||''
+    commission_eur:nn((document.getElementById('eu_comm')||{}).value)||0,
+    pl_override:nn((document.getElementById('eu_plreal')||{}).value),
+    note:(document.getElementById('eu_note')||{}).value||''
   });
   closeM();
 }
