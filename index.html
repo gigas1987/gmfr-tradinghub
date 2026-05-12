@@ -595,7 +595,7 @@ function viewDashboard(){
         <div class="card-title">⚠ Monitoraggio Stop — Posizioni Aperte</div>
         ${(()=>{const totPL=aperti.reduce((sum,o)=>{const ep=nn(o.entry_price),inv=nn(o.investito_eur),ps=nn(o.position_size)||1,liveP=S_prezzi[o.symbol]||null;if(!ep||!inv||!liveP)return sum;let qRem=ps;try{const us=JSON.parse(o.uscite||'[]');qRem-=us.reduce((s,u)=>s+(nn(u.quantity)||0),0);}catch(e){}const plUSD2=o.position==='Long'?(liveP-ep)*qRem:(ep-liveP)*qRem;const er=getEURUSD();return sum+(er?plUSD2/er:inv*(qRem/ps)*(o.position==='Long'?(liveP-ep)/ep:(ep-liveP)/ep));},0);if(!S_prezziTs||totPL===0)return '';return `<span class="badge ${totPL>=0?'bg':'br'}" style="font-size:12px;padding:4px 10px">${totPL>=0?'+':''}${fmt(totPL)}€</span>`;})()}
       </div>
-      <div style="font-size:11px;color:var(--t2);margin-top:4px">${S_prezziTs?'Prezzi: '+new Date(S_prezziTs).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+(getEURUSD()?` · EUR/USD ${fmtP(getEURUSD())}`:''):'Clicca 📡 Prezzi per aggiornare'}</div>
+      <div style="font-size:11px;color:var(--t2);margin-top:4px">${S_prezziTs?'Prezzi: '+new Date(S_prezziTs).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+(getEURUSD()?` · <span data-eurusd-label>EUR/USD ${fmtP(getEURUSD())}</span>`:''):'Clicca 📡 Prezzi per aggiornare'}</div>
     </div>
   </div><div class="tbl-wrap"><table>
   <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>TP $</th><th>Dist. Stop</th><th>Dist. TP</th><th><span data-market-label>${isUSMarketOpen()?'Prezzo Live':'Chiusura'}</span></th><th>Pre/Post Mkt</th><th>P&L Corrente</th><th>Rischio Max €</th><th>Investito €</th><th></th></tr></thead>
@@ -1525,10 +1525,12 @@ let S_prezzi = JSON.parse(localStorage.getItem('gmfr_prezzi') || '{}');
 let S_prezziTs = localStorage.getItem('gmfr_prezzi_ts') || null;
 let S_marketOpen = null;   // true/false/null (null = non ancora verificato)
 let S_marketState = null;  // 'REGULAR' | 'PRE' | 'POST' | 'CLOSED' | 'UNKNOWN'
+let S_eurusd = parseFloat(localStorage.getItem('gmfr_eurusd'))||null;
+let S_eurusdTs = localStorage.getItem('gmfr_eurusd_ts')||null;
 
 function getEURUSD(){
-  // Ritorna il cambio EUR/USD corrente dai prezzi fetchati (default 1.0 se non disponibile)
-  return S_prezzi['EURUSD=X'] || null;
+  // Preferisce il cambio BCE (Frankfurter), poi Yahoo Finance come fallback
+  return S_eurusd || S_prezzi['EURUSD=X'] || null;
 }
 
 function usdToEur(usdAmount){
@@ -1537,8 +1539,28 @@ function usdToEur(usdAmount){
   return usdAmount/rate;
 }
 
+async function fetchEURUSDBCE(){
+  try{
+    const r=await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD');
+    if(!r.ok)return;
+    const d=await r.json();
+    if(d&&d.rates&&d.rates.USD){
+      S_eurusd=d.rates.USD;
+      S_eurusdTs=new Date().toISOString();
+      localStorage.setItem('gmfr_eurusd',S_eurusd);
+      localStorage.setItem('gmfr_eurusd_ts',S_eurusdTs);
+      // Aggiorna solo il badge EURUSD nell'header senza re-render
+      document.querySelectorAll('[data-eurusd-label]').forEach(el=>{
+        el.textContent='EUR/USD '+fmtP(S_eurusd);
+      });
+    }
+  }catch(e){console.warn('Frankfurter fetch failed:',e.message);}
+}
+
 async function fetchPrezziLive(){
   if(!S.gasUrl||!S.pwd)return;
+  // Fetch BCE exchange rate in parallel (direct, no GAS needed)
+  fetchEURUSDBCE();
   // Check market status in parallel
   fetchMarketStatus();
   // Collect all tickers: open orders + all active/received signals
