@@ -567,7 +567,7 @@ function viewDashboard(){
     <div class="card-title">⚠ Monitoraggio Stop — Posizioni Aperte</div>
     <div style="font-size:11px;color:var(--t2)">${S_prezziTs?'Prezzi: '+new Date(S_prezziTs).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'Clicca 📡 Prezzi per aggiornare'}</div>
   </div><div class="tbl-wrap"><table>
-  <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>TP $</th><th>Dist. Stop</th><th>Dist. TP</th><th>${(()=>{const states=aperti.map(o=>S_prezzi[o.symbol+'_state']||'').filter(Boolean);const isOpen=states.some(s=>s==='REGULAR');return isOpen?'Prezzo Live':'Chiusura';})()}</th><th>Pre/Post Mkt</th><th>P&L Corrente</th><th>Rischio Max €</th><th>Investito €</th><th></th></tr></thead>
+  <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>TP $</th><th>Dist. Stop</th><th>Dist. TP</th><th>${isUSMarketOpen()?'Prezzo Live':'Chiusura'}</th><th>Pre/Post Mkt</th><th>P&L Corrente</th><th>Rischio Max €</th><th>Investito €</th><th></th></tr></thead>
   <tbody>${aperti.map(o=>{
     const ep=nn(o.entry_price),sl=nn(o.stop_loss),inv=nn(o.investito_eur),ps=nn(o.position_size)||0;
     const sig=S.signals.find(s=>s.id===o.signal_id)||{};
@@ -1474,9 +1474,13 @@ function getCompensatedStatus(lossOrdineId, totalLoss){
 let syncPending = 0;
 let S_prezzi = JSON.parse(localStorage.getItem('gmfr_prezzi') || '{}');
 let S_prezziTs = localStorage.getItem('gmfr_prezzi_ts') || null;
+let S_marketOpen = null;   // true/false/null (null = non ancora verificato)
+let S_marketState = null;  // 'REGULAR' | 'PRE' | 'POST' | 'CLOSED' | 'UNKNOWN'
 
 async function fetchPrezziLive(){
   if(!S.gasUrl||!S.pwd)return;
+  // Check market status in parallel
+  fetchMarketStatus();
   // Collect all tickers: open orders + all active/received signals
   const tickers=new Set();
   S.ordini.filter(o=>o.stato==='aperto'||o.stato==='parziale').forEach(o=>{if(o.symbol)tickers.add(o.symbol);});
@@ -1571,6 +1575,36 @@ function checkRiattivazioniLive(){
     if(s.stato==='invalidato') checkRiattivazione(s.id,prezzo);
     if(s.stato==='riattivato') checkInvalidazioneRiattivato(s.id,prezzo);
   });
+}
+
+
+function isUSMarketOpen(){
+  // Usa stato cachato da GAS se disponibile, altrimenti fallback orario
+  if(S_marketOpen!==null)return S_marketOpen;
+  // Fallback: orario IT con gestione DST approssimativa
+  const now=new Date();
+  const it=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Rome'}));
+  const day=it.getDay();
+  if(day===0||day===6)return false;
+  const mins=it.getHours()*60+it.getMinutes();
+  // Copre sia estate (15:30-22:00) che inverno (14:30-21:00) con margine
+  return mins>=14*60+30 && mins<22*60+15;
+}
+
+async function fetchMarketStatus(){
+  if(!S.gasUrl||!S.pwd)return;
+  try{
+    const r=await fetch(S.gasUrl+'?token='+encodeURIComponent(S.pwd)+'&action=market_status');
+    if(!r.ok)return;
+    const d=await r.json();
+    if(d.state){
+      S_marketState=d.state;
+      S_marketOpen=d.isOpen||false;
+      // Aggiorna l'header del monitoraggio se visibile
+      const el=document.querySelector('.card-title');
+      render();
+    }
+  }catch(e){}
 }
 
 const TABS=[{id:'dashboard',ic:'▦',l:'Dashboard'},{id:'segnali',ic:'◎',l:'Segnali Azionari'},{id:'ordini',ic:'◈',l:'Ordini'},{id:'setup',ic:'⚙',l:'Setup'}];
