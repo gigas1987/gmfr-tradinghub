@@ -567,7 +567,7 @@ function viewDashboard(){
     <div class="card-title">⚠ Monitoraggio Stop — Posizioni Aperte</div>
     <div style="font-size:11px;color:var(--t2)">${S_prezziTs?'Prezzi: '+new Date(S_prezziTs).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'Clicca 📡 Prezzi per aggiornare'}</div>
   </div><div class="tbl-wrap"><table>
-  <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>TP $</th><th>Dist. Stop</th><th>Dist. TP</th><th>${isUSMarketOpen()?'Prezzo Live':'Chiusura'}</th><th>Pre/Post Mkt</th><th>P&L Corrente</th><th>Rischio Max €</th><th>Investito €</th><th></th></tr></thead>
+  <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>TP $</th><th>Dist. Stop</th><th>Dist. TP</th><th><span data-market-label>${isUSMarketOpen()?'Prezzo Live':'Chiusura'}</span></th><th>Pre/Post Mkt</th><th>P&L Corrente</th><th>Rischio Max €</th><th>Investito €</th><th></th></tr></thead>
   <tbody>${aperti.map(o=>{
     const ep=nn(o.entry_price),sl=nn(o.stop_loss),inv=nn(o.investito_eur),ps=nn(o.position_size)||0;
     const sig=S.signals.find(s=>s.id===o.signal_id)||{};
@@ -1600,9 +1600,10 @@ async function fetchMarketStatus(){
     if(d.state){
       S_marketState=d.state;
       S_marketOpen=d.isOpen||false;
-      // Aggiorna l'header del monitoraggio se visibile
-      const el=document.querySelector('.card-title');
-      render();
+      // Aggiorna solo la cella intestazione senza re-render completo
+      document.querySelectorAll('[data-market-label]').forEach(el=>{
+        el.textContent=S_marketOpen?'Prezzo Live':'Chiusura';
+      });
     }
   }catch(e){}
 }
