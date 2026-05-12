@@ -564,7 +564,7 @@ function viewDashboard(){
   <!-- ZONA 2: AZIONI IMMEDIATE -->
 
   ${aperti.length?`<div class="card"><div class="card-head">
-    <div class="card-title">⚠ Monitoraggio Stop — Posizioni Aperte</div>
+    <div class="flex ai gap2 jb" style="width:100%"><div class="flex ai gap2"><div class="card-title">⚠ Monitoraggio Stop — Posizioni Aperte</div></div>${(()=>{const totPL=aperti.reduce((sum,o)=>{const ep=nn(o.entry_price),inv=nn(o.investito_eur),ps=nn(o.position_size)||1,liveP=S_prezzi[o.symbol]||null;if(!ep||!inv||!liveP)return sum;let qRem=ps;try{const us=JSON.parse(o.uscite||'[]');qRem-=us.reduce((s,u)=>s+(nn(u.quantity)||0),0);}catch(e){}return sum+inv*(qRem/ps)*(o.position==='Long'?(liveP-ep)/ep:(ep-liveP)/ep);},0);if(!S_prezziTs||totPL===0)return '';return `<span class="mono ${plClass(totPL)}" style="font-size:14px;font-weight:700">(${totPL>=0?'+':''}${fmt(totPL)}€)</span>`;})()}</div>
     <div style="font-size:11px;color:var(--t2)">${S_prezziTs?'Prezzi: '+new Date(S_prezziTs).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'Clicca 📡 Prezzi per aggiornare'}</div>
   </div><div class="tbl-wrap"><table>
   <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>TP $</th><th>Dist. Stop</th><th>Dist. TP</th><th><span data-market-label>${isUSMarketOpen()?'Prezzo Live':'Chiusura'}</span></th><th>Pre/Post Mkt</th><th>P&L Corrente</th><th>Rischio Max €</th><th>Investito €</th><th></th></tr></thead>
