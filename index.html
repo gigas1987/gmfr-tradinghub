@@ -1164,9 +1164,16 @@ async function testPrezzi(){
       return;
     }
     if(parsed.prezzi&&parsed.prezzi[ticker]){
-      if(el)el.innerHTML=`<div class="alert al-success">✅ Prezzi funzionano — AAPL: $${fmt(parsed.prezzi[ticker])} · ts: ${parsed.ts||'—'}</div>`;
+      const p=parsed.prezzi;
+      const extP=p[ticker+'_ext'];
+      const extL=p[ticker+'_ext_label']||'';
+      const state=p[ticker+'_state']||'?';
+      let msg=`✅ AAPL: $${fmt(p[ticker])} · Stato: ${state}`;
+      if(extP) msg+=` · ${extL}: $${fmt(extP)}`;
+      else msg+=' · Nessun dato pre/post market (mercato regular o chiuso)';
+      if(el)el.innerHTML=`<div class="alert al-success">${esc(msg)}</div><div style="font-size:11px;color:var(--t3);margin-top:6px">Raw: ${esc(JSON.stringify(p).slice(0,400))}</div>`;
     } else if(parsed.prezzi){
-      if(el)el.innerHTML=`<div class="alert al-warn">⚠ Endpoint OK ma AAPL non trovato. Risposta: ${esc(JSON.stringify(parsed))}</div>`;
+      if(el)el.innerHTML=`<div class="alert al-warn">⚠ Endpoint OK ma AAPL non trovato. Raw: ${esc(JSON.stringify(parsed))}</div>`;
     } else {
       if(el)el.innerHTML=`<div class="alert al-warn">⚠ Risposta inattesa: ${esc(JSON.stringify(parsed).slice(0,300))}</div>`;
     }
