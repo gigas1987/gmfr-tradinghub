@@ -351,13 +351,14 @@ function calcOrdine(o){
     const fraz=qtyExited/posSize;
     const costoAcquistoEUR=invEur*fraz; // costo reale in EUR al cambio d'acquisto
     const eurusd=getEURUSD();
-    if(eurusd&&buyExited&&qtyExited>0){
-      // Formula corretta: valore di vendita EUR - costo acquisto EUR
-      // sellAmount è in USD → converti al cambio corrente
+    if(eurusd&&sellAmount&&qtyExited>0){
+      // Formula Fineco-equivalente per trade chiusi:
+      // valore_vendita_EUR = sellAmount_USD / EURUSD_ora
+      // P&L = valore_vendita_EUR - costo_acquisto_EUR
       const valoreVenditaEUR=sellAmount/eurusd;
       plEur=valoreVenditaEUR-costoAcquistoEUR-totalComm;
     } else {
-      // Fallback: proporzionale sull'investito (se no cambio disponibile)
+      // Fallback: proporzionale sull'investito
       const pct=buyExited?plUSD/buyExited:0;
       plEur=invEur*fraz*pct-totalComm;
     }
@@ -608,21 +609,21 @@ function viewDashboard(){
     const risk=ep&&stopEff&&inv?inv*(Math.abs(ep-stopEff)/ep):null;
     const liveP=S_prezzi[o.symbol]||null;
     const livePct=liveP&&ep?((o.position==='Long'?liveP-ep:ep-liveP)/ep*100):null;
-    // P&L corrente con formula corretta: valore attuale EUR - costo acquisto EUR
-    // Tiene conto della variazione del cambio EUR/USD dal momento dell'acquisto
+    // P&L corrente — formula Fineco-equivalente:
+    // P&L EUR = valore_attuale_EUR - costo_acquisto_EUR
+    // valore_attuale_EUR = prezzo_live × qty_residua / EURUSD_ora
+    // costo_acquisto_EUR = investito_eur × (qty_residua / qty_totale)  ← già in EUR al cambio d'acquisto
     const eurusd=getEURUSD();
     let livePL=null;
     if(liveP&&qtyRem>0&&inv&&ps){
       const frazRem=qtyRem/ps;
-      const costoAcquistoEUR=inv*frazRem; // quello che hai pagato in EUR
+      const costoAcquistoEUR=inv*frazRem;
       if(eurusd){
-        // Valore corrente in EUR al cambio di oggi
         const valoreCorrenteEUR=o.position==='Long'
           ?(liveP*qtyRem/eurusd)
-          :((ep*2-liveP)*qtyRem/eurusd); // short: profitto se prezzo scende
+          :((ep+(ep-liveP))*qtyRem/eurusd);
         livePL=valoreCorrenteEUR-costoAcquistoEUR;
       } else if(ep){
-        // Fallback senza cambio: proporzionale all'investito
         livePL=inv*frazRem*((o.position==='Long'?liveP-ep:ep-liveP)/ep);
       }
     }
