@@ -347,15 +347,18 @@ function calcOrdine(o){
   const buyExited=entryP*qtyExited;
   const plUSD=o.position==='Long'?sellAmount-buyExited:buyExited-sellAmount;
   let plEur=null;
-  if(buyAmount&&invEur&&qtyExited){
+  if(buyAmount&&invEur&&qtyExited&&posSize){
     const fraz=qtyExited/posSize;
-    const pct=buyExited?plUSD/buyExited:0;
+    const costoAcquistoEUR=invEur*fraz; // costo reale in EUR al cambio d'acquisto
     const eurusd=getEURUSD();
-    if(eurusd&&buyExited){
-      // Metodo preciso: converti P&L USD → EUR con cambio live
-      plEur=plUSD/eurusd-totalComm;
+    if(eurusd&&buyExited&&qtyExited>0){
+      // Formula corretta: valore di vendita EUR - costo acquisto EUR
+      // sellAmount è in USD → converti al cambio corrente
+      const valoreVenditaEUR=sellAmount/eurusd;
+      plEur=valoreVenditaEUR-costoAcquistoEUR-totalComm;
     } else {
-      // Fallback: calcolo proporzionale sull'investito (come prima)
+      // Fallback: proporzionale sull'investito (se no cambio disponibile)
+      const pct=buyExited?plUSD/buyExited:0;
       plEur=invEur*fraz*pct-totalComm;
     }
   }
@@ -414,7 +417,7 @@ function mergeByTs(local,remote){
       if(lt>=rt){result[ri]=loc;repush.push(loc);} // locale vince a parità di timestamp
       else {
         // GAS è più recente MA preserva i campi locali non-null che GAS non conosce
-        const preserved=['tp_livello','minus_compensata','minus_refs','stop_counter','stop_history'];
+        const preserved=['tp_livello','stop_loss','entry_datetime','minus_compensata','minus_refs','stop_counter','stop_history'];
         let changed=false;
         preserved.forEach(f=>{
           if((loc[f]!==null&&loc[f]!==undefined&&loc[f]!=='')&&(result[ri][f]===null||result[ri][f]===undefined||result[ri][f]==='')) {
@@ -605,10 +608,24 @@ function viewDashboard(){
     const risk=ep&&stopEff&&inv?inv*(Math.abs(ep-stopEff)/ep):null;
     const liveP=S_prezzi[o.symbol]||null;
     const livePct=liveP&&ep?((o.position==='Long'?liveP-ep:ep-liveP)/ep*100):null;
-    // P&L corrente in EUR con cambio live se disponibile
-    const livePLusd=liveP&&ep&&qtyRem>0?(o.position==='Long'?(liveP-ep)*qtyRem:(ep-liveP)*qtyRem):null;
+    // P&L corrente con formula corretta: valore attuale EUR - costo acquisto EUR
+    // Tiene conto della variazione del cambio EUR/USD dal momento dell'acquisto
     const eurusd=getEURUSD();
-    const livePL=livePLusd!==null?(eurusd?livePLusd/eurusd:(inv&&livePct!==null?inv*livePct/100:null)):null;
+    let livePL=null;
+    if(liveP&&qtyRem>0&&inv&&ps){
+      const frazRem=qtyRem/ps;
+      const costoAcquistoEUR=inv*frazRem; // quello che hai pagato in EUR
+      if(eurusd){
+        // Valore corrente in EUR al cambio di oggi
+        const valoreCorrenteEUR=o.position==='Long'
+          ?(liveP*qtyRem/eurusd)
+          :((ep*2-liveP)*qtyRem/eurusd); // short: profitto se prezzo scende
+        livePL=valoreCorrenteEUR-costoAcquistoEUR;
+      } else if(ep){
+        // Fallback senza cambio: proporzionale all'investito
+        livePL=inv*frazRem*((o.position==='Long'?liveP-ep:ep-liveP)/ep);
+      }
+    }
     const stopViolato=liveP&&stopEff?(o.position==='Long'?liveP<=stopEff:liveP>=stopEff):false;
     const nearStop=liveP&&stopEff&&!stopViolato?Math.abs(liveP-stopEff)/stopEff*100<1:false;
     const lightCls=stopViolato?'red':nearStop?'yellow':'';
