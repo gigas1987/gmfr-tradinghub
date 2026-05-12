@@ -317,7 +317,6 @@ const today=()=>new Date().toISOString().split('T')[0];
 const nowDT=()=>new Date().toISOString().slice(0,16);
 const nn=v=>(v==null||v==='')?null:Number(v);
 const fmt=(n,d=2)=>n==null||n===''?'—':Number(n).toFixed(d);
-const fmtP=n=>n==null||n===''?'—':Number(n).toFixed(3); // prezzi: 3 decimali
 const fmtPct=n=>n==null?'—':(Number(n)>=0?'+':'')+Number(n).toFixed(2)+'%';
 const fmtEur=n=>n==null?'—':(Number(n)>=0?'+':'')+Number(n).toFixed(2)+'€';
 const fmtUSD=n=>n==null?'—':'$'+Number(n).toFixed(2);
@@ -400,18 +399,7 @@ function mergeByTs(local,remote){
     else{
       const lt=new Date(loc.updated||loc.created||0);
       const rt=new Date(result[ri].updated||result[ri].created||0);
-      if(lt>=rt){result[ri]=loc;repush.push(loc);} // locale vince a parità di timestamp
-      else {
-        // GAS è più recente MA preserva i campi locali non-null che GAS non conosce
-        const preserved=['tp_livello','minus_compensata','minus_refs','stop_counter','stop_history'];
-        let changed=false;
-        preserved.forEach(f=>{
-          if((loc[f]!==null&&loc[f]!==undefined&&loc[f]!=='')&&(result[ri][f]===null||result[ri][f]===undefined||result[ri][f]==='')) {
-            result[ri][f]=loc[f];changed=true;
-          }
-        });
-        if(changed)repush.push(result[ri]);
-      }
+      if(lt>rt){result[ri]=loc;repush.push(loc);}
     }
   });
   return{merged:result,repush};
@@ -576,16 +564,10 @@ function viewDashboard(){
   <!-- ZONA 2: AZIONI IMMEDIATE -->
 
   ${aperti.length?`<div class="card"><div class="card-head">
-    <div>
-      <div style="display:flex;align-items:center;gap:12px">
-        <div class="card-title">⚠ Monitoraggio Stop — Posizioni Aperte</div>
-        ${(()=>{const totPL=aperti.reduce((sum,o)=>{const ep=nn(o.entry_price),inv=nn(o.investito_eur),ps=nn(o.position_size)||1,liveP=S_prezzi[o.symbol]||null;if(!ep||!inv||!liveP)return sum;let qRem=ps;try{const us=JSON.parse(o.uscite||'[]');qRem-=us.reduce((s,u)=>s+(nn(u.quantity)||0),0);}catch(e){}return sum+inv*(qRem/ps)*(o.position==='Long'?(liveP-ep)/ep:(ep-liveP)/ep);},0);if(!S_prezziTs||totPL===0)return '';return `<span class="badge ${totPL>=0?'bg':'br'}" style="font-size:12px;padding:4px 10px">${totPL>=0?'+':''}${fmt(totPL)}€</span>`;})()}
-      </div>
-      <div style="font-size:11px;color:var(--t2);margin-top:4px">${S_prezziTs?'Prezzi: '+new Date(S_prezziTs).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'Clicca 📡 Prezzi per aggiornare'}</div>
-    </div>
+    <div class="card-title">⚠ Monitoraggio Stop — Posizioni Aperte</div>
+    <div style="font-size:11px;color:var(--t2)">${S_prezziTs?'Prezzi: '+new Date(S_prezziTs).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'Clicca 📡 Prezzi per aggiornare'}</div>
   </div><div class="tbl-wrap"><table>
-  </div><div class="tbl-wrap"><table>
-  <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>TP $</th><th>Dist. Stop</th><th>Dist. TP</th><th><span data-market-label>${isUSMarketOpen()?'Prezzo Live':'Chiusura'}</span></th><th>Pre/Post Mkt</th><th>P&L Corrente</th><th>Rischio Max €</th><th>Investito €</th><th></th></tr></thead>
+  <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>TP $</th><th>Dist. Stop</th><th>Dist. TP</th><th>${isUSMarketOpen()?'Prezzo Live':'Chiusura'}</th><th>Pre/Post Mkt</th><th>P&L Corrente</th><th>Rischio Max €</th><th>Investito €</th><th></th></tr></thead>
   <tbody>${aperti.map(o=>{
     const ep=nn(o.entry_price),sl=nn(o.stop_loss),inv=nn(o.investito_eur),ps=nn(o.position_size)||0;
     const sig=S.signals.find(s=>s.id===o.signal_id)||{};
@@ -608,7 +590,7 @@ function viewDashboard(){
       ${(()=>{const sig2=S.signals.find(s=>s.id===o.signal_id)||{};const tpEff=nn(o.tp_livello)||nn(sig2.tp1)||null;return `<td class="mono gr-text">${tpEff?fmt(tpEff):'—'}</td>`;})()}
       <td class="mono dim">${dist?dist.toFixed(2)+'%':'—'}</td>
       ${(()=>{const sig2=S.signals.find(s=>s.id===o.signal_id)||{};const tpEff=nn(o.tp_livello)||nn(sig2.tp1)||null;if(!ep||!tpEff||!liveP)return '<td class="mono dim">—</td>';const d=o.position==='Long'?(tpEff-liveP)/liveP*100:(liveP-tpEff)/liveP*100;const cls=d>=0?'gr-text':'rd-text';return `<td class="mono ${cls}">${d.toFixed(2)}%</td>`;})()}
-      <td>${liveP?`<span class="mono ${livePct!==null?plClass(livePct):''}">${fmtP(liveP)}</span>`:'<span class="dim">—</span>'}</td>
+      <td>${liveP?`<span class="mono ${livePct!==null?plClass(livePct):''}">${fmt(liveP)}</span>`:'<span class="dim">—</span>'}</td>
       ${(()=>{
         const extP=S_prezzi[o.symbol+'_ext']||null;
         const extLabel=S_prezzi[o.symbol+'_ext_label']||'';
@@ -617,7 +599,7 @@ function viewDashboard(){
         const extPct=ep?(o.position==='Long'?extP-ep:ep-extP)/ep*100:null;
         const stopViolatoExt=stopEff?(o.position==='Long'?extP<=stopEff:extP>=stopEff):false;
         const badgeCls=stopViolatoExt?'br':'bo';
-        return `<td><span class="badge ${badgeCls}" style="font-size:10px">${extLabel} $${fmtP(extP)}</span>${stopViolatoExt?'<span class="sig-light red" style="margin-left:4px;display:inline-block"></span>':''}</td>`;
+        return `<td><span class="badge ${badgeCls}" style="font-size:10px">${extLabel} $${fmt(extP)}</span>${stopViolatoExt?'<span class="sig-light red" style="margin-left:4px;display:inline-block"></span>':''}</td>`;
       })()}
       <td>${livePL!==null?`<span class="mono ${plClass(livePL)}">${fmtEur(livePL)}</span>`:'<span class="dim">—</span>'}</td>
       <td class="mono rd-text">${(()=>{const tpEff2=nn(o.tp_livello)||(()=>{const s2=S.signals.find(s=>s.id===o.signal_id)||{};return nn(s2.tp1)||null;})();if(!ep||!stopEff||!inv)return '—';const risk=inv*(Math.abs(ep-stopEff)/ep);return fmt(risk)+'€';})()}</td>
@@ -665,8 +647,8 @@ function viewDashboard(){
       <td>${(()=>{
         const extP2=S_prezzi[s.ticker+'_ext']||null;
         const extL2=S_prezzi[s.ticker+'_ext_label']||'';
-        const priceDisplay=liveP?`<span class="mono ${condMet?'gr-text':''}">${fmtP(liveP)}</span>`:'<span class="dim">—</span>';
-        const extDisplay=extP2?` <span class="badge bo" style="font-size:9px;padding:1px 5px">${extL2} $${fmtP(extP2)}</span>`:'';
+        const priceDisplay=liveP?`<span class="mono ${condMet?'gr-text':''}">${fmt(liveP)}</span>`:'<span class="dim">—</span>';
+        const extDisplay=extP2?` <span class="badge bo" style="font-size:9px;padding:1px 5px">${extL2} $${fmt(extP2)}</span>`:'';
         return priceDisplay+extDisplay;
       })()}</td>
       <td>${distPct!==null?`<span class="mono ${condMet?'gr-text':nearEntry?'yl-text':'dim'}">${distPct>=0?'+':''}${distPct.toFixed(2)}%</span>`:'<span class="dim">—</span>'}</td>
@@ -823,7 +805,7 @@ function viewSegnali(){
           const em=nn(s.entrata_margine)||nn(s.entrata);
           const de=lp&&em?((s.direzione==='BUY'?lp-em:em-lp)/em*100):null;
           const condMet=de!==null&&de>=0;
-          return `<td>${lp?`<span class="mono ${condMet?'gr-text':''}">${fmtP(lp)}</span>`:'<span class="dim">—</span>'}</td>
+          return `<td>${lp?`<span class="mono ${condMet?'gr-text':''}">${fmt(lp)}</span>`:'<span class="dim">—</span>'}</td>
           <td>${de!==null?`<span class="mono ${plClass(de)}">${fmtPct(de)}</span>`:'<span class="dim">—</span>'}</td>`;
         })()}
         <td>${validoBadge}</td><td>${sorgBadge}</td><td>${s.stop_counter>0?`<span class="badge ${s.stop_counter>=2?'br':'by'}">${s.stop_counter}/2</span>`:'<span class="dim">—</span>'}</td><td style="${s.stato==='eliminato'?'text-decoration:line-through;opacity:.5':''}">${badgeSig(s.stato)}</td><td><div class="flex gap1">${acts.join('')}</div></td></tr>`;}).join('')}
@@ -1188,7 +1170,7 @@ async function testPrezzi(){
       const extL=p[ticker+'_ext_label']||'';
       const state=p[ticker+'_state']||'?';
       let msg=`✅ AAPL: $${fmt(p[ticker])} · Stato: ${state}`;
-      if(extP) msg+=` · ${extL}: $${fmtP(extP)}`;
+      if(extP) msg+=` · ${extL}: $${fmt(extP)}`;
       else msg+=' · Nessun dato pre/post market (mercato regular o chiuso)';
       if(el)el.innerHTML=`<div class="alert al-success">${esc(msg)}</div><div style="font-size:11px;color:var(--t3);margin-top:6px">Raw: ${esc(JSON.stringify(p).slice(0,400))}</div>`;
     } else if(parsed.prezzi){
@@ -1618,10 +1600,9 @@ async function fetchMarketStatus(){
     if(d.state){
       S_marketState=d.state;
       S_marketOpen=d.isOpen||false;
-      // Aggiorna solo la cella intestazione senza re-render completo
-      document.querySelectorAll('[data-market-label]').forEach(el=>{
-        el.textContent=S_marketOpen?'Prezzo Live':'Chiusura';
-      });
+      // Aggiorna l'header del monitoraggio se visibile
+      const el=document.querySelector('.card-title');
+      render();
     }
   }catch(e){}
 }
