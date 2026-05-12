@@ -567,7 +567,7 @@ function viewDashboard(){
     <div class="card-title">⚠ Monitoraggio Stop — Posizioni Aperte</div>
     <div style="font-size:11px;color:var(--t2)">${S_prezziTs?'Prezzi: '+new Date(S_prezziTs).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'Clicca 📡 Prezzi per aggiornare'}</div>
   </div><div class="tbl-wrap"><table>
-  <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>TP $</th><th>Dist. Stop</th><th>Dist. TP</th><th>Chiusura</th><th>Pre/Post Mkt</th><th>P&L Corrente</th><th>Investito €</th><th></th></tr></thead>
+  <thead><tr><th></th><th>Symbol</th><th>Pos.</th><th>Piattaforma</th><th>Entry $</th><th>Stop $</th><th>TP $</th><th>Dist. Stop</th><th>Dist. TP</th><th>${(()=>{const states=aperti.map(o=>S_prezzi[o.symbol+'_state']||'').filter(Boolean);const isOpen=states.some(s=>s==='REGULAR');return isOpen?'Prezzo Live':'Chiusura';})()}</th><th>Pre/Post Mkt</th><th>P&L Corrente</th><th>Rischio Max €</th><th>Investito €</th><th></th></tr></thead>
   <tbody>${aperti.map(o=>{
     const ep=nn(o.entry_price),sl=nn(o.stop_loss),inv=nn(o.investito_eur),ps=nn(o.position_size)||0;
     const sig=S.signals.find(s=>s.id===o.signal_id)||{};
@@ -602,6 +602,7 @@ function viewDashboard(){
         return `<td><span class="badge ${badgeCls}" style="font-size:10px">${extLabel} $${fmt(extP)}</span>${stopViolatoExt?'<span class="sig-light red" style="margin-left:4px;display:inline-block"></span>':''}</td>`;
       })()}
       <td>${livePL!==null?`<span class="mono ${plClass(livePL)}">${fmtEur(livePL)}</span>`:'<span class="dim">—</span>'}</td>
+      <td class="mono rd-text">${(()=>{const tpEff2=nn(o.tp_livello)||(()=>{const s2=S.signals.find(s=>s.id===o.signal_id)||{};return nn(s2.tp1)||null;})();if(!ep||!stopEff||!inv)return '—';const risk=inv*(Math.abs(ep-stopEff)/ep);return fmt(risk)+'€';})()}</td>
       <td class="mono">${inv?fmt(inv)+'€':'—'}</td>
       <td><button class="btn btn-sm btn-gh" onclick="openM('dettaglioOrdine',{id:'${o.id}'})">→</button></td>
     </tr>`;
